@@ -1,0 +1,23 @@
+
+(ns app.comp.home
+  (:require [hsl.core :refer [hsl]]
+            [respo-ui.core :as ui]
+            [respo.comp.space :refer [=<]]
+            [respo.core :refer [defcomp <> action-> span div button]]
+            [app.config :as config]))
+
+(defcomp
+ comp-home
+ ()
+ (div
+  {:style (merge ui/row ui/flex {:padding 16})}
+  (div
+   {:style ui/flex}
+   (div
+    {}
+    (<> "Branches")
+    (=< 16 nil)
+    (button {:style ui/button, :inner-text "list branches"}))
+   (div {})
+   (div {} (<> "Other operations")))
+  (div {:style ui/flex} (div {} (<> "logs")))))
