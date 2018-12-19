@@ -31,6 +31,8 @@
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 
+(defn push-current! [d!] (run-command! (<< "git pushi") d! {}))
+
 (defn read-branches! [d!]
   (.exec
    cp

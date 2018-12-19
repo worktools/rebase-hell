@@ -102,6 +102,11 @@
           :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
         (=< 16 nil)
         (button
+         {:style (merge ui/button),
+          :inner-text "Push",
+          :on-click (fn [e d! m!] (d! :effect/push-current nil))})
+        (=< 16 nil)
+        (button
          {:style (merge ui/button {:color :red, :border-color :red}),
           :inner-text "Force push",
           :on-click (fn [e d! m!] (d! :effect/force-push nil))})

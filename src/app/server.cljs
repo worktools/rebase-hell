@@ -52,6 +52,7 @@
        (= op :effect/switch-branch) (manager/switch-branch! op-data d!)
        (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-current) (manager/pull-current! d!)
+       (= op :effect/push-current) (manager/push-current! d!)
        (= op :effect/rebase-master) (manager/rebase-master! d!)
        (= op :effect/force-push) (manager/force-push! (get-in db [:repo :current]) d!)
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
