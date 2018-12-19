@@ -3,6 +3,24 @@
   (:require ["child_process" :as cp] [clojure.string :as string])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
+(defn fetch-origin! [d!]
+  (.exec
+   cp
+   (<< "git fetch origin --prune")
+   (fn [err stdout stderr] (js/console.error err) (println stderr) (println stdout))))
+
+(defn force-push! [branch d!]
+  (.exec
+   cp
+   (<< "git push origin ~{branch} -f")
+   (fn [err stdout stderr] (js/console.error err) (println stderr) (println stdout))))
+
+(defn pull-master! [d!]
+  (.exec
+   cp
+   (<< "git pull")
+   (fn [err stdout stderr] (js/console.error err) (println stderr) (println stdout))))
+
 (defn read-branches! [d!]
   (.exec
    cp
@@ -20,6 +38,22 @@
           (d!
            :repo/set-branches
            {:branches (set branches), :current (string/trim current-raw)})))))))
+
+(defn rebase-master! [d!]
+  (.exec
+   cp
+   (<< "git rebase origin/master")
+   (fn [err stdout stderr] (js/console.error err) (println stderr) (println stdout))))
+
+(defn remove-branch! [branch d!]
+  (.exec
+   cp
+   (<< "git branch -d ~{branch}")
+   (fn [err stdout stderr]
+     (js/console.error err)
+     (println stderr)
+     (println stdout)
+     (d! :effect/read-branches))))
 
 (defn run-process! [command d!]
   (let [proc (.exec cp command (clj->js {:cwd js/process.env.CWD}))]

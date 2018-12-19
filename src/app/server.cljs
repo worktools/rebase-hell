@@ -14,7 +14,8 @@
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
-            [app.manager :refer [run-process! read-branches! switch-branch!]]))
+            [app.manager :refer [run-process! read-branches! switch-branch! fetch-origin!]]
+            [app.manager :as manager]))
 
 (defonce *client-caches (atom {}))
 
@@ -43,7 +44,7 @@
    (write-mildly! backup-path file-content)))
 
 (defn dispatch! [op op-data sid]
-  (let [op-id (id!), op-time (unix-time!), d! #(dispatch! %1 %2 sid)]
+  (let [op-id (id!), op-time (unix-time!), d! #(dispatch! %1 %2 sid), db (:db @*reel)]
     (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
@@ -51,6 +52,11 @@
        (= op :effect/run-command) (run-process! op-data d!)
        (= op :effect/read-branches) (read-branches! d!)
        (= op :effect/switch-branch) (switch-branch! op-data d!)
+       (= op :effect/fetch-origin) (fetch-origin! d!)
+       (= op :effect/pull-master) (manager/pull-master! d!)
+       (= op :effect/rebase-master) (manager/rebase-master! d!)
+       (= op :effect/force-push) (manager/force-push! (get-in db [:repo :current]) d!)
+       (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))))
 
