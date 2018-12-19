@@ -36,7 +36,7 @@
 (defn connect! []
   (ws-connect!
    (<< "ws://~{js/location.hostname}:~(:port config/site)")
-   {:on-open (fn [] (comment simulate-login!)),
+   {:on-open (fn [] (comment simulate-login!) (dispatch! :effect/read-branches nil)),
     :on-close (fn [event] (reset! *store nil) (js/console.error "Lost connection!")),
     :on-data (fn [data]
       (case (:kind data)
@@ -63,7 +63,9 @@
   (.addEventListener
    js/window
    "visibilitychange"
-   (fn [] (when (and (nil? @*store) (= "visible" js/document.visibilityState)) (connect!))))
+   (fn []
+     (when (= "visible" js/document.visibilityState)
+       (if (nil? @*store) (connect!) (dispatch! :effect/read-branches nil)))))
   (println "App started!"))
 
 (defn reload! [] (clear-cache!) (render-app! render!) (println "Code updated."))
