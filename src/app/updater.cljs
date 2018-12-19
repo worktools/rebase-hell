@@ -23,5 +23,7 @@
             :repo/set-current repo/set-current
             :process/start process/start
             :process/finish process/finish
+            :process/log process/log
+            :process/clear-logs process/clear-logs
             (do (println "Unknown op:" op) identity))]
     (f db op-data sid op-id op-time)))

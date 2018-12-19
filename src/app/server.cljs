@@ -14,7 +14,6 @@
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
-            [app.manager :refer [run-process! read-branches! switch-branch! fetch-origin!]]
             [app.manager :as manager]))
 
 (defonce *client-caches (atom {}))
@@ -49,10 +48,9 @@
     (try
      (cond
        (= op :effect/persist) (comment persist-db!)
-       (= op :effect/run-command) (run-process! op-data d!)
-       (= op :effect/read-branches) (read-branches! d!)
-       (= op :effect/switch-branch) (switch-branch! op-data d!)
-       (= op :effect/fetch-origin) (fetch-origin! d!)
+       (= op :effect/read-branches) (manager/read-branches! d!)
+       (= op :effect/switch-branch) (manager/switch-branch! op-data d!)
+       (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-master) (manager/pull-master! d!)
        (= op :effect/rebase-master) (manager/rebase-master! d!)
        (= op :effect/force-push) (manager/force-push! (get-in db [:repo :current]) d!)

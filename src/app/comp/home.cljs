@@ -3,9 +3,10 @@
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
             [respo.comp.space :refer [=<]]
-            [respo.core :refer [defcomp <> action-> list-> span div button a]]
+            [respo.core :refer [defcomp <> action-> list-> span div button pre a]]
             [app.config :as config]
-            [feather.core :refer [comp-i]]))
+            [feather.core :refer [comp-i]])
+  (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
  comp-branch
@@ -24,8 +25,38 @@
      (comp-i :x 14 (hsl 20 80 80))))))
 
 (defcomp
+ comp-logs
+ (logs)
+ (div
+  {:style ui/flex}
+  (div
+   {}
+   (<> "Logs")
+   (=< 16 nil)
+   (if (not (empty? logs))
+     (button
+      {:style (merge ui/button),
+       :inner-text "Clear",
+       :on-click (fn [e d! m!] (d! :process/clear-logs nil))})))
+  (list->
+   {}
+   (->> logs
+        (sort (fn [[id log]] (unchecked-negate (:time log))))
+        (map
+         (fn [[id log]]
+           [id
+            (pre
+             {:style {:line-height "18px",
+                      :font-size 13,
+                      :border (<< "1px solid ~(hsl 0 0 90)"),
+                      :padding "8px",
+                      :max-width 800,
+                      :overflow :auto},
+              :inner-text (:text log)})]))))))
+
+(defcomp
  comp-home
- (repo)
+ (repo logs)
  (div
   {:style (merge ui/row ui/flex {:padding 16})}
   (div
@@ -66,6 +97,11 @@
        (div
         {:style ui/row}
         (button
+         {:style (merge ui/button),
+          :inner-text "pull-master",
+          :on-click (fn [e d! m!] (d! :effect/pull-master nil))})
+        (=< 16 nil)
+        (button
          {:style (merge ui/button {:color :red, :border-color :red}),
           :inner-text "Force push",
           :on-click (fn [e d! m!] (d! :effect/force-push nil))})
@@ -74,4 +110,4 @@
          {:style (merge ui/button {:color :red, :border-color :red}),
           :inner-text "Rebase master",
           :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
-  (div {:style ui/flex} (div {} (<> "logs")))))
+  (comp-logs logs)))

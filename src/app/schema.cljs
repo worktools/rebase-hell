@@ -1,6 +1,8 @@
 
 (ns app.schema )
 
+(def log {:id nil, :time nil, :kind nil, :text nil})
+
 (def router {:name nil, :title nil, :data {}, :router nil})
 
 (def session
@@ -16,5 +18,5 @@
   {:sessions (do session {}),
    :users (do user {}),
    :repo {:branches #{}, :current "master"},
-   :logs {},
+   :logs (do log {}),
    :process-status {}})

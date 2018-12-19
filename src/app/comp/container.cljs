@@ -63,7 +63,7 @@
       {:style (merge ui/global ui/fullscreen ui/column)}
       (comp-navigation (:logged-in? store) (:count store))
       (case (:name router)
-        :home (comp-home (:repo store))
+        :home (comp-home (:repo store) (:logs store))
         :profile (comp-profile (:user store) (:data router))
         (<> router))
       (comp-status-color (:color store))
