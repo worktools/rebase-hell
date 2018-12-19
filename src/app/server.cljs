@@ -6,13 +6,15 @@
             [cumulo-reel.core :refer [reel-reducer refresh-reel reel-schema]]
             ["fs" :as fs]
             ["path" :as path]
+            ["util" :as util]
             [app.config :as config]
             [cumulo-util.file :refer [write-mildly! get-backup-path! merge-local-edn!]]
             [cumulo-util.core :refer [id! repeat! unix-time! delay!]]
             [app.twig.container :refer [twig-container]]
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
-            [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]))
+            [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
+            [app.manager :refer [run-process! read-branches!]]))
 
 (defonce *client-caches (atom {}))
 
@@ -42,10 +44,12 @@
 
 (defn dispatch! [op op-data sid]
   (let [op-id (id!), op-time (unix-time!)]
-    (if config/dev? (println "Dispatch!" (str op) op-data sid))
+    (if config/dev? (println "Dispatch!" (str op) (pr-str op-data) sid))
     (try
      (cond
        (= op :effect/persist) (persist-db!)
+       (= op :effect/run-command) (run-process! op-data sid dispatch!)
+       (= op :effect/read-branches) (read-branches! sid dispatch!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))))
 

@@ -28,4 +28,6 @@
                 :profile (twig-members (:sessions db) (:users db))
                 {})),
      :count (count (:sessions db)),
-     :color (color/randomColor)})))
+     :color (color/randomColor),
+     :repo (:repo db),
+     :logs (:logs db)})))
