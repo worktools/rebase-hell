@@ -26,18 +26,21 @@
 
 (defcomp
  comp-logs
- (logs)
+ (logs status)
  (div
   {:style ui/flex}
   (div
-   {}
+   {:style ui/row-middle}
    (<> "Logs")
    (=< 16 nil)
    (if (not (empty? logs))
      (button
       {:style (merge ui/button),
        :inner-text "Clear",
-       :on-click (fn [e d! m!] (d! :process/clear-logs nil))})))
+       :on-click (fn [e d! m!] (d! :process/clear-logs nil))}))
+   (=< 8 nil)
+   (if (not (empty? status))
+     (span {:class-name "rotating"} (comp-i :loader 24 (hsl 0 0 0 0.5)))))
   (list->
    {}
    (->> logs
@@ -56,7 +59,7 @@
 
 (defcomp
  comp-home
- (repo logs)
+ (repo logs status)
  (div
   {:style (merge ui/row ui/flex {:padding 16})}
   (div
@@ -115,4 +118,4 @@
          {:style (merge ui/button {:color :red, :border-color :red}),
           :inner-text "Rebase master",
           :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
-  (comp-logs logs)))
+  (comp-logs logs status)))

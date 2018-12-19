@@ -8,8 +8,6 @@
             [app.schema :as schema]
             [respo-message.updater :refer [update-messages]]))
 
-(defn finish [db pid sid op-id op-time] (assoc-in db [:process-status pid] true))
-
 (defn updater [db op op-data sid op-id op-time]
   (let [f (case op
             :session/connect session/connect

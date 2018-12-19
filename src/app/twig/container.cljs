@@ -31,4 +31,4 @@
      :color (color/randomColor),
      :repo (:repo db),
      :logs (:logs db),
-     :process-status {}})))
+     :process-status (:process-status db)})))
