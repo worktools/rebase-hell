@@ -2,7 +2,8 @@
 (ns app.manager
   (:require ["child_process" :as cp]
             [clojure.string :as string]
-            [cumulo-util.core :refer [id! unix-time!]])
+            [cumulo-util.core :refer [id! unix-time!]]
+            [cljs.core.async :refer [chan >! <! close! go]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -34,22 +35,22 @@
 (defn push-current! [d!] (run-command! (<< "git pushi") d! {}))
 
 (defn read-branches! [d!]
-  (.exec
-   cp
-   "git branch --format \"%(refname:short)\""
-   (fn [err branches-raw stderr]
-     (js/console.log err)
-     (println stderr)
-     (let [branches (-> (or branches-raw "") (string/trim) (string/split "\n"))]
-       (.exec
-        cp
-        "git rev-parse --abbrev-ref HEAD"
-        (fn [err current-raw stderr]
-          (js/console.log err)
-          (println stderr)
-          (d!
-           :repo/set-branches
-           {:branches (set branches), :current (string/trim current-raw)})))))))
+  (let [ch-branches (chan), ch-current (chan)]
+    (.exec
+     cp
+     "git branch --format \"%(refname:short)\""
+     (fn [err branches-raw stderr]
+       (go
+        (>! ch-branches (-> (or branches-raw "") string/trim (string/split "\n") set))
+        (close! ch-branches))))
+    (.exec
+     cp
+     "git rev-parse --abbrev-ref HEAD"
+     (fn [err current-raw stderr]
+       (go (>! ch-current (string/trim current-raw)) (close! ch-current))))
+    (go
+     (let [branches (<! ch-branches), current (<! ch-current)]
+       (d! :repo/set-branches {:branches (set branches), :current current})))))
 
 (defn rebase-master! [d!] (run-command! (<< "git rebase origin/master") d! {}))
 
