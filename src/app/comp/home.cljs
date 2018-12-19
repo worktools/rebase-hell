@@ -92,14 +92,14 @@
         {}
         (button
          {:style (merge ui/button),
-          :inner-text "pull-master",
-          :on-click (fn [e d! m!] (d! :effect/pull-master nil))}))
+          :inner-text "Pull",
+          :on-click (fn [e d! m!] (d! :effect/pull-current nil))}))
        (div
         {:style ui/row}
         (button
          {:style (merge ui/button),
-          :inner-text "pull-master",
-          :on-click (fn [e d! m!] (d! :effect/pull-master nil))})
+          :inner-text "Pull",
+          :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
         (=< 16 nil)
         (button
          {:style (merge ui/button {:color :red, :border-color :red}),
