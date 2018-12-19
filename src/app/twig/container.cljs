@@ -30,4 +30,5 @@
      :count (count (:sessions db)),
      :color (color/randomColor),
      :repo (:repo db),
-     :logs (:logs db)})))
+     :logs (:logs db),
+     :process-status {}})))

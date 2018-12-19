@@ -28,7 +28,10 @@
           (fn [branch]
             [branch
              (div
-              {:style (merge (if (= (:current repo) branch) {:font-weight :bold}))}
+              {:style (merge
+                       {:cursor :pointer}
+                       (if (= (:current repo) branch) {:font-weight :bold})),
+               :on-click (fn [e d! m!] (d! :effect/switch-branch branch))}
               (<> branch))]))))
    (div {} (<> "Other operations")))
   (div {:style ui/flex} (div {} (<> "logs")))))

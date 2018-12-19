@@ -14,7 +14,7 @@
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
-            [app.manager :refer [run-process! read-branches!]]))
+            [app.manager :refer [run-process! read-branches! switch-branch!]]))
 
 (defonce *client-caches (atom {}))
 
@@ -43,13 +43,14 @@
    (write-mildly! backup-path file-content)))
 
 (defn dispatch! [op op-data sid]
-  (let [op-id (id!), op-time (unix-time!)]
-    (if config/dev? (println "Dispatch!" (str op) (pr-str op-data) sid))
+  (let [op-id (id!), op-time (unix-time!), d! #(dispatch! %1 %2 sid)]
+    (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
-       (= op :effect/persist) (persist-db!)
-       (= op :effect/run-command) (run-process! op-data sid dispatch!)
-       (= op :effect/read-branches) (read-branches! sid dispatch!)
+       (= op :effect/persist) (comment persist-db!)
+       (= op :effect/run-command) (run-process! op-data d!)
+       (= op :effect/read-branches) (read-branches! d!)
+       (= op :effect/switch-branch) (switch-branch! op-data d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))))
 

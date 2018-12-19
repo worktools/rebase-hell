@@ -16,4 +16,5 @@
   {:sessions (do session {}),
    :users (do user {}),
    :repo {:branches #{}, :current "master"},
-   :logs {}})
+   :logs {},
+   :process-status {}})
