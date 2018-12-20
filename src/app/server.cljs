@@ -43,7 +43,11 @@
    (write-mildly! backup-path file-content)))
 
 (defn dispatch! [op op-data sid]
-  (let [op-id (id!), op-time (unix-time!), d! #(dispatch! %1 %2 sid), db (:db @*reel)]
+  (let [op-id (id!)
+        op-time (unix-time!)
+        d! #(dispatch! %1 %2 sid)
+        db (:db @*reel)
+        current (get-in db [:repo :current])]
     (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
@@ -52,9 +56,9 @@
        (= op :effect/switch-branch) (manager/switch-branch! op-data d!)
        (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-current) (manager/pull-current! d!)
-       (= op :effect/push-current) (manager/push-current! d!)
+       (= op :effect/push-current) (manager/push-current! current d!)
        (= op :effect/rebase-master) (manager/rebase-master! d!)
-       (= op :effect/force-push) (manager/force-push! (get-in db [:repo :current]) d!)
+       (= op :effect/force-push) (manager/force-push! current d!)
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))))

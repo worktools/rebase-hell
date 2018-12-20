@@ -28,7 +28,7 @@
  comp-logs
  (logs status)
  (div
-  {:style ui/flex}
+  {:style (merge ui/flex ui/column)}
   (div
    {:style ui/row-middle}
    (<> "Logs")
@@ -42,7 +42,7 @@
    (if (not (empty? status))
      (span {:class-name "rotating"} (comp-i :loader 24 (hsl 0 0 0 0.5)))))
   (list->
-   {}
+   {:style (merge ui/flex {:overflow :auto})}
    (->> logs
         (sort (fn [[id log]] (unchecked-negate (:time log))))
         (map
@@ -88,7 +88,7 @@
            (map (fn [branch] [branch (comp-branch branch (:current repo))])))))
     (=< 16 nil)
     (div
-     {:style ui/flex}
+     {:style (merge ui/flex ui/column)}
      (div {} (<> "Other operations"))
      (if (= "master" (:current repo))
        (div

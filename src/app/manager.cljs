@@ -32,7 +32,7 @@
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 
-(defn push-current! [d!] (run-command! (<< "git pushi") d! {}))
+(defn push-current! [current d!] (run-command! (<< "git push origin ~{current}") d! {}))
 
 (defn read-branches! [d!]
   (let [ch-branches (chan), ch-current (chan)]
