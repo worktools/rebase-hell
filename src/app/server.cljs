@@ -7,6 +7,8 @@
             ["fs" :as fs]
             ["path" :as path]
             ["util" :as util]
+            ["chalk" :as chalk]
+            ["latest-version" :as latest-version]
             [app.config :as config]
             [cumulo-util.file :refer [write-mildly! get-backup-path! merge-local-edn!]]
             [cumulo-util.core :refer [id! repeat! unix-time! delay!]]
@@ -14,7 +16,8 @@
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
-            [app.manager :as manager]))
+            [app.manager :as manager])
+  (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defonce *client-caches (atom {}))
 
@@ -32,6 +35,20 @@
 (defonce *reel (atom (merge reel-schema {:base initial-db, :db initial-db})))
 
 (defonce *reader-reel (atom @*reel))
+
+(defn check-version! []
+  (let [pkg (.parse js/JSON (fs/readFileSync (path/join js/__dirname "../package.json")))
+        version (.-version pkg)]
+    (-> (latest-version (.-name pkg))
+        (.then
+         (fn [npm-version]
+           (if (= npm-version version)
+             (println "Running latest version" version)
+             (println
+              (.yellow
+               chalk
+               (<<
+                "New version ~{npm-version} available, current one is ~{version} . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n")))))))))
 
 (defn persist-db! []
   (comment
@@ -110,7 +127,10 @@
   (render-loop!)
   (comment js/process.on "SIGINT" on-exit!)
   (comment repeat! 600 #(persist-db!))
-  (println "Server started."))
+  (println
+   "Server started. Open editer on"
+   (.blue chalk "http://repo.tiye.me/chenyong/rebase-hell/"))
+  (check-version!))
 
 (defn reload! []
   (println "Code updated.")
