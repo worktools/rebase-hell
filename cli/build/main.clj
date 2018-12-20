@@ -10,7 +10,7 @@
 (defn build-cdn []
   (sh! "rm -rf dist/*")
   (shadow/release :client)
-  (shadow/release :server)
+  ; (shadow/release :server)
   (shadow/compile :page)
   (sh! "release=true cdn=true node target/page.js")
   (sh! "cp package.json dist/")

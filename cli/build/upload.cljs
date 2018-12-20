@@ -10,6 +10,4 @@
 (defn -main []
   (sh! (str "rsync -avr --progress dist/* " (:cdn-folder config/site)))
   (sh! (str "rsync -avr --progress dist/{index.html,manifest.json} "
-            (:upload-folder config/site)))
-  (sh! (str "rsync -avr --progress dist/{server.js,package.json} "
-            (:server-folder config/site))))
+            (:upload-folder config/site))))

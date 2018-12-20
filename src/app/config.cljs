@@ -19,6 +19,7 @@
 (def site
   {:port 8009,
    :title "Rebase Hell",
+   :ws-host "localhost",
    :icon "http://cdn.tiye.me/logo/cumulo.png",
    :dev-ui "http://localhost:8100/main.css",
    :release-ui "http://cdn.tiye.me/favored-fonts/main.css",

@@ -10,21 +10,22 @@
   (let [proc (.exec cp command (clj->js {:cwd js/process.env.CWD}))]
     (d! :process/start proc.pid)
     (.on
-     proc.stdout
+     (.-stdout ^js proc)
      "data"
      (fn [chunk] (d! :process/log {:id (id!), :time (unix-time!), :text chunk, :kind :log})))
     (.on
-     proc.stderr
+     (.-stderr ^js proc)
      "data"
      (fn [chunk]
        (d! :process/log {:id (id!), :time (unix-time!), :text chunk, :kind :error})))
     (.on
+     ^js
      proc
      "exit"
      (fn [event]
        (d! :process/finish proc.pid)
        (when-let [on-finish (:on-finish options)] (on-finish))))
-    (.on proc "error" (fn [error] (js/console.error error)))))
+    (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 
