@@ -30,17 +30,30 @@
  (div
   {:style (merge ui/flex ui/column)}
   (div
-   {:style ui/row-middle}
+   {:style (merge ui/row-middle {:height 32})}
    (<> "Logs")
    (=< 16 nil)
    (if (not (empty? logs))
      (button
       {:style (merge ui/button),
        :inner-text "Clear",
-       :on-click (fn [e d! m!] (d! :process/clear-logs nil))}))
-   (=< 8 nil)
-   (if (not (empty? status))
-     (span {:class-name "rotating"} (comp-i :loader 24 (hsl 0 0 0 0.5)))))
+       :on-click (fn [e d! m!] (d! :process/clear-logs nil))})))
+  (if (not (empty? status))
+    (div
+     {:style (merge ui/row-middle {:padding 16})}
+     (span {:class-name "rotating"} (comp-i :loader 24 (hsl 0 0 0 0.5)))
+     (=< 16 nil)
+     (list->
+      {}
+      (->> status
+           (map
+            (fn [[pid command]]
+              [pid
+               (div
+                {:style {:font-family ui/font-code, :font-size 13, :line-height "20px"}}
+                (<> pid)
+                (=< 8 nil)
+                (<> command))]))))))
   (list->
    {:style (merge ui/flex {:overflow :auto})}
    (->> logs

@@ -8,4 +8,6 @@
 
 (defn log [db op-data sid op-id op-time] (assoc-in db [:logs (:id op-data)] op-data))
 
-(defn start [db pid sid op-id op-time] (assoc-in db [:process-status pid] true))
+(defn start [db op-data sid op-id op-time]
+  (let [pid (:pid op-data), command (:command op-data)]
+    (assoc-in db [:process-status pid] command)))

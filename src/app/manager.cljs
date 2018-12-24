@@ -8,7 +8,7 @@
 
 (defn run-command! [command d! options]
   (let [proc (.exec cp command (clj->js {:cwd js/process.env.CWD}))]
-    (d! :process/start proc.pid)
+    (d! :process/start {:pid proc.pid, :command command})
     (.on
      (.-stdout ^js proc)
      "data"
