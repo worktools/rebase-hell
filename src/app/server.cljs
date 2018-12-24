@@ -128,8 +128,7 @@
   (comment js/process.on "SIGINT" on-exit!)
   (comment repeat! 600 #(persist-db!))
   (println
-   "Server started. Open editer on"
-   (.blue chalk "http://repo.tiye.me/chenyong/rebase-hell/"))
+   (<< "Server started. Open editor on ~(.blue chalk \"http://fe.jimu.io/rebase-hell/\")"))
   (check-version!))
 
 (defn reload! []

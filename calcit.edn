@@ -8161,13 +8161,11 @@
         :type :expr, :by "root", :at 1545315828455, :id "bFjlTRyFYR"
         :data {
          "T" {:type :leaf, :by "root", :at 1545315828455, :text "println", :id "Xeb1fwWZy7"}
-         "j" {:type :leaf, :by "root", :at 1545315828455, :text "\"Server started. Open editer on", :id "0UGwRu4enU"}
-         "r" {
-          :type :expr, :by "root", :at 1545315828455, :id "gEXoDLXlmb"
+         "j" {
+          :type :expr, :by "root", :at 1545630646799, :id "zn1SrAU3KG"
           :data {
-           "T" {:type :leaf, :by "root", :at 1545315828455, :text ".blue", :id "kjoE2OUsdr"}
-           "j" {:type :leaf, :by "root", :at 1545315828455, :text "chalk", :id "2oWZU4jeMV"}
-           "r" {:type :leaf, :by "root", :at 1545316006785, :text "\"http://repo.tiye.me/chenyong/rebase-hell/", :id "uwmbqCK6RM"}
+           "D" {:type :leaf, :by "root", :at 1545630702740, :text "<<", :id "qy88iEfa4r"}
+           "T" {:type :leaf, :by "root", :at 1545630695688, :text "\"Server started. Open editor on ~(.blue chalk \"http://fe.jimu.io/rebase-hell/\")", :id "0UGwRu4enU"}
           }
          }
         }
