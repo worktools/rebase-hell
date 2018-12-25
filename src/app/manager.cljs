@@ -8,7 +8,7 @@
 
 (defn run-command! [command d! options]
   (let [proc (.exec cp command (clj->js {:cwd js/process.env.CWD}))]
-    (d! :process/start {:pid proc.pid, :command command})
+    (d! :process/start {:pid (.-pid proc), :command command})
     (.on
      (.-stdout ^js proc)
      "data"
@@ -23,7 +23,7 @@
      proc
      "exit"
      (fn [event]
-       (d! :process/finish proc.pid)
+       (d! :process/finish (.-pid proc))
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 

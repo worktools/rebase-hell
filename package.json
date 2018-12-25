@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -11,7 +11,7 @@
     "build-cdn": "shadow-cljs clj-run build.main/build-cdn",
     "build": "shadow-cljs clj-run build.main/build",
     "page": "shadow-cljs clj-run build.main/page",
-    "upload": "lumo -c cli/:src/ -m build.upload",
+    "upload": "node target/upload.js",
     "up": "yarn build-cdn && yarn upload",
     "pkg": "rm -rf dist/* && yarn shadow-cljs release server",
     "serve": "http-server dist -s",

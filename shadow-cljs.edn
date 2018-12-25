@@ -5,7 +5,7 @@
                 [mvc-works/ws-edn       "0.1.1"]
                 [cumulo/recollect       "0.5.0"]
                 [cumulo/reel            "0.1.1"]
-                [cumulo/util            "0.1.5"]
+                [cumulo/util            "0.1.6"]
                 [respo                  "0.10.2"]
                 [respo/ui               "0.3.10"]
                 [respo/alerts           "0.3.10"]
@@ -26,12 +26,16 @@
                    :release {:output-dir "dist/"}
                              :module-hash-names 8
                              :build-options {:manifest-name "assets.edn"}}
-          :page {:target :node-script
-                 :output-to "target/page.js"
-                 :main app.page/main!
-                 :devtools {:after-load app.page/main!}}
           :server {:target :node-script
                    :output-to "target/server.js"
                    :main app.server/main!
                    :devtools {:after-load app.server/reload!}
-                   :release {:output-to "dist/server.js"}}}}
+                   :release {:output-to "dist/server.js"}}
+          :page {:target :node-script
+                 :output-to "target/page.js"
+                 :main app.page/main!
+                 :devtools {:after-load app.page/main!}}
+          :upload {:target :node-script
+                   :output-to "target/upload.js"
+                   :main app.upload/main!
+                   :devtools {:after-load app.upload/main!}}}}

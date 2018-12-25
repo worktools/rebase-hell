@@ -51,8 +51,8 @@
               [pid
                (div
                 {:style {:font-family ui/font-code, :font-size 13, :line-height "20px"}}
-                (<> pid)
-                (=< 8 nil)
+                (<> pid {:color (hsl 0 0 80)})
+                (=< 16 nil)
                 (<> command))]))))))
   (list->
    {:style (merge ui/flex {:overflow :auto})}
@@ -67,7 +67,8 @@
                       :border (<< "1px solid ~(hsl 0 0 90)"),
                       :padding "8px",
                       :max-width 800,
-                      :overflow :auto},
+                      :overflow :auto,
+                      :font-family ui/font-code},
               :inner-text (:text log)})]))))))
 
 (defcomp
