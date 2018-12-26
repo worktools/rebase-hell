@@ -5,21 +5,26 @@
             [respo.comp.space :refer [=<]]
             [respo.core :refer [defcomp <> action-> list-> span div button pre a]]
             [app.config :as config]
-            [feather.core :refer [comp-i]])
+            [feather.core :refer [comp-i]]
+            [clojure.string :as string])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
  comp-branch
- (branch current)
+ (branch current remote?)
  (div
   {:class-name "hoverable",
    :style (merge
            ui/row-parted
            {:cursor :pointer, :line-height "32px", :padding "0 8px", :min-width 200}
-           (if (= current branch) {:background-color (hsl 0 0 93)})),
-   :on-click (fn [e d! m!] (d! :effect/switch-branch branch))}
+           (if (= current branch) {:background-color (hsl 0 0 93)})
+           (if remote? {:color (hsl 0 0 80), :line-height "26px", :font-size 13})),
+   :on-click (fn [e d! m!]
+     (if remote?
+       (d! :effect/switch-remote-branch (last (string/split branch "/")))
+       (d! :effect/switch-branch branch)))}
   (<> branch)
-  (if (and (not= current branch) (not= branch "master"))
+  (if (and (not= current branch) (not= branch "master") (not remote?))
     (a
      {:on-click (fn [e d! m!] (d! :effect/remove-branch branch))}
      (comp-i :x 14 (hsl 20 80 80))))))
@@ -95,11 +100,20 @@
    (div
     {:style (merge ui/flex ui/row)}
     (div
-     {:style {}}
+     {:style {:overflow :auto}}
      (list->
       {}
       (->> (:branches repo)
-           (map (fn [branch] [branch (comp-branch branch (:current repo))])))))
+           (sort)
+           (map (fn [branch] [branch (comp-branch branch (:current repo) false)]))))
+     (list->
+      {}
+      (->> (:remote-branches repo)
+           (sort)
+           (filter
+            (fn [branch-path]
+              (not (contains? (:branches repo) (last (string/split branch-path "/"))))))
+           (map (fn [branch] [branch (comp-branch branch (:current repo) true)])))))
     (=< 16 nil)
     (div
      {:style (merge ui/flex ui/column)}

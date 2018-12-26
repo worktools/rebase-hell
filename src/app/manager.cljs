@@ -36,7 +36,7 @@
 (defn push-current! [current d!] (run-command! (<< "git push origin ~{current}") d! {}))
 
 (defn read-branches! [d!]
-  (let [ch-branches (chan), ch-current (chan)]
+  (let [ch-branches (chan), ch-current (chan), <remote-branches (chan)]
     (.exec
      cp
      "git branch --format \"%(refname:short)\""
@@ -49,9 +49,20 @@
      "git rev-parse --abbrev-ref HEAD"
      (fn [err current-raw stderr]
        (go (>! ch-current (string/trim current-raw)) (close! ch-current))))
+    (.exec
+     cp
+     "git branch --remote --format \"%(refname:short)\""
+     (fn [err branches-raw stderr]
+       (go
+        (>! <remote-branches (-> (or branches-raw "") string/trim (string/split "\n") set))
+        (close! <remote-branches))))
     (go
-     (let [branches (<! ch-branches), current (<! ch-current)]
-       (d! :repo/set-branches {:branches (set branches), :current current})))))
+     (let [branches (<! ch-branches)
+           current (<! ch-current)
+           remote-branches (<! <remote-branches)]
+       (d!
+        :repo/set-branches
+        {:branches branches, :current current, :remote-branches remote-branches})))))
 
 (defn rebase-master! [d!] (run-command! (<< "git rebase origin/master") d! {}))
 
@@ -66,3 +77,9 @@
    (<< "git checkout ~{branch-name}")
    d!
    {:on-finish (fn [] (d! :repo/set-current branch-name))}))
+
+(defn switch-remote-branch! [branch-name d!]
+  (run-command!
+   (<< "git checkout ~{branch-name}")
+   d!
+   {:on-finish (fn [] (d! :effect/read-branches branch-name))}))

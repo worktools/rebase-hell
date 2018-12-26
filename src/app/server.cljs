@@ -71,6 +71,7 @@
        (= op :effect/persist) (comment persist-db!)
        (= op :effect/read-branches) (manager/read-branches! d!)
        (= op :effect/switch-branch) (manager/switch-branch! op-data d!)
+       (= op :effect/switch-remote-branch) (manager/switch-remote-branch! op-data d!)
        (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-current) (manager/pull-current! d!)
        (= op :effect/push-current) (manager/push-current! current d!)
