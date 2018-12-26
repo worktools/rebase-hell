@@ -11,7 +11,7 @@ Rebase Hell is a tool to do rebase with clicks
 yarn global add @jiemngio/rebase-hell
 ```
 
-And open http://repo.tiye.me/chenyong/rebase-hell/
+And open http://fe.jimu.io/rebase-hell/
 
 ### Workflow
 
