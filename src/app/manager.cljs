@@ -31,6 +31,12 @@
 
 (defn force-push! [branch d!] (run-command! (<< "git push origin ~{branch} -f") d! {}))
 
+(defn new-branch! [branch-name d!]
+  (run-command!
+   (<< "git checkout -b ~{branch-name}")
+   d!
+   {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
+
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 
 (defn push-current! [current d!] (run-command! (<< "git push origin ~{current}") d! {}))

@@ -3,10 +3,11 @@
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
             [respo.comp.space :refer [=<]]
-            [respo.core :refer [defcomp <> action-> list-> span div button pre a]]
+            [respo.core :refer [defcomp <> action-> list-> cursor-> span div button pre a]]
             [app.config :as config]
             [feather.core :refer [comp-i]]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [respo-alerts.comp.alerts :refer [comp-prompt]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -77,8 +78,20 @@
               :inner-text (:text log)})]))))))
 
 (defcomp
+ comp-new-branch
+ (states)
+ (cursor->
+  :prompt
+  comp-prompt
+  states
+  {:trigger (button {:style (merge ui/button), :inner-text "New Branch"}),
+   :initial "JM-",
+   :text "Branch name"}
+  (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
+
+(defcomp
  comp-home
- (repo logs status)
+ (states repo logs status)
  (div
   {:style (merge ui/row ui/flex {:padding 16})}
   (div
@@ -124,13 +137,17 @@
         (button
          {:style (merge ui/button),
           :inner-text "Pull",
-          :on-click (fn [e d! m!] (d! :effect/pull-current nil))}))
+          :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
+        (=< 16 nil)
+        (comp-new-branch states))
        (div
         {:style ui/row}
         (button
          {:style (merge ui/button),
           :inner-text "Pull",
           :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
+        (=< 16 nil)
+        (comp-new-branch states)
         (=< 16 nil)
         (button
          {:style (merge ui/button),
