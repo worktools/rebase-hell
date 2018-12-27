@@ -102,11 +102,6 @@
     (=< 16 nil)
     (button
      {:style ui/button,
-      :inner-text "List branches",
-      :on-click (fn [e d! m!] (d! :effect/read-branches nil))})
-    (=< 16 nil)
-    (button
-     {:style ui/button,
       :inner-text "Fetch",
       :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))}))
    (=< nil 16)
@@ -121,12 +116,12 @@
            (map (fn [branch] [branch (comp-branch branch (:current repo) false)]))))
      (=< nil 16)
      (let [remote-branches (->> (:remote-branches repo)
-                                (sort)
                                 (filter
                                  (fn [branch-path]
                                    (let [short-name (last (string/split branch-path "/"))]
                                      (and (not (contains? (:branches repo) short-name))
                                           (not= short-name "HEAD")))))
+                                (sort)
                                 (map (fn [branch] {:value branch, :display branch})))]
        (div
         {:style {:padding 8}}
@@ -144,6 +139,7 @@
     (div
      {:style (merge ui/flex ui/column)}
      (div {} (<> "Other operations"))
+     (=< nil 16)
      (if (= "master" (:current repo))
        (div
         {}
@@ -154,26 +150,28 @@
         (=< 16 nil)
         (comp-new-branch states))
        (div
-        {:style ui/row}
-        (button
-         {:style (merge ui/button),
-          :inner-text "Pull",
-          :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
-        (=< 16 nil)
-        (comp-new-branch states)
-        (=< 16 nil)
-        (button
-         {:style (merge ui/button),
-          :inner-text "Push",
-          :on-click (fn [e d! m!] (d! :effect/push-current nil))})
-        (=< 16 nil)
-        (button
-         {:style (merge ui/button {:color :red, :border-color :red}),
-          :inner-text "Force push",
-          :on-click (fn [e d! m!] (d! :effect/force-push nil))})
-        (=< 16 nil)
-        (button
-         {:style (merge ui/button {:color :red, :border-color :red}),
-          :inner-text "Rebase master",
-          :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
+        {}
+        (div
+         {:style ui/row}
+         (button
+          {:style (merge ui/button),
+           :inner-text "Pull",
+           :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
+         (=< 16 nil)
+         (button
+          {:style (merge ui/button),
+           :inner-text "Push",
+           :on-click (fn [e d! m!] (d! :effect/push-current nil))})
+         (=< 16 nil)
+         (button
+          {:style (merge ui/button {:color :red, :border-color :red}),
+           :inner-text "Force push",
+           :on-click (fn [e d! m!] (d! :effect/force-push nil))})
+         (=< 16 nil)
+         (button
+          {:style (merge ui/button {:color :red, :border-color :red}),
+           :inner-text "Rebase master",
+           :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))
+        (=< nil 16)
+        (div {:style ui/row} (comp-new-branch states)))))))
   (comp-logs logs status)))
