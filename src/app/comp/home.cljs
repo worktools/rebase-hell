@@ -7,7 +7,7 @@
             [app.config :as config]
             [feather.core :refer [comp-i]]
             [clojure.string :as string]
-            [respo-alerts.comp.alerts :refer [comp-prompt]])
+            [respo-alerts.comp.alerts :refer [comp-prompt comp-select]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -119,14 +119,27 @@
       (->> (:branches repo)
            (sort)
            (map (fn [branch] [branch (comp-branch branch (:current repo) false)]))))
-     (list->
-      {}
-      (->> (:remote-branches repo)
-           (sort)
-           (filter
-            (fn [branch-path]
-              (not (contains? (:branches repo) (last (string/split branch-path "/"))))))
-           (map (fn [branch] [branch (comp-branch branch (:current repo) true)])))))
+     (=< nil 16)
+     (let [remote-branches (->> (:remote-branches repo)
+                                (sort)
+                                (filter
+                                 (fn [branch-path]
+                                   (let [short-name (last (string/split branch-path "/"))]
+                                     (and (not (contains? (:branches repo) short-name))
+                                          (not= short-name "HEAD")))))
+                                (map (fn [branch] {:value branch, :display branch})))]
+       (div
+        {:style {:padding 8}}
+        (cursor->
+         :remote
+         comp-select
+         states
+         nil
+         remote-branches
+         {:placeholder "Remote branches", :text "Checkout remote branch"}
+         (fn [result d! m!]
+           (if (some? result)
+             (do (d! :effect/switch-remote-branch (last (string/split result "/"))))))))))
     (=< 16 nil)
     (div
      {:style (merge ui/flex ui/column)}
