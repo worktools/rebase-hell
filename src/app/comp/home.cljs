@@ -90,6 +90,55 @@
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
 
 (defcomp
+ comp-operations
+ (states repo)
+ (div
+  {:style (merge ui/flex ui/column)}
+  (div {} (<> "Other operations"))
+  (=< nil 16)
+  (if (= "master" (:current repo))
+    (div
+     {}
+     (button
+      {:style (merge ui/button),
+       :inner-text "Pull",
+       :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
+     (=< 16 nil)
+     (comp-new-branch states))
+    (div
+     {}
+     (div
+      {:style ui/row}
+      (button
+       {:style (merge ui/button),
+        :inner-text "Pull",
+        :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
+      (=< 16 nil)
+      (button
+       {:style (merge ui/button),
+        :inner-text "Push",
+        :on-click (fn [e d! m!] (d! :effect/push-current nil))})
+      (=< 16 nil)
+      (button
+       {:style (merge ui/button {:color :red, :border-color :red}),
+        :inner-text "Force push",
+        :on-click (fn [e d! m!] (d! :effect/force-push nil))})
+      (=< 16 nil)
+      (button
+       {:style (merge ui/button {:color :red, :border-color :red}),
+        :inner-text "Rebase master",
+        :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))
+     (=< nil 16)
+     (div
+      {:style ui/row}
+      (comp-new-branch states)
+      (=< 8 nil)
+      (button
+       {:style (merge ui/button {:color :red, :border-color :red}),
+        :inner-text "",
+        :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
+
+(defcomp
  comp-home
  (states repo logs status)
  (div
@@ -136,42 +185,5 @@
            (if (some? result)
              (do (d! :effect/switch-remote-branch (last (string/split result "/"))))))))))
     (=< 16 nil)
-    (div
-     {:style (merge ui/flex ui/column)}
-     (div {} (<> "Other operations"))
-     (=< nil 16)
-     (if (= "master" (:current repo))
-       (div
-        {}
-        (button
-         {:style (merge ui/button),
-          :inner-text "Pull",
-          :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
-        (=< 16 nil)
-        (comp-new-branch states))
-       (div
-        {}
-        (div
-         {:style ui/row}
-         (button
-          {:style (merge ui/button),
-           :inner-text "Pull",
-           :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
-         (=< 16 nil)
-         (button
-          {:style (merge ui/button),
-           :inner-text "Push",
-           :on-click (fn [e d! m!] (d! :effect/push-current nil))})
-         (=< 16 nil)
-         (button
-          {:style (merge ui/button {:color :red, :border-color :red}),
-           :inner-text "Force push",
-           :on-click (fn [e d! m!] (d! :effect/force-push nil))})
-         (=< 16 nil)
-         (button
-          {:style (merge ui/button {:color :red, :border-color :red}),
-           :inner-text "Rebase master",
-           :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))
-        (=< nil 16)
-        (div {:style ui/row} (comp-new-branch states)))))))
+    (cursor-> :operations comp-operations states repo)))
   (comp-logs logs status)))

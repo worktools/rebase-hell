@@ -3,7 +3,8 @@
   (:require ["child_process" :as cp]
             [clojure.string :as string]
             [cumulo-util.core :refer [id! unix-time!]]
-            [cljs.core.async :refer [chan >! <! close! go]])
+            [cljs.core.async :refer [chan >! <! close! go]]
+            [app.util :refer [read-items]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -47,9 +48,7 @@
      cp
      "git branch --format \"%(refname:short)\""
      (fn [err branches-raw stderr]
-       (go
-        (>! ch-branches (-> (or branches-raw "") string/trim (string/split "\n") set))
-        (close! ch-branches))))
+       (go (>! ch-branches (set (read-items branches-raw))) (close! ch-branches))))
     (.exec
      cp
      "git rev-parse --abbrev-ref HEAD"
@@ -59,9 +58,7 @@
      cp
      "git branch --remote --format \"%(refname:short)\""
      (fn [err branches-raw stderr]
-       (go
-        (>! <remote-branches (-> (or branches-raw "") string/trim (string/split "\n") set))
-        (close! <remote-branches))))
+       (go (>! <remote-branches (set (read-items branches-raw))) (close! <remote-branches))))
     (go
      (let [branches (<! ch-branches)
            current (<! ch-current)

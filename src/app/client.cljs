@@ -43,7 +43,8 @@
       (case (:kind data)
         :patch
           (let [changes (:data data)]
-            (when config/dev? (js/console.log "Changes" (clj->js changes)))
+            (comment when config/dev? (js/console.log "Changes" (clj->js changes)))
+            (println "Data changes:" (count changes))
             (reset! *store (patch-twig @*store changes)))
         (println "unknown kind:" data)))}))
 
