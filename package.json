@@ -15,8 +15,6 @@
     "up": "yarn build-cdn && yarn upload",
     "pkg": "rm -rf dist/* && yarn shadow-cljs release server",
     "serve": "http-server dist -s",
-    "repl": "rlwrap shadow-cljs clj-repl client",
-    "repl-server": "rlwrap shadow-cljs clj-repl server",
     "ln": "cd target && rm -f entry && ln -s ../entry",
     "prod": "yarn install --production"
   },

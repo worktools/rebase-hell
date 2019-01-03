@@ -50,6 +50,11 @@
 
 (def mount-target (.querySelector js/document ".app"))
 
+(defn on-keydown [event]
+  (cond
+    (and (.-metaKey event) (= "k" (.-key event))) (dispatch! :process/clear-logs nil)
+    :else nil))
+
 (defn render-app! [renderer]
   (renderer mount-target (comp-container @*states @*store) dispatch!))
 
@@ -63,6 +68,7 @@
   (add-watch *store :changes #(render-app! render!))
   (add-watch *states :changes #(render-app! render!))
   (on-page-touch #(if (nil? @*store) (connect!) (dispatch! :effect/read-branches nil)))
+  (.addEventListener js/window "keydown" (fn [event] (on-keydown event)))
   (println "App started!"))
 
 (defn reload! [] (clear-cache!) (render-app! render!) (println "Code updated."))

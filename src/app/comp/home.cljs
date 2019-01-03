@@ -135,7 +135,7 @@
       (=< 8 nil)
       (button
        {:style (merge ui/button {:color :red, :border-color :red}),
-        :inner-text "",
+        :inner-text "Pick(WIP)",
         :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
 
 (defcomp
