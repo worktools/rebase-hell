@@ -79,6 +79,15 @@
                       :color (hsl 0 0 40)},
               :inner-text (:text log)})]))))))
 
+(defn render-button [text danger? on-click]
+  (button
+   {:style (merge
+            ui/button
+            {:margin "0 8px"}
+            (if danger? {:color :red, :border-color :red})),
+    :inner-text text,
+    :on-click on-click}))
+
 (defcomp
  comp-new-branch
  (states)
@@ -86,59 +95,46 @@
   :prompt
   comp-prompt
   states
-  {:trigger (button {:style (merge ui/button), :inner-text "New Branch"}),
+  {:trigger (render-button "New Branch" false nil),
    :initial "JM-",
-   :text "Branch name"}
+   :text "Branch name",
+   :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
+
+(defcomp
+ comp-title
+ (title)
+ (div {:style {:font-family ui/font-fancy, :margin "16px 0 16px 0"}} (<> title)))
 
 (defcomp
  comp-operations
  (states repo)
  (div
   {:style (merge ui/flex ui/column {:background-color (hsl 0 0 97), :padding 16})}
-  (div {} (<> "Other operations"))
-  (=< nil 16)
   (if (= "master" (:current repo))
     (div
      {}
-     (button
-      {:style (merge ui/button),
-       :inner-text "Pull",
-       :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
-     (=< 16 nil)
-     (comp-new-branch states))
+     (comp-title "Basic")
+     (div
+      {:style ui/row}
+      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
+     (comp-title "Others")
+     (div {:style ui/row} (comp-new-branch states)))
     (div
      {}
+     (comp-title "Basic")
      (div
       {:style ui/row}
-      (button
-       {:style (merge ui/button),
-        :inner-text "Pull",
-        :on-click (fn [e d! m!] (d! :effect/pull-current nil))})
-      (=< 16 nil)
-      (button
-       {:style (merge ui/button),
-        :inner-text "Push",
-        :on-click (fn [e d! m!] (d! :effect/push-current nil))})
-      (=< 16 nil)
-      (button
-       {:style (merge ui/button {:color :red, :border-color :red}),
-        :inner-text "Force push",
-        :on-click (fn [e d! m!] (d! :effect/force-push nil))})
-      (=< 16 nil)
-      (button
-       {:style (merge ui/button {:color :red, :border-color :red}),
-        :inner-text "Rebase master",
-        :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))
-     (=< nil 16)
+      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil)))
+      (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil))))
+     (comp-title "Other")
+     (div {:style ui/row} (comp-new-branch states))
+     (comp-title "Forced")
      (div
       {:style ui/row}
-      (comp-new-branch states)
-      (=< 8 nil)
-      (button
-       {:style (merge ui/button {:color :red, :border-color :red}),
-        :inner-text "Pick(WIP)",
-        :on-click (fn [e d! m!] (d! :effect/rebase-master nil))}))))))
+      (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil)))
+      (render-button "Rebase master" true (fn [e d! m!] (d! :effect/rebase-master nil)))
+      (render-button "Pick(WIP)" true (fn [e d! m!] (d! :effect/rebase-master nil))))))))
 
 (defcomp
  comp-home
