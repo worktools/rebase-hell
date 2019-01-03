@@ -30,6 +30,28 @@
      {:on-click (fn [e d! m!] (d! :effect/remove-branch branch))}
      (comp-i :x 14 (hsl 20 80 80))))))
 
+(defn render-button [text danger? on-click]
+  (button
+   {:style (merge
+            ui/button
+            {:margin "0 8px"}
+            (if danger? {:color :red, :border-color :red})),
+    :inner-text text,
+    :on-click on-click}))
+
+(defcomp
+ comp-commit
+ (states current)
+ (cursor->
+  :prompt
+  comp-prompt
+  states
+  {:trigger (render-button "Commit" false nil),
+   :initial (str (re-find (re-pattern "JM-\\d+") current) " "),
+   :text "Commit message",
+   :style-trigger {:margin "0 8px", :display :inline-block}}
+  (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/commit result)))))
+
 (defcomp
  comp-logs
  (logs status)
@@ -79,15 +101,6 @@
                       :color (hsl 0 0 40)},
               :inner-text (:text log)})]))))))
 
-(defn render-button [text danger? on-click]
-  (button
-   {:style (merge
-            ui/button
-            {:margin "0 8px"}
-            (if danger? {:color :red, :border-color :red})),
-    :inner-text text,
-    :on-click on-click}))
-
 (defcomp
  comp-new-branch
  (states)
@@ -128,13 +141,13 @@
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil)))
       (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil))))
      (comp-title "Other")
-     (div {:style ui/row} (comp-new-branch states))
+     (div {:style ui/row} (comp-new-branch states) (comp-commit states (:current repo)))
      (comp-title "Forced")
      (div
       {:style ui/row}
       (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil)))
       (render-button "Rebase master" true (fn [e d! m!] (d! :effect/rebase-master nil)))
-      (render-button "Pick(WIP)" true (fn [e d! m!] (d! :effect/rebase-master nil))))))))
+      (render-button "Pick(WIP)" true (fn [e d! m!] (println "NO PICK YET"))))))))
 
 (defcomp
  comp-home

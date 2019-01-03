@@ -28,6 +28,12 @@
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
+(defn commit! [message d!]
+  (run-command!
+   (<< "git add . && \\\ngit commit -m ~(pr-str message)")
+   d!
+   {:on-finish (fn [] )}))
+
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 
 (defn force-push! [branch d!] (run-command! (<< "git push origin ~{branch} -f") d! {}))
