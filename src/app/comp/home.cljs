@@ -68,13 +68,15 @@
          (fn [[id log]]
            [id
             (pre
-             {:style {:line-height "18px",
+             {:style {:line-height "20px",
                       :font-size 13,
-                      :border (<< "1px solid ~(hsl 0 0 90)"),
-                      :padding "8px",
+                      :border (<< "1px solid ~(hsl 0 0 92)"),
+                      :padding "12px",
                       :max-width 800,
                       :overflow :auto,
-                      :font-family ui/font-code},
+                      :font-family ui/font-code,
+                      :background-color (hsl 260 10 96),
+                      :color (hsl 0 0 40)},
               :inner-text (:text log)})]))))))
 
 (defcomp
@@ -93,7 +95,7 @@
  comp-operations
  (states repo)
  (div
-  {:style (merge ui/flex ui/column)}
+  {:style (merge ui/flex ui/column {:background-color (hsl 0 0 97), :padding 16})}
   (div {} (<> "Other operations"))
   (=< nil 16)
   (if (= "master" (:current repo))
@@ -157,7 +159,7 @@
    (div
     {:style (merge ui/flex ui/row)}
     (div
-     {:style {:overflow :auto}}
+     {:style {:overflow :auto, :background-color (hsl 0 0 97)}}
      (list->
       {}
       (->> (:branches repo)
@@ -186,4 +188,5 @@
              (do (d! :effect/switch-remote-branch (last (string/split result "/"))))))))))
     (=< 16 nil)
     (cursor-> :operations comp-operations states repo)))
+  (=< 16 nil)
   (comp-logs logs status)))
