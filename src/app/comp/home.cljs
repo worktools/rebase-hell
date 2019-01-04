@@ -145,9 +145,17 @@
      (comp-title "Forced")
      (div
       {:style ui/row}
-      (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil)))
       (render-button "Rebase master" true (fn [e d! m!] (d! :effect/rebase-master nil)))
-      (render-button "Pick(WIP)" true (fn [e d! m!] (println "NO PICK YET"))))))))
+      (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil)))
+      (cursor->
+       :pick-branch
+       comp-prompt
+       states
+       {:trigger (render-button "Pick Branch" true nil),
+        :initial "",
+        :text "Branch name",
+        :style-trigger {:margin "0 8px", :display :inline-block}}
+       (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/pick-branch result)))))))))
 
 (defcomp
  comp-home

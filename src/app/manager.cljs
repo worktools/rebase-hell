@@ -44,6 +44,35 @@
    d!
    {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
 
+(defn pick-branch! [issue-id branch d!]
+  (println "Picking..." branch)
+  (let [commits (read-items
+                 (.toString
+                  (.execSync cp (<< "git log ~{branch}...origin/master --format=\"%H\""))))
+        logs (read-items
+              (.toString
+               (.execSync cp (<< "git log ~{branch}...origin/master --format=\"%s\""))))
+        release-branch (->> (read-items
+                             (.toString
+                              (.execSync
+                               cp
+                               (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
+                            (filter (fn [x] (string/includes? x "release-")))
+                            sort
+                            last)
+        new-branch (str "pick-" branch)
+        commands-pick-commits (->> commits
+                                   (map (fn [commit] (<< "git cherry-pick ~{commit}")))
+                                   (string/join "\n"))
+        pr-title (<< "Automated cherry pick of #~{issue-id}")
+        logs-in-body (->> logs (map (fn [log] (str "* " log))) (string/join "\n"))
+        pr-body (<<
+                 "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
+        pr-message (str pr-title "\n" "\n" pr-body)
+        commands (<<
+                  "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=\"~{pr-message}\"\n")]
+    (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :message})))
+
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 
 (defn push-current! [current d!] (run-command! (<< "git push origin ~{current}") d! {}))
