@@ -28,11 +28,16 @@
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
-(defn commit! [message d!]
-  (run-command!
-   (<< "git add . && \\\ngit commit -m ~(pr-str message)")
-   d!
-   {:on-finish (fn [] )}))
+(defn commit! [current message d!]
+  (cond
+    (string/starts-with? current "release-")
+      (d! :session/add-message {:text "Can't commit to release branch!"})
+    (= current "master") (d! :session/add-message {:text "Can't commit to master branch!"})
+    :else
+      (run-command!
+       (<< "git add . && \\\ngit commit -m ~(pr-str message)")
+       d!
+       {:on-finish (fn [] )})))
 
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 

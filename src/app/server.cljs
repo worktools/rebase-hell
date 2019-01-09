@@ -79,7 +79,7 @@
        (= op :effect/rebase-master) (manager/rebase-master! d!)
        (= op :effect/force-push) (manager/force-push! current d!)
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
-       (= op :effect/commit) (manager/commit! op-data d!)
+       (= op :effect/commit) (manager/commit! current op-data d!)
        (= op :effect/pick-branch) (manager/pick-branch! op-data current d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))))

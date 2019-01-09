@@ -2375,7 +2375,7 @@
         :type :expr, :by "root", :at 1546512760997, :id "-mybVWkoO-"
         :data {
          "T" {:type :leaf, :by "root", :at 1546512760997, :text "cursor->", :id "xC_2TMPQxS"}
-         "j" {:type :leaf, :by "root", :at 1546512760997, :text ":prompt", :id "GBqu0O5qnu"}
+         "j" {:type :leaf, :by "root", :at 1547008072410, :text ":prompt", :id "GBqu0O5qnu"}
          "r" {:type :leaf, :by "root", :at 1546512760997, :text "comp-prompt", :id "9goieOKxY8"}
          "v" {:type :leaf, :by "root", :at 1546512760997, :text "states", :id "4QVxBP2RD-"}
          "x" {
@@ -3804,7 +3804,7 @@
         :type :expr, :by "root", :at 1545825818808, :id "2Z8u67hQ71"
         :data {
          "T" {:type :leaf, :by "root", :at 1545825818808, :text "cursor->", :id "DZ0CDeKJ1q"}
-         "j" {:type :leaf, :by "root", :at 1545825818808, :text ":prompt", :id "V0YlZpXdxa"}
+         "j" {:type :leaf, :by "root", :at 1547008048386, :text ":new-branch", :id "V0YlZpXdxa"}
          "r" {:type :leaf, :by "root", :at 1545825818808, :text "comp-prompt", :id "AtZGnfFJ15"}
          "v" {:type :leaf, :by "root", :at 1545825818808, :text "states", :id "lZZwY6RMnR"}
          "x" {
@@ -4088,6 +4088,8 @@
                "r" {
                 :type :expr, :by "root", :at 1546512574716, :id "lNIr1H8T8E"
                 :data {
+                 "D" {:type :leaf, :by "root", :at 1547008098479, :text "cursor->", :id "IfLylkICUd"}
+                 "L" {:type :leaf, :by "root", :at 1547008101249, :text ":branch", :id "TcpPN5IsP"}
                  "T" {:type :leaf, :by "root", :at 1546512574716, :text "comp-new-branch", :id "IfXUJkb2Dv"}
                  "j" {:type :leaf, :by "root", :at 1546512574716, :text "states", :id "oZqzlLiM5I"}
                 }
@@ -4219,6 +4221,8 @@
                "r" {
                 :type :expr, :by "root", :at 1546512472296, :id "FGpGty0LN6"
                 :data {
+                 "D" {:type :leaf, :by "root", :at 1547008086541, :text "cursor->", :id "V63Xpwrb5"}
+                 "L" {:type :leaf, :by "root", :at 1547008094038, :text ":branch", :id "drparzyXwi"}
                  "T" {:type :leaf, :by "root", :at 1546512472296, :text "comp-new-branch", :id "pWHjpxkTeJ"}
                  "j" {:type :leaf, :by "root", :at 1546512472296, :text "states", :id "7uro_si4pN"}
                 }
@@ -4226,6 +4230,8 @@
                "v" {
                 :type :expr, :by "root", :at 1546512472296, :id "iPNecgnHY"
                 :data {
+                 "D" {:type :leaf, :by "root", :at 1547008078106, :text "cursor->", :id "Q1gDyRGqOk"}
+                 "L" {:type :leaf, :by "root", :at 1547008082199, :text ":commit", :id "u4O-hZoxB"}
                  "T" {:type :leaf, :by "root", :at 1546512758126, :text "comp-commit", :id "pWHjpxkTeJ"}
                  "j" {:type :leaf, :by "root", :at 1546512472296, :text "states", :id "7uro_si4pN"}
                  "r" {
@@ -6572,37 +6578,116 @@
        "r" {
         :type :expr, :by "root", :at 1546513104505, :id "b-ie4ySl9d"
         :data {
+         "D" {:type :leaf, :by "root", :at 1547008192112, :text "current", :id "cAkAeMuRm"}
          "T" {:type :leaf, :by "root", :at 1546513130549, :text "message", :id "xKV-p1YAcF"}
          "j" {:type :leaf, :by "root", :at 1546513104505, :text "d!", :id "jbrkOyKz-h"}
         }
        }
-       "v" {
-        :type :expr, :by "root", :at 1546513104505, :id "1624VliI3f"
+       "x" {
+        :type :expr, :by "root", :at 1547008157239, :id "Z_2Jhql89J"
         :data {
-         "T" {:type :leaf, :by "root", :at 1546513104505, :text "run-command!", :id "S7UgujdZZp"}
+         "T" {:type :leaf, :by "root", :at 1547008157239, :text "cond", :id "RDwt-JSQHY"}
          "j" {
-          :type :expr, :by "root", :at 1546513104505, :id "dbO1iStuXn"
+          :type :expr, :by "root", :at 1547008157239, :id "8LKMtFjHWX"
           :data {
-           "T" {:type :leaf, :by "root", :at 1546513104505, :text "<<", :id "eUenTnR_Gs"}
-           "j" {:type :leaf, :by "root", :at 1546514478704, :text "\"git add . && \\\ngit commit -m ~(pr-str message)", :id "IM_O7rLD1q"}
+           "T" {
+            :type :expr, :by "root", :at 1547008157239, :id "5lM8lpOFQD"
+            :data {
+             "T" {:type :leaf, :by "root", :at 1547008157239, :text "string/starts-with?", :id "VdzOAGNUDL"}
+             "j" {:type :leaf, :by "root", :at 1547008157239, :text "current", :id "6HdXep6KvD"}
+             "r" {:type :leaf, :by "root", :at 1547008157239, :text "\"release-", :id "sGL9-6B7ay"}
+            }
+           }
+           "j" {
+            :type :expr, :by "root", :at 1547008157239, :id "F2Ta1mg95A"
+            :data {
+             "T" {:type :leaf, :by "root", :at 1547008157239, :text "d!", :id "cZk_XU-Zz7"}
+             "j" {:type :leaf, :by "root", :at 1547008157239, :text ":session/add-message", :id "iioHuIuMFt"}
+             "r" {
+              :type :expr, :by "root", :at 1547008157239, :id "Pk7z4tldc4"
+              :data {
+               "T" {:type :leaf, :by "root", :at 1547008157239, :text "{}", :id "H4DuV8fLyo"}
+               "j" {
+                :type :expr, :by "root", :at 1547008157239, :id "g3uq_tJ3H6"
+                :data {
+                 "T" {:type :leaf, :by "root", :at 1547008157239, :text ":text", :id "dQUbG9S8oR"}
+                 "j" {:type :leaf, :by "root", :at 1547008160865, :text "\"Can't commit to release branch!", :id "rg2uK9rrfYo"}
+                }
+               }
+              }
+             }
+            }
+           }
           }
          }
-         "r" {:type :leaf, :by "root", :at 1546513104505, :text "d!", :id "pCPUts0uaF"}
-         "v" {
-          :type :expr, :by "root", :at 1546513104505, :id "kXE5vSoMDY"
+         "r" {
+          :type :expr, :by "root", :at 1547008157239, :id "y4pnAj1dvqf"
           :data {
-           "T" {:type :leaf, :by "root", :at 1546513104505, :text "{}", :id "jWyrgfWwx4"}
-           "j" {
-            :type :expr, :by "root", :at 1546513104505, :id "LBoY4b5r4J3"
+           "T" {
+            :type :expr, :by "root", :at 1547008157239, :id "67M7mp64kri"
             :data {
-             "T" {:type :leaf, :by "root", :at 1546513104505, :text ":on-finish", :id "XPsxQV7tdto"}
-             "j" {
-              :type :expr, :by "root", :at 1546513104505, :id "zr1hjPkAuTQ"
+             "T" {:type :leaf, :by "root", :at 1547008157239, :text "=", :id "e_JuItYOP6r"}
+             "j" {:type :leaf, :by "root", :at 1547008157239, :text "current", :id "UI6AXlWmlWp"}
+             "r" {:type :leaf, :by "root", :at 1547008157239, :text "\"master", :id "jJ8UDwIMl0l"}
+            }
+           }
+           "j" {
+            :type :expr, :by "root", :at 1547008157239, :id "kACoXhyaQ6o"
+            :data {
+             "T" {:type :leaf, :by "root", :at 1547008157239, :text "d!", :id "XSAeqRzQva1"}
+             "j" {:type :leaf, :by "root", :at 1547008157239, :text ":session/add-message", :id "1VcS58l9ueY"}
+             "r" {
+              :type :expr, :by "root", :at 1547008157239, :id "p3KWl-3raXh"
               :data {
-               "T" {:type :leaf, :by "root", :at 1546513104505, :text "fn", :id "lx07IXJ1vAB"}
+               "T" {:type :leaf, :by "root", :at 1547008157239, :text "{}", :id "NJlAZW8UM5a"}
                "j" {
-                :type :expr, :by "root", :at 1546513104505, :id "XVyBrVYoaOO"
-                :data {}
+                :type :expr, :by "root", :at 1547008157239, :id "JlNZPvsKFSq"
+                :data {
+                 "T" {:type :leaf, :by "root", :at 1547008157239, :text ":text", :id "67w-DLzHVSc"}
+                 "j" {:type :leaf, :by "root", :at 1547008163988, :text "\"Can't commit to master branch!", :id "ykVpmzlj-ah"}
+                }
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+         "v" {
+          :type :expr, :by "root", :at 1547008157239, :id "GeQxuozYDIV"
+          :data {
+           "T" {:type :leaf, :by "root", :at 1547008157239, :text ":else", :id "Ito-NyHobO2"}
+           "j" {
+            :type :expr, :by "root", :at 1547008168308, :id "HGKdUO_qKh"
+            :data {
+             "T" {:type :leaf, :by "root", :at 1547008168308, :text "run-command!", :id "zsg7YHG5hp"}
+             "j" {
+              :type :expr, :by "root", :at 1547008168308, :id "ivxfjp-n6H"
+              :data {
+               "T" {:type :leaf, :by "root", :at 1547008168308, :text "<<", :id "tB8AE7U3Zg"}
+               "j" {:type :leaf, :by "root", :at 1547008168308, :text "\"git add . && \\\ngit commit -m ~(pr-str message)", :id "XdkTOIjiXA"}
+              }
+             }
+             "r" {:type :leaf, :by "root", :at 1547008168308, :text "d!", :id "ZLqo0KucGZ"}
+             "v" {
+              :type :expr, :by "root", :at 1547008168308, :id "r4fQpU5dHf"
+              :data {
+               "T" {:type :leaf, :by "root", :at 1547008168308, :text "{}", :id "JdMV7ppTna"}
+               "j" {
+                :type :expr, :by "root", :at 1547008168308, :id "LPRm7JQkII"
+                :data {
+                 "T" {:type :leaf, :by "root", :at 1547008168308, :text ":on-finish", :id "U1UcBQd0D4"}
+                 "j" {
+                  :type :expr, :by "root", :at 1547008168308, :id "gYUdRrjKWh"
+                  :data {
+                   "T" {:type :leaf, :by "root", :at 1547008168308, :text "fn", :id "JbTn6J343w"}
+                   "j" {
+                    :type :expr, :by "root", :at 1547008168308, :id "rDDZdKBbR7"
+                    :data {}
+                   }
+                  }
+                 }
+                }
                }
               }
              }
@@ -9868,6 +9953,7 @@
                 :type :expr, :by "root", :at 1545210704818, :id "qb9M1ovZPa"
                 :data {
                  "T" {:type :leaf, :by "root", :at 1546513090978, :text "manager/commit!", :id "QVoMVdev9"}
+                 "X" {:type :leaf, :by "root", :at 1547008188102, :text "current", :id "ihyzyThyZ"}
                  "b" {:type :leaf, :by "root", :at 1545211857392, :text "op-data", :id "LoS_aNQTnj"}
                  "j" {:type :leaf, :by "root", :at 1545210707418, :text "d!", :id "sAZWb_qSe"}
                 }

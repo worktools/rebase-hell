@@ -105,7 +105,7 @@
  comp-new-branch
  (states)
  (cursor->
-  :prompt
+  :new-branch
   comp-prompt
   states
   {:trigger (render-button "New Branch" false nil),
@@ -132,7 +132,7 @@
       {:style ui/row}
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
      (comp-title "Others")
-     (div {:style ui/row} (comp-new-branch states)))
+     (div {:style ui/row} (cursor-> :branch comp-new-branch states)))
     (div
      {}
      (comp-title "Basic")
@@ -141,7 +141,10 @@
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil)))
       (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil))))
      (comp-title "Other")
-     (div {:style ui/row} (comp-new-branch states) (comp-commit states (:current repo)))
+     (div
+      {:style ui/row}
+      (cursor-> :branch comp-new-branch states)
+      (cursor-> :commit comp-commit states (:current repo)))
      (comp-title "Forced")
      (div
       {:style ui/row}
