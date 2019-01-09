@@ -75,7 +75,12 @@
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 
-(defn push-current! [current d!] (run-command! (<< "git push origin ~{current}") d! {}))
+(defn push-current! [current d!]
+  (cond
+    (string/starts-with? current "release-")
+      (d! :session/add-message {:text "Can't push to release branch!"})
+    (= current "master") (d! :session/add-message {:text "Can't push to master branch!"})
+    :else (run-command! (<< "git push origin ~{current}") d! {})))
 
 (defn read-branches! [d!]
   (let [ch-branches (chan), ch-current (chan), <remote-branches (chan)]

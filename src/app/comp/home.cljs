@@ -161,7 +161,7 @@
  comp-home
  (states repo logs status)
  (div
-  {:style (merge ui/row ui/flex {:padding 16})}
+  {:style (merge ui/row ui/flex {:padding 16, :overflow :auto})}
   (div
    {:style (merge ui/flex ui/column)}
    (div

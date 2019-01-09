@@ -1,6 +1,12 @@
 
 (ns app.updater.session (:require [app.schema :as schema]))
 
+(defn add-message [db op-data sid op-id op-time]
+  (update-in
+   db
+   [:sessions sid :messages]
+   (fn [messages] (assoc messages op-id (merge op-data {:id op-id})))))
+
 (defn connect [db op-data sid op-id op-time]
   (assoc-in db [:sessions sid] (merge schema/session {:id sid})))
 
