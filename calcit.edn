@@ -6945,6 +6945,7 @@
                  }
                 }
                }
+               "t" {:type :leaf, :by "root", :at 1547004912574, :text "reverse", :id "fVGzQybxWleaf"}
                "v" {
                 :type :expr, :by "root", :at 1546597996570, :id "4CGRd4eqB"
                 :data {
@@ -7004,6 +7005,7 @@
                  }
                 }
                }
+               "t" {:type :leaf, :by "root", :at 1547004925926, :text "reverse", :id "w3TGq4wdWleaf"}
                "v" {
                 :type :expr, :by "root", :at 1546601087770, :id "9wz9GKMIa"
                 :data {

@@ -63,9 +63,10 @@
         new-branch (str "pick-" branch)
         commands-pick-commits (->> commits
                                    (map (fn [commit] (<< "git cherry-pick ~{commit}")))
+                                   reverse
                                    (string/join "\n"))
         pr-title (<< "Automated cherry pick of #~{issue-id}")
-        logs-in-body (->> logs (map (fn [log] (str "* " log))) (string/join "\n"))
+        logs-in-body (->> logs (map (fn [log] (str "* " log))) reverse (string/join "\n"))
         pr-body (<<
                  "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
         pr-message (str pr-title "\n" "\n" pr-body)
