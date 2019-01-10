@@ -74,9 +74,12 @@
         logs-in-body (->> logs (map (fn [log] (str "* " log))) reverse (string/join "\n"))
         pr-body (<<
                  "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
-        pr-message (str pr-title "\n" "\n" pr-body)
+        pr-message (-> (str pr-title "\n" "\n" pr-body)
+                       (pr-str)
+                       ((fn [x] (subs x 1 (dec (count x)))))
+                       (string/replace "'" "\\'"))
         commands (<<
-                  "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=\"~{pr-message}\"\n")]
+                  "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :message})))
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
@@ -121,11 +124,12 @@
    d!
    {:on-finish (fn [] (d! :effect/read-branches nil))}))
 
-(defn switch-branch! [branch-name d!]
-  (run-command!
-   (<< "git checkout ~{branch-name}")
-   d!
-   {:on-finish (fn [] (d! :repo/set-current branch-name))}))
+(defn switch-branch! [current branch-name d!]
+  (when (not= current branch-name)
+    (run-command!
+     (<< "git checkout ~{branch-name}")
+     d!
+     {:on-finish (fn [] (d! :repo/set-current branch-name))})))
 
 (defn switch-remote-branch! [branch-name d!]
   (run-command!
