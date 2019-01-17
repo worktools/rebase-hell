@@ -3,8 +3,10 @@
   (:require ["child_process" :as cp]
             [clojure.string :as string]
             [cumulo-util.core :refer [id! unix-time!]]
-            [cljs.core.async :refer [chan >! <! close! go]]
-            [app.util :refer [read-items]])
+            [cljs.core.async :refer [chan >! <! put! close! go]]
+            [app.util :refer [read-items]]
+            ["axios" :as axios]
+            ["dayjs" :as dayjs])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -43,6 +45,50 @@
 
 (defn force-push! [branch d!] (run-command! (<< "git push origin ~{branch} -f") d! {}))
 
+(defn get-upstream! []
+  (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
+    (-> remote-url string/trim (string/split ":") last (string/replace ".git" ""))))
+
+(defn github-api! [url params]
+  (let [<result (chan), github-token (aget js/process.env "GITHUB_TOKEN")]
+    (-> (axios
+         (clj->js
+          {:method "GET",
+           :url url,
+           :headers {:Authorization (str "token " github-token), :Accept "application/json"},
+           :params params}))
+        (.then
+         (fn [response] (put! <result (js->clj (.-data response) :keywordize-keys true))))
+        (.catch
+         (fn [error] (println "Failed to perform request to" url) (js/console.error error))))
+    <result))
+
+(defn get-commits! [issue-id]
+  (let [<result (chan)
+        upstream (get-upstream!)
+        <commits (github-api!
+                  (<< "https://api.github.com/repos/~{upstream}/pulls/~{issue-id}/commits")
+                  {})]
+    (go
+     (let [commits (<! <commits)]
+       (comment println (pr-str commits))
+       (>!
+        <result
+        (->> commits
+             (sort-by
+              (fn [x]
+                (println "date" (.valueOf (dayjs (get-in x [:commit :author :date]))))
+                (.valueOf (dayjs (get-in x [:commit :author :date])))))
+             vec))))
+    <result))
+
+(defn get-release-branch! []
+  (->> (read-items
+        (.toString (.execSync cp (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
+       (filter (fn [x] (string/includes? x "release-")))
+       sort
+       last))
+
 (defn new-branch! [branch-name d!]
   (run-command!
    (<< "git checkout -b ~{branch-name}")
@@ -50,37 +96,30 @@
    {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
 
 (defn pick-branch! [issue-id branch d!]
-  (println "Picking..." branch)
-  (let [commits (read-items
-                 (.toString
-                  (.execSync cp (<< "git log ~{branch}...origin/master --format=\"%H\""))))
-        logs (read-items
-              (.toString
-               (.execSync cp (<< "git log ~{branch}...origin/master --format=\"%s\""))))
-        release-branch (->> (read-items
-                             (.toString
-                              (.execSync
-                               cp
-                               (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
-                            (filter (fn [x] (string/includes? x "release-")))
-                            sort
-                            last)
-        new-branch (str "pick-" branch)
-        commands-pick-commits (->> commits
-                                   (map (fn [commit] (<< "git cherry-pick ~{commit}")))
-                                   reverse
-                                   (string/join "\n"))
-        pr-title (<< "Automated cherry pick of #~{issue-id}")
-        logs-in-body (->> logs (map (fn [log] (str "* " log))) reverse (string/join "\n"))
-        pr-body (<<
-                 "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
-        pr-message (-> (str pr-title "\n" "\n" pr-body)
-                       (pr-str)
-                       ((fn [x] (subs x 1 (dec (count x)))))
-                       (string/replace "'" "\\'"))
-        commands (<<
-                  "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
-    (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :message})))
+  (d!
+   :process/log
+   {:id (id!), :time (unix-time!), :text (<< "Picking ~{issue-id}..."), :kind :message})
+  (go
+   (let [commits-data (<! (get-commits! issue-id))
+         commits (map :sha commits-data)
+         logs (->> commits-data (map (fn [x] (get-in x [:commit :message]))))
+         release-branch (get-release-branch!)
+         new-branch (str "pick-" issue-id)
+         commands-pick-commits (->> commits
+                                    (map (fn [commit] (<< "git cherry-pick ~{commit}")))
+                                    (string/join "\n"))
+         pr-title (<< "Automated cherry pick of #~{issue-id}")
+         logs-in-body (->> logs (map (fn [log] (str "* " log))) (string/join "\n"))
+         pr-body (<<
+                  "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
+         pr-message (-> (str pr-title "\n" "\n" pr-body)
+                        (pr-str)
+                        ((fn [x] (subs x 1 (dec (count x)))))
+                        (string/replace "'" "\\'"))
+         commands (<<
+                   "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
+     (comment println "commits-data" commits-data)
+     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :message}))))
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 

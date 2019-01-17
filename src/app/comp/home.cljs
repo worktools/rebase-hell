@@ -154,7 +154,7 @@
        :pick-branch
        comp-prompt
        states
-       {:trigger (render-button "Pick Branch" true nil),
+       {:trigger (render-button "Pick PR" true nil),
         :initial "",
         :text "Branch name",
         :style-trigger {:margin "0 8px", :display :inline-block}}
