@@ -138,8 +138,8 @@
      (comp-title "Basic")
      (div
       {:style ui/row}
-      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil)))
-      (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil))))
+      (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil)))
+      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
      (comp-title "Other")
      (div
       {:style ui/row}
@@ -149,16 +149,7 @@
      (div
       {:style ui/row}
       (render-button "Rebase master" true (fn [e d! m!] (d! :effect/rebase-master nil)))
-      (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil)))
-      (cursor->
-       :pick-branch
-       comp-prompt
-       states
-       {:trigger (render-button "Pick PR" true nil),
-        :initial "",
-        :text "Branch name",
-        :style-trigger {:margin "0 8px", :display :inline-block}}
-       (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/pick-branch result)))))))))
+      (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil))))))))
 
 (defcomp
  comp-home
@@ -174,7 +165,17 @@
     (button
      {:style ui/button,
       :inner-text "Fetch",
-      :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))}))
+      :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))})
+    (=< 16 nil)
+    (cursor->
+     :pick-branch
+     comp-prompt
+     states
+     {:trigger (button {:style (merge ui/button), :inner-text "Pick PR"}),
+      :initial "",
+      :text "Branch name",
+      :style {:vertical-align :middle}}
+     (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/pick-branch result)))))
    (=< nil 16)
    (div
     {:style (merge ui/flex ui/row)}

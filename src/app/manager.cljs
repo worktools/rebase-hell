@@ -49,7 +49,7 @@
   (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
     (-> remote-url string/trim (string/split ":") last (string/replace ".git" ""))))
 
-(defn github-api! [url params]
+(defn github-api! [url params on-error]
   (let [<result (chan), github-token (aget js/process.env "GITHUB_TOKEN")]
     (-> (axios
          (clj->js
@@ -60,15 +60,19 @@
         (.then
          (fn [response] (put! <result (js->clj (.-data response) :keywordize-keys true))))
         (.catch
-         (fn [error] (println "Failed to perform request to" url) (js/console.error error))))
+         (fn [error]
+           (println "Failed to perform request to" url)
+           (on-error (str "API failed. " error))
+           (js/console.error error))))
     <result))
 
-(defn get-commits! [issue-id]
+(defn get-commits! [issue-id on-error]
   (let [<result (chan)
         upstream (get-upstream!)
         <commits (github-api!
                   (<< "https://api.github.com/repos/~{upstream}/pulls/~{issue-id}/commits")
-                  {})]
+                  {}
+                  on-error)]
     (go
      (let [commits (<! <commits)]
        (comment println (pr-str commits))
@@ -77,7 +81,7 @@
         (->> commits
              (sort-by
               (fn [x]
-                (println "date" (.valueOf (dayjs (get-in x [:commit :author :date]))))
+                (comment println "date" (.valueOf (dayjs (get-in x [:commit :author :date]))))
                 (.valueOf (dayjs (get-in x [:commit :author :date])))))
              vec))))
     <result))
@@ -100,7 +104,11 @@
    :process/log
    {:id (id!), :time (unix-time!), :text (<< "Picking ~{issue-id}..."), :kind :message})
   (go
-   (let [commits-data (<! (get-commits! issue-id))
+   (let [on-error (fn [message]
+                    (d!
+                     :process/log
+                     {:id (id!), :time (unix-time!), :text message, :kind :error}))
+         commits-data (<! (get-commits! issue-id on-error))
          commits (map :sha commits-data)
          logs (->> commits-data (map (fn [x] (get-in x [:commit :message]))))
          release-branch (get-release-branch!)
