@@ -20,6 +20,7 @@
             :router/change router/change
             :repo/set-branches repo/set-repo
             :repo/set-current repo/set-current
+            :repo/set-upstream repo/set-upstream
             :process/start process/start
             :process/finish process/finish
             :process/log process/log

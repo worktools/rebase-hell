@@ -8,7 +8,7 @@
 
 (defcomp
  comp-navigation
- (logged-in? count-members)
+ (logged-in? count-members upstream)
  (div
   {:style (merge
            ui/row-center
@@ -20,7 +20,9 @@
             :font-family ui/font-fancy})}
   (div
    {:on-click (action-> :router/change {:name :home}), :style {:cursor :pointer}}
-   (<> (:title config/site) nil))
+   (<> (:title config/site) nil)
+   (=< 16 nil)
+   (<> upstream {:color (hsl 0 0 80)}))
   (comment
    div
    {:style {:cursor "pointer"}, :on-click (action-> :router/change {:name :profile})}

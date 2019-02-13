@@ -134,6 +134,7 @@
   (comment repeat! 600 #(persist-db!))
   (println
    (<< "Server started. Open editor on ~(.blue chalk \"http://fe.jimu.io/rebase-hell/\")"))
+  (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
   (check-version!))
 
 (defn reload! []

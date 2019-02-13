@@ -61,7 +61,7 @@
      (comp-offline)
      (div
       {:style (merge ui/global ui/fullscreen ui/column)}
-      (comp-navigation (:logged-in? store) (:count store))
+      (comp-navigation (:logged-in? store) (:count store) (-> store :repo :upstream))
       (case (:name router)
         :home (comp-home states (:repo store) (:logs store) (:process-status store))
         :profile (comp-profile (:user store) (:data router))
