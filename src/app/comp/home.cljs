@@ -52,6 +52,38 @@
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/commit result)))))
 
+(def style-log
+  {:line-height "20px",
+   :font-size 13,
+   :border (<< "1px solid ~(hsl 0 0 92)"),
+   :padding "12px",
+   :max-width 800,
+   :overflow :auto,
+   :font-family ui/font-code,
+   :background-color (hsl 260 10 96),
+   :color (hsl 0 0 40)})
+
+(defcomp
+ comp-log-chunk
+ (log)
+ (let [urls (re-seq (re-pattern "https?://\\S+") (:text log))]
+   (if (empty? urls)
+     (pre {:style style-log, :inner-text (:text log)})
+     (div
+      {}
+      (pre {:style (merge style-log {:margin-bottom 4}), :inner-text (:text log)})
+      (list->
+       {}
+       (->> urls
+            (map
+             (fn [url]
+               [url
+                (a
+                 {:href url,
+                  :inner-text url,
+                  :target "_blank",
+                  :style (merge ui/link {:line-height "16px", :height "16px"})})]))))))))
+
 (defcomp
  comp-logs
  (logs status)
@@ -86,20 +118,7 @@
    {:style (merge ui/flex {:overflow :auto})}
    (->> logs
         (sort (fn [[id log]] (unchecked-negate (:time log))))
-        (map
-         (fn [[id log]]
-           [id
-            (pre
-             {:style {:line-height "20px",
-                      :font-size 13,
-                      :border (<< "1px solid ~(hsl 0 0 92)"),
-                      :padding "12px",
-                      :max-width 800,
-                      :overflow :auto,
-                      :font-family ui/font-code,
-                      :background-color (hsl 260 10 96),
-                      :color (hsl 0 0 40)},
-              :inner-text (:text log)})]))))))
+        (map (fn [[id log]] [id (comp-log-chunk log)]))))))
 
 (defcomp
  comp-new-branch

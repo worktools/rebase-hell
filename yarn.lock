@@ -293,10 +293,10 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
   integrity sha1-6vQ5/U1ISK105cx9vvIAZyueNFs=
 
-dayjs@^1.8.5:
-  version "1.8.5"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.5.tgz#0b066770f89a20022218544989f3d23e5e8db29a"
-  integrity sha512-jo5sEFdsT43RqXxoqQVEuD7XL6iSIRxcjTgheJdlV0EHKObKP3pb9JcJEv/KStVMy25ABNQrFnplKcCit05vOA==
+dayjs@^1.8.8:
+  version "1.8.8"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.8.tgz#81c81a8bb2488ef859f6c9bead9b62d649072bfd"
+  integrity sha512-qBY3kVAVJMxzS4e7DAwZZ/SSiO/DBXbvc/qqbyf1FbsZrxBq81QPdUEWhiPu8Fragf5RfHsLwtH8kCGwKL4qLQ==
 
 debug@=3.1.0:
   version "3.1.0"
@@ -402,10 +402,10 @@ evp_bytestokey@^1.0.0, evp_bytestokey@^1.0.3:
     md5.js "^1.3.4"
     safe-buffer "^5.1.1"
 
-feather-icons@^4.17.0:
-  version "4.17.0"
-  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.17.0.tgz#45bd49d05134c6db1f8161c0fe648eb5fb7c4aea"
-  integrity sha512-eAQCGeI9Dn57JRuzb7SfWYSj/v/PLoa7cZ1nqY3m0V8i+Q3pqJu6sXiKBRFTufT7s+7o6ZZkDsffh7dsnStSOg==
+feather-icons@^4.19.0:
+  version "4.19.0"
+  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.19.0.tgz#320db46860826bbe37e824e0e759cb4a1d9de6f0"
+  integrity sha512-eaY8A/Y2lLukjinbWYrCxMof7EiFUgEXqYLqInsNFJtxMoLZf0znhK+y93YMojsB/etKMzj8PISnI1+OADJ5Zw==
   dependencies:
     classnames "^2.2.5"
     core-js "^2.5.3"
@@ -927,10 +927,10 @@ randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5:
   dependencies:
     safe-buffer "^5.1.0"
 
-randomcolor@^0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/randomcolor/-/randomcolor-0.5.3.tgz#7f90f2f2a7f6d5a52232161eeaeeaea9ac3b5815"
-  integrity sha1-f5Dy8qf21aUiMhYe6u6uqaw7WBU=
+randomcolor@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/randomcolor/-/randomcolor-0.5.4.tgz#df615b13f25b89ea58c5f8f72647f0a6f07adcc3"
+  integrity sha512-nYd4nmTuuwMFzHL6W+UWR5fNERGZeVauho8mrJDUSXdNDbao4rbrUwhuLgKC/j8VCS5+34Ria8CsTDuBjrIrQA==
 
 randomfill@^1.0.3:
   version "1.0.3"
@@ -1044,10 +1044,10 @@ shadow-cljs-jar@1.3.0:
   resolved "https://registry.yarnpkg.com/shadow-cljs-jar/-/shadow-cljs-jar-1.3.0.tgz#e25c4fa57c0b405096250884b164c112654a06a3"
   integrity sha512-KReNVgFVM2ZPPGCP8rsCPqtlee/+SwXyoeEqbAXBO7jlpoNnNee2x4fiRg/Pr/vXGEkV/Ez5l4qdNSU1Na+1Jg==
 
-shadow-cljs@^2.7.32:
-  version "2.7.32"
-  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.7.32.tgz#acbd467d19b61db434fca5117e84c8663f82dd93"
-  integrity sha512-YQDjdZkWyWOXOMoG0vUXT1xUQcT4v5+b2eFZ1AAgT6IDdqToDravkmOyx2HkCx2YFlpxT7noUqj+SB/gtMxYFQ==
+shadow-cljs@^2.8.11:
+  version "2.8.11"
+  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.8.11.tgz#087c647e77b9c97e211e4f392c940e6378959f45"
+  integrity sha512-D/mXNdj9sKA6nuOQq93eWEC2WvrmysX0R70BlMP+VjYFK8T/j8x99vKZ2CXlAICE8yzURhaKRCa6sDR1XDyUHQ==
   dependencies:
     mkdirp "^0.5.1"
     node-libs-browser "^2.0.0"
@@ -1245,10 +1245,10 @@ ws@^3.0.0:
     safe-buffer "~5.1.0"
     ultron "~1.1.0"
 
-ws@^6.1.3:
-  version "6.1.3"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-6.1.3.tgz#d2d2e5f0e3c700ef2de89080ebc0ac6e1bf3a72d"
-  integrity sha512-tbSxiT+qJI223AP4iLfQbkbxkwdFcneYinM2+x46Gx2wgvbaOMO36czfdfVUBRTHvzAMRhDd98sA5d/BuWbQdg==
+ws@^6.1.4:
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-6.1.4.tgz#5b5c8800afab925e94ccb29d153c8d02c1776ef9"
+  integrity sha512-eqZfL+NE/YQc1/ZynhojeV8q+H050oR8AZ2uIev7RU10svA9ZnJUddHcOUZTJLinZ9yEfdA2kSATS2qZK5fhJA==
   dependencies:
     async-limiter "~1.0.0"
 

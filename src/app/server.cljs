@@ -82,7 +82,8 @@
        (= op :effect/commit) (manager/commit! current op-data d!)
        (= op :effect/pick-branch) (manager/pick-branch! op-data current d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
-     (catch js/Error error (js/console.error error)))))
+     (catch js/Error error (js/console.error error)))
+    :effect))
 
 (defn on-exit! [code]
   (persist-db!)
