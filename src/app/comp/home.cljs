@@ -7,7 +7,9 @@
             [app.config :as config]
             [feather.core :refer [comp-i]]
             [clojure.string :as string]
-            [respo-alerts.comp.alerts :refer [comp-prompt comp-select]])
+            [respo-alerts.comp.alerts :refer [comp-prompt comp-select]]
+            [feather.core :refer [comp-icon]]
+            [copy-text-to-clipboard :as copy!])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -57,21 +59,20 @@
    :font-size 13,
    :border (<< "1px solid ~(hsl 0 0 92)"),
    :padding "12px",
-   :max-width 800,
    :overflow :auto,
    :font-family ui/font-code,
    :background-color (hsl 260 10 96),
-   :color (hsl 0 0 40)})
+   :color (hsl 0 0 40),
+   :white-space :pre-line})
 
 (defcomp
  comp-log-chunk
  (log)
  (let [urls (re-seq (re-pattern "https?://\\S+") (:text log))]
-   (if (empty? urls)
-     (pre {:style style-log, :inner-text (:text log)})
-     (div
-      {}
-      (pre {:style (merge style-log {:margin-bottom 4}), :inner-text (:text log)})
+   (div
+    {:style {:position :relative}}
+    (pre {:style (merge style-log {:margin-bottom 4}), :inner-text (:text log)})
+    (if-not (empty? urls)
       (list->
        {}
        (->> urls
@@ -82,7 +83,14 @@
                  {:href url,
                   :inner-text url,
                   :target "_blank",
-                  :style (merge ui/link {:line-height "16px", :height "16px"})})]))))))))
+                  :style (merge ui/link {:line-height "16px", :height "16px"})})])))))
+    (if (= :command (:kind log))
+      (div
+       {:class-name "clickable", :style {:position :absolute, :top 12, :right 12}}
+       (comp-icon
+        :copy
+        {:font-size 16, :color (hsl 200 80 64), :cursor :pointer}
+        (fn [e d! m!] (copy! (:text log)))))))))
 
 (defcomp
  comp-logs

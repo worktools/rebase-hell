@@ -127,7 +127,7 @@
          commands (<<
                    "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
      (comment println "commits-data" commits-data)
-     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :message}))))
+     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :command}))))
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
 

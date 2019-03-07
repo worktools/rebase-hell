@@ -221,6 +221,11 @@ constants-browserify@^1.0.0:
   resolved "https://registry.yarnpkg.com/constants-browserify/-/constants-browserify-1.0.0.tgz#c20b96d8c617748aaf1c16021760cd27fcb8cb75"
   integrity sha1-wguW2MYXdIqvHBYCF2DNJ/y4y3U=
 
+copy-text-to-clipboard@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/copy-text-to-clipboard/-/copy-text-to-clipboard-1.0.4.tgz#2286ff6c53495962c5318d34746d256939069c49"
+  integrity sha512-4hDE+0bgqm4G/nXnt91CP3rc0vOptaePPU5WfVZuhv2AYNJogdLHR4pF1XPgXDAGY4QCzj9pD7zKATa+50sQPg==
+
 core-js@^2.5.3:
   version "2.5.7"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.7.tgz#f972608ff0cead68b841a16a932d0b183791814e"
@@ -293,10 +298,10 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
   integrity sha1-6vQ5/U1ISK105cx9vvIAZyueNFs=
 
-dayjs@^1.8.8:
-  version "1.8.8"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.8.tgz#81c81a8bb2488ef859f6c9bead9b62d649072bfd"
-  integrity sha512-qBY3kVAVJMxzS4e7DAwZZ/SSiO/DBXbvc/qqbyf1FbsZrxBq81QPdUEWhiPu8Fragf5RfHsLwtH8kCGwKL4qLQ==
+dayjs@^1.8.9:
+  version "1.8.9"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.9.tgz#8b5fda2f995ff5f29705894e1d23240f7f674f61"
+  integrity sha512-/LPzoQ77NiXf566p5babPBkqegpJ94koAQ0vUfkcfWYcuvzOTgr+N9V4IOnQ3H05Su/9dpFNOV1iPvEhAsRscw==
 
 debug@=3.1.0:
   version "3.1.0"
@@ -1044,10 +1049,10 @@ shadow-cljs-jar@1.3.0:
   resolved "https://registry.yarnpkg.com/shadow-cljs-jar/-/shadow-cljs-jar-1.3.0.tgz#e25c4fa57c0b405096250884b164c112654a06a3"
   integrity sha512-KReNVgFVM2ZPPGCP8rsCPqtlee/+SwXyoeEqbAXBO7jlpoNnNee2x4fiRg/Pr/vXGEkV/Ez5l4qdNSU1Na+1Jg==
 
-shadow-cljs@^2.8.11:
-  version "2.8.11"
-  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.8.11.tgz#087c647e77b9c97e211e4f392c940e6378959f45"
-  integrity sha512-D/mXNdj9sKA6nuOQq93eWEC2WvrmysX0R70BlMP+VjYFK8T/j8x99vKZ2CXlAICE8yzURhaKRCa6sDR1XDyUHQ==
+shadow-cljs@^2.8.14:
+  version "2.8.14"
+  resolved "https://registry.yarnpkg.com/shadow-cljs/-/shadow-cljs-2.8.14.tgz#a8241d5bf91caa27985d1364878c5028bda500b1"
+  integrity sha512-StU3ir8zPj9hP98cFSufTGl0u6F3AO0EYE11NDYXqT8PzIwYEsD+7+ozGkydonJsTxLvWsNcO4hzaoWOt1wJ1w==
   dependencies:
     mkdirp "^0.5.1"
     node-libs-browser "^2.0.0"
@@ -1245,10 +1250,10 @@ ws@^3.0.0:
     safe-buffer "~5.1.0"
     ultron "~1.1.0"
 
-ws@^6.1.4:
-  version "6.1.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-6.1.4.tgz#5b5c8800afab925e94ccb29d153c8d02c1776ef9"
-  integrity sha512-eqZfL+NE/YQc1/ZynhojeV8q+H050oR8AZ2uIev7RU10svA9ZnJUddHcOUZTJLinZ9yEfdA2kSATS2qZK5fhJA==
+ws@^6.2.0:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-6.2.0.tgz#13806d9913b2a5f3cbb9ba47b563c002cbc7c526"
+  integrity sha512-deZYUNlt2O4buFCa3t5bKLf8A7FPP/TVjwOeVNpw818Ma5nk4MLXls2eoEGS39o8119QIYxTrTDoPQ5B/gTD6w==
   dependencies:
     async-limiter "~1.0.0"
 
