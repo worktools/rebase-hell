@@ -202,7 +202,14 @@
       :initial "",
       :text "Branch name",
       :style {:vertical-align :middle}}
-     (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/pick-branch result)))))
+     (fn [result d! m!]
+       (if-not (string/blank? result)
+         (let [issue-ids (->> (string/split result " ")
+                              (filter (fn [x] (not (string/blank? x))))
+                              (map js/parseInt)
+                              (sort))]
+           (println "issues" issue-ids)
+           (comment d! :effect/pick-branch result))))))
    (=< nil 16)
    (div
     {:style (merge ui/flex ui/row)}
