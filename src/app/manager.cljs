@@ -54,37 +54,6 @@
    d!
    {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
 
-(defn pick-branch! [issue-id branch d!]
-  (d!
-   :process/log
-   {:id (id!), :time (unix-time!), :text (<< "Picking ~{issue-id}..."), :kind :message})
-  (comment
-   go
-   (let [on-error (fn [message]
-                    (d!
-                     :process/log
-                     {:id (id!), :time (unix-time!), :text message, :kind :error}))
-         commits-data (<! (get-commits! issue-id on-error))
-         commits (map :sha commits-data)
-         logs (->> commits-data (map (fn [x] (get-in x [:commit :message]))))
-         release-branch (get-release-branch!)
-         new-branch (str "pick-" issue-id)
-         commands-pick-commits (->> commits
-                                    (map (fn [commit] (<< "git cherry-pick ~{commit}")))
-                                    (string/join "\n"))
-         pr-title (<< "Automated cherry pick of #~{issue-id}")
-         logs-in-body (->> logs (map (fn [log] (str "* " log))) (string/join "\n"))
-         pr-body (<<
-                  "Cherry pick of #~{issue-id} on ~{release-branch}\n\n#~{issue-id}\n~{logs-in-body}\n")
-         pr-message (-> (str pr-title "\n" "\n" pr-body)
-                        (pr-str)
-                        ((fn [x] (subs x 1 (dec (count x)))))
-                        (string/replace "'" "\\'"))
-         commands (<<
-                   "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
-     (comment println "commits-data" commits-data)
-     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :command}))))
-
 (defn pick-prs! [prs upstream d!]
   (go
    (let [commands (<! (get-commands-chan! prs upstream d!))]
