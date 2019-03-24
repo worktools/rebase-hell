@@ -208,8 +208,7 @@
                               (filter (fn [x] (not (string/blank? x))))
                               (map js/parseInt)
                               (sort))]
-           (println "issues" issue-ids)
-           (comment d! :effect/pick-branch result))))))
+           (d! :effect/pick-prs issue-ids))))))
    (=< nil 16)
    (div
     {:style (merge ui/flex ui/row)}

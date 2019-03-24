@@ -64,7 +64,8 @@
         op-time (unix-time!)
         d! #(dispatch! %1 %2 sid)
         db (:db @*reel)
-        current (get-in db [:repo :current])]
+        current (get-in db [:repo :current])
+        upstream (get-in db [:repo :upstream])]
     (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
@@ -80,7 +81,7 @@
        (= op :effect/force-push) (manager/force-push! current d!)
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        (= op :effect/commit) (manager/commit! current op-data d!)
-       (= op :effect/pick-branch) (manager/pick-branch! op-data current d!)
+       (= op :effect/pick-prs) (manager/pick-prs! op-data upstream d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))
     :effect))

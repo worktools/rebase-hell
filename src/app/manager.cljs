@@ -5,8 +5,7 @@
             [cumulo-util.core :refer [id! unix-time!]]
             [cljs.core.async :refer [chan >! <! put! close! go]]
             [app.util :refer [read-items]]
-            ["axios" :as axios]
-            ["dayjs" :as dayjs])
+            [app.util.github :refer [get-commits! github-api! get-commands-chan!]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -49,50 +48,6 @@
   (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
     (-> remote-url string/trim (string/split ":") last (string/replace ".git" ""))))
 
-(defn github-api! [url params on-error]
-  (let [<result (chan), github-token (aget js/process.env "GITHUB_TOKEN")]
-    (-> (axios
-         (clj->js
-          {:method "GET",
-           :url url,
-           :headers {:Authorization (str "token " github-token), :Accept "application/json"},
-           :params params}))
-        (.then
-         (fn [response] (put! <result (js->clj (.-data response) :keywordize-keys true))))
-        (.catch
-         (fn [error]
-           (println "Failed to perform request to" url)
-           (on-error (str "API failed. " error))
-           (js/console.error error))))
-    <result))
-
-(defn get-commits! [issue-id on-error]
-  (let [<result (chan)
-        upstream (get-upstream!)
-        <commits (github-api!
-                  (<< "https://api.github.com/repos/~{upstream}/pulls/~{issue-id}/commits")
-                  {}
-                  on-error)]
-    (go
-     (let [commits (<! <commits)]
-       (comment println (pr-str commits))
-       (>!
-        <result
-        (->> commits
-             (sort-by
-              (fn [x]
-                (comment println "date" (.valueOf (dayjs (get-in x [:commit :author :date]))))
-                (.valueOf (dayjs (get-in x [:commit :author :date])))))
-             vec))))
-    <result))
-
-(defn get-release-branch! []
-  (->> (read-items
-        (.toString (.execSync cp (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
-       (filter (fn [x] (string/includes? x "release-")))
-       sort
-       last))
-
 (defn new-branch! [branch-name d!]
   (run-command!
    (<< "git checkout -b ~{branch-name}")
@@ -103,7 +58,8 @@
   (d!
    :process/log
    {:id (id!), :time (unix-time!), :text (<< "Picking ~{issue-id}..."), :kind :message})
-  (go
+  (comment
+   go
    (let [on-error (fn [message]
                     (d!
                      :process/log
@@ -127,6 +83,11 @@
          commands (<<
                    "git checkout -b ~{new-branch} origin/~{release-branch}\n~{commands-pick-commits}\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
      (comment println "commits-data" commits-data)
+     (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :command}))))
+
+(defn pick-prs! [prs upstream d!]
+  (go
+   (let [commands (<! (get-commands-chan! prs upstream d!))]
      (d! :process/log {:id (id!), :time (unix-time!), :text commands, :kind :command}))))
 
 (defn pull-current! [d!] (run-command! (<< "git pull") d! {}))
