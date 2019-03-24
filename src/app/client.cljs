@@ -44,7 +44,6 @@
         :patch
           (let [changes (:data data)]
             (comment when config/dev? (js/console.log "Changes" (clj->js changes)))
-            (println "Data changes:" (count changes))
             (reset! *store (patch-twig @*store changes)))
         (println "unknown kind:" data)))}))
 

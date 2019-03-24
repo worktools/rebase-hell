@@ -3,8 +3,9 @@
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
             [respo.comp.space :refer [=<]]
-            [respo.core :refer [defcomp <> action-> span div]]
-            [app.config :as config]))
+            [respo.core :refer [defcomp <> action-> span div a]]
+            [app.config :as config])
+  (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
  comp-navigation
@@ -19,10 +20,15 @@
             :border-bottom (str "1px solid " (hsl 0 0 0 0.1)),
             :font-family ui/font-fancy})}
   (div
-   {:on-click (action-> :router/change {:name :home}), :style {:cursor :pointer}}
-   (<> (:title config/site) nil)
+   {:style {:cursor :pointer}}
+   (span
+    {:inner-text (:title config/site), :on-click (action-> :router/change {:name :home})})
    (=< 16 nil)
-   (<> upstream {:color (hsl 0 0 80)}))
+   (a
+    {:style {:color (hsl 200 60 80)},
+     :inner-text upstream,
+     :href (<< "https://github.com/~{upstream}"),
+     :target "_blank"}))
   (comment
    div
    {:style {:cursor "pointer"}, :on-click (action-> :router/change {:name :profile})}
