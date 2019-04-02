@@ -13,7 +13,8 @@
             [app.config :refer [dev?]]
             [app.schema :as schema]
             [app.config :as config]
-            [app.comp.home :refer [comp-home]]))
+            [app.comp.home :refer [comp-home]]
+            [respo-md.comp.md :refer [comp-md]]))
 
 (defcomp
  comp-offline
@@ -31,9 +32,11 @@
             :height 128,
             :background-size :contain}})
   (div
-   {:style {:cursor :pointer, :line-height "32px"},
+   {:style (merge ui/center {:cursor :pointer, :line-height "32px"}),
     :on-click (action-> :effect/connect nil)}
-   (<> "No connection..." {:font-family ui/font-fancy, :font-size 24}))))
+   (<> "No connection..." {:font-family ui/font-fancy, :font-size 24})
+   (comp-md
+    "A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n"))))
 
 (defcomp
  comp-status-color

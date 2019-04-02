@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.1.14-a2",
+  "version": "0.1.14",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -33,6 +33,7 @@
     "md5": "^2.2.1",
     "randomcolor": "^0.5.4",
     "shortid": "^2.2.14",
+    "url-parse": "^1.4.4",
     "ws": "^6.2.1"
   },
   "devDependencies": {

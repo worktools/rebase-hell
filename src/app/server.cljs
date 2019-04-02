@@ -9,6 +9,7 @@
             ["util" :as util]
             ["chalk" :as chalk]
             ["latest-version" :as latest-version]
+            ["url-parse" :as url-parse]
             [app.config :as config]
             [cumulo-util.file :refer [write-mildly! get-backup-path! merge-local-edn!]]
             [cumulo-util.core :refer [id! repeat! unix-time! delay!]]
@@ -113,9 +114,9 @@
     (sync-clients! @*reader-reel))
   (delay! 0.2 render-loop!))
 
-(defn run-server! []
+(defn run-server! [port]
   (wss-serve!
-   (:port config/site)
+   port
    {:on-open (fn [sid socket]
       (dispatch! :session/connect nil sid)
       (js/console.info "New client.")),
@@ -130,12 +131,15 @@
 
 (defn main! []
   (println "Running mode:" (if config/dev? "dev" "release"))
-  (run-server!)
+  (let [port (js/parseInt (or js/process.env.port (:port config/site)))
+        url-obj (url-parse "http://fe.jimu.io/rebase-hell/" true)]
+    (run-server! port)
+    (set! (.. url-obj -query -port) port)
+    (let [address (.blue chalk (.toString url-obj))]
+      (println (<< "Server started. Open editor on ~{address}"))))
   (render-loop!)
   (comment js/process.on "SIGINT" on-exit!)
   (comment repeat! 600 #(persist-db!))
-  (println
-   (<< "Server started. Open editor on ~(.blue chalk \"http://fe.jimu.io/rebase-hell/\")"))
   (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
   (check-version!))
 
