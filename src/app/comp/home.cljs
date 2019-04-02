@@ -49,7 +49,8 @@
   comp-prompt
   states
   {:trigger (render-button "Commit" false nil),
-   :initial (str (re-find (re-pattern "JM-\\d+") current) " "),
+   :initial (let [prefix (re-find (re-pattern "JMT?-\\d+") current)]
+     (if (string/blank? prefix) "" (<< "~{prefix} "))),
    :text "Commit message",
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/commit result)))))
@@ -136,7 +137,7 @@
   comp-prompt
   states
   {:trigger (render-button "New Branch" false nil),
-   :initial "JM-",
+   :initial "JMT-",
    :text "Branch name",
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
