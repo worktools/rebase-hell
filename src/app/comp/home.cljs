@@ -137,7 +137,7 @@
   comp-prompt
   states
   {:trigger (render-button "New Branch" false nil),
-   :initial "JMT-",
+   :initial "JM-",
    :text "Branch name",
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
