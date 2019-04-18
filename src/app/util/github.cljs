@@ -88,7 +88,7 @@
 (defn get-release-branch! []
   (->> (read-items
         (.toString (.execSync cp (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
-       (filter (fn [x] (string/includes? x "release-")))
+       (filter (fn [x] (string/includes? x "release-2019W")))
        sort
        last))
 
