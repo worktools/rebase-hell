@@ -5,7 +5,8 @@
             ["dayjs" :as dayjs]
             ["child_process" :as cp]
             [clojure.string :as string]
-            [cumulo-util.core :refer [id! unix-time!]])
+            [cumulo-util.core :refer [id! unix-time!]]
+            [app.util :refer [read-items]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn github-api! [url params on-error]
@@ -84,9 +85,16 @@
             (<< "#~{pr-id}\n\n~{changes}\n"))))
        (string/join (str "\n" "\n"))))
 
+(defn get-release-branch! []
+  (->> (read-items
+        (.toString (.execSync cp (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
+       (filter (fn [x] (string/includes? x "release-")))
+       sort
+       last))
+
 (defn get-commands-chan! [pr-ids upstream d!]
   (let [<commands (chan)
-        release-branch "release-staging"
+        release-branch (get-release-branch!)
         pr-names-list (->> pr-ids (map (fn [x] (str "#" x))))
         pr-names (->> pr-names-list (string/join " "))
         pr-names-dashed (string/join "-" pr-ids)
@@ -109,13 +117,3 @@
                      "git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\nhub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'\n")]
        (>! <commands commands)))
     <commands))
-
-(defn get-release-branch! []
-  (comment
-   ->>
-   (read-items
-    (.toString (.execSync cp (<< "git branch -r --format=\"%(refname:lstrip=3)\""))))
-   (filter (fn [x] (string/includes? x "release-")))
-   sort
-   last)
-  "release-staging")
