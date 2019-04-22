@@ -38,7 +38,7 @@
 (defn connect! []
   (let [url-obj (url-parse js/location.href true)
         port (or (.. url-obj -query -port) (:port config/site))
-        host (:ws-host config/site)]
+        host (or (.. url-obj -query -host) (:ws-host config/site))]
     (ws-connect!
      (<< "ws://~{host}:~{port}")
      {:on-open (fn [] (comment simulate-login!) (dispatch! :effect/read-branches nil)),
