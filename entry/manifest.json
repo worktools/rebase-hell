@@ -7,8 +7,8 @@
       "sizes": "360x360"
     }
   ],
-  "start_url": "index.html?host=192.168.1.178",
-  "display": "fullscreen",
+  "start_url": "index.html?host=192.168.1.180&version=2",
+  "display": "standalone",
   "orientation": "landscape",
   "background_color": "#eeeeff",
   "theme_color": "#eeeeff"

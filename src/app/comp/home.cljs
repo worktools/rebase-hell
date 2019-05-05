@@ -36,7 +36,7 @@
   (button
    {:style (merge
             ui/button
-            {:margin "0 8px"}
+            {:margin "4px 4px", :min-width 60}
             (if danger? {:color :red, :border-color :red})),
     :inner-text text,
     :on-click on-click}))
@@ -145,13 +145,13 @@
 (defcomp
  comp-title
  (title)
- (div {:style {:font-family ui/font-fancy, :margin "16px 0 16px 0"}} (<> title)))
+ (div {:style {:font-family ui/font-fancy, :margin "8px 0 4px 0"}} (<> title)))
 
 (defcomp
  comp-operations
  (states repo)
  (div
-  {:style (merge ui/flex ui/column {:background-color (hsl 0 0 97), :padding 16})}
+  {:style (merge ui/flex ui/column {:background-color (hsl 0 0 97), :padding 8})}
   (if (= "master" (:current repo))
     (div
      {}
@@ -165,17 +165,17 @@
      {}
      (comp-title "Basic")
      (div
-      {:style ui/row}
+      {}
       (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil)))
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
      (comp-title "Other")
      (div
-      {:style ui/row}
+      {}
       (cursor-> :branch comp-new-branch states)
       (cursor-> :commit comp-commit states (:current repo)))
      (comp-title "Forced")
      (div
-      {:style ui/row}
+      {}
       (render-button "Rebase master" true (fn [e d! m!] (d! :effect/rebase-master nil)))
       (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil))))))))
 
@@ -188,7 +188,10 @@
    {:style (merge ui/flex ui/column)}
    (div
     {}
-    (<> "Branches")
+    (a
+     {:style {:cursor :pointer},
+      :inner-text "Branches",
+      :on-click (fn [e d! m!] (d! :effect/read-branches nil))})
     (=< 16 nil)
     (button
      {:style ui/button,
