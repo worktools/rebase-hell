@@ -3,8 +3,8 @@
   "name": "Rebase Hell",
   "icons": [
     {
-      "src": "http://cdn.tiye.me/logo/jimeng-360x360.png",
-      "sizes": "360x360"
+      "src": "http://cdn.tiye.me/logo/rebase-hell.png",
+      "sizes": "240x240"
     }
   ],
   "start_url": "index.html?host=192.168.1.180&version=2",
