@@ -2558,7 +2558,7 @@
                       :type :expr, :by "B1y7Rc-Zz", :at 1554197015510, :id "joAH4k2NRw"
                       :data {
                        "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1554197015510, :text "re-pattern", :id "NATf2ik6xN"}
-                       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1554197015510, :text "\"JMT?-\\d+", :id "_VXp2_bnwC"}
+                       "j" {:type :leaf, :by "root", :at 1563299482955, :text "\"\\w+-\\d+(?=-)", :id "_VXp2_bnwC"}
                       }
                      }
                      "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1554197015510, :text "current", :id "bjKMFN5WRy"}
