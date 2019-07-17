@@ -24,9 +24,6 @@
    :dev-ui "http://localhost:8100/main.css",
    :release-ui "http://cdn.tiye.me/favored-fonts/main.css",
    :cdn-url "http://cdn.tiye.me/rebase-hell/",
-   :cdn-folder "tiye.me:cdn/rebase-hell",
-   :upload-folder "tiye.me:repo/jimengio/rebase-hell/",
-   :server-folder "tiye.me:servers/rebase-hell",
    :theme "#eeeeff",
    :storage-key "rebase-hell-storage",
    :storage-file "storage.edn"})
