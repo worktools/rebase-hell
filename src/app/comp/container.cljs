@@ -59,14 +59,22 @@
  (let [state (:data states)
        session (:session store)
        router (:router store)
-       router-data (:data router)]
+       router-data (:data router)
+       repo (:repo store)]
    (if (nil? store)
      (comp-offline)
      (div
       {:style (merge ui/global ui/fullscreen ui/column)}
-      (comp-navigation (:logged-in? store) (:count store) (-> store :repo :upstream))
+      (cursor->
+       :nav
+       comp-navigation
+       states
+       (:logged-in? store)
+       (:count store)
+       (:upstream repo)
+       (:code repo))
       (case (:name router)
-        :home (comp-home states (:repo store) (:logs store) (:process-status store))
+        :home (comp-home states repo (:logs store) (:process-status store))
         :profile (comp-profile (:user store) (:data router))
         (<> router))
       (comp-status-color (:color store))

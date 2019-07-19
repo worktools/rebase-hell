@@ -19,6 +19,6 @@
 (def database
   {:sessions (do session {}),
    :users (do user {}),
-   :repo {:upstream nil, :branches #{}, :current "master", :remote-branches #{}},
+   :repo {:upstream nil, :branches #{}, :current "master", :remote-branches #{}, :code "JM"},
    :logs (do log {}),
    :process-status {}})

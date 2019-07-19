@@ -21,6 +21,7 @@
             :repo/set-branches repo/set-repo
             :repo/set-current repo/set-current
             :repo/set-upstream repo/set-upstream
+            :repo/set-code repo/set-code
             :process/start process/start
             :process/finish process/finish
             :process/log process/log

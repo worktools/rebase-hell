@@ -1,6 +1,8 @@
 
 (ns app.updater.repo )
 
+(defn set-code [db op-data sid op-id op-time] (assoc-in db [:repo :code] op-data))
+
 (defn set-current [db op-data sid op-id op-time] (assoc-in db [:repo :current] op-data))
 
 (defn set-repo [db op-data sid op-id op-time]
