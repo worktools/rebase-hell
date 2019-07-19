@@ -131,13 +131,13 @@
 
 (defcomp
  comp-new-branch
- (states)
+ (states code)
  (cursor->
   :new-branch
   comp-prompt
   states
   {:trigger (render-button "New Branch" false nil),
-   :initial "JM-",
+   :initial (if (string/blank? code) "JM-" (str code "-")),
    :text "Branch name",
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
@@ -160,7 +160,7 @@
       {:style ui/row}
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
      (comp-title "Others")
-     (div {:style ui/row} (cursor-> :branch comp-new-branch states)))
+     (div {:style ui/row} (cursor-> :branch comp-new-branch states (:code repo))))
     (div
      {}
      (comp-title "Basic")
@@ -171,7 +171,7 @@
      (comp-title "Other")
      (div
       {}
-      (cursor-> :branch comp-new-branch states)
+      (cursor-> :branch comp-new-branch states (:code repo))
       (cursor-> :commit comp-commit states (:current repo)))
      (comp-title "Forced")
      (div
