@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.1.16-a1",
+  "version": "0.1.16",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
