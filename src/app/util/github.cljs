@@ -6,24 +6,29 @@
             ["child_process" :as cp]
             [clojure.string :as string]
             [cumulo-util.core :refer [id! unix-time!]]
-            [app.util :refer [read-items]])
+            [app.util :refer [read-items]]
+            ["chalk" :as chalk]
+            ["fs" :as fs]
+            [applied-science.js-interop :as j])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn github-api! [url params on-error]
-  (let [<result (chan), github-token (aget js/process.env "GITHUB_TOKEN")]
-    (-> (axios
-         (clj->js
-          {:method "GET",
-           :url url,
-           :headers {:Authorization (str "token " github-token), :Accept "application/json"},
-           :params params}))
+  (let [<result (chan)
+        github-token (aget js/process.env "GITHUB_TOKEN")
+        headers {:Authorization (str "token " github-token), :Accept "application/json"}]
+    (-> (axios (clj->js {:method "GET", :url url, :headers headers, :params params}))
         (.then
          (fn [response] (put! <result (js->clj (.-data response) :keywordize-keys true))))
         (.catch
          (fn [error]
-           (println "Failed to perform request to" url)
-           (on-error (str "API failed. " error))
-           (js/console.error error))))
+           (println
+            (chalk/red
+             (j/get-in error [:response :status])
+             (j/get-in error [:response :statusText])))
+           (println (chalk/red "Failed to perform request to" url))
+           (println (chalk/red "Headers:" (pr-str headers)))
+           (println (chalk/red "Params:" (pr-str params)))
+           (on-error (str "API failed. " error)))))
     <result))
 
 (defn get-commits! [issue-id upstream on-error]
