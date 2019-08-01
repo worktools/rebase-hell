@@ -30,3 +30,7 @@ body * {
 .clickable:active {
   transform: scale(1.2);
 }
+
+::placeholder {
+  color: hsl(0,0%,84%);
+}

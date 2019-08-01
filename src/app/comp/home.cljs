@@ -202,14 +202,17 @@
      :pick-branch
      comp-prompt
      states
-     {:trigger (button {:style (merge ui/button), :inner-text "Pick PR"}),
+     {:trigger (button {:style (merge ui/button), :inner-text "Pick issues"}),
       :initial "",
-      :text "Branch name",
-      :style {:vertical-align :middle}}
+      :text "需要 pick 的若干 GitHub issue id",
+      :style {:vertical-align :middle},
+      :placeholder "100 or \"100, 101\"",
+      :button-text "生成命令"}
      (fn [result d! m!]
        (if-not (string/blank? result)
-         (let [issue-ids (->> (string/split result " ")
-                              (filter (fn [x] (not (string/blank? x))))
+         (let [issue-ids (->> (string/split result #"(\s|\,)+")
+                              (filter (fn [x] (re-matches #"\d+" x)))
+                              (map (fn [x] (println x) x))
                               (map js/parseInt)
                               (sort))]
            (d! :effect/pick-prs issue-ids))))))
