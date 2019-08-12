@@ -126,7 +126,7 @@
   (list->
    {:style (merge ui/flex {:overflow :auto})}
    (->> logs
-        (sort (fn [[id log]] (unchecked-negate (:time log))))
+        (sort-by (fn [[id log]] (unchecked-negate (:time log))))
         (map (fn [[id log]] [id (comp-log-chunk log)]))))))
 
 (defcomp
