@@ -42,6 +42,12 @@
 
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 
+(defn finish-current! [branch-name d!]
+  (run-command!
+   (<< "git checkout master && git pull && git branch -d ~{branch-name}\n")
+   d!
+   {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
+
 (defn force-push! [branch d!] (run-command! (<< "git push origin ~{branch} -f") d! {}))
 
 (defn get-upstream! []
