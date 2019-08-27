@@ -167,7 +167,8 @@
      (div
       {}
       (render-button "Push" false (fn [e d! m!] (d! :effect/push-current nil)))
-      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
+      (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil)))
+      (render-button "Finish" false (fn [e d! m!] (d! :effect/finish-branch nil))))
      (comp-title "Other")
      (div
       {}
