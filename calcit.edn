@@ -10847,13 +10847,14 @@
                 :data {
                  "T" {:type :leaf, :by "root", :at 1545208699523, :text "=", :id "gLLjiBzmNHleaf"}
                  "j" {:type :leaf, :by "root", :at 1545208701434, :text "op", :id "Ry_CWNDa-L"}
-                 "r" {:type :leaf, :by "root", :at 1545216009350, :text ":effect/pull-current", :id "lq_9VL8Oy"}
+                 "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1566986186922, :text ":effect/push-current", :id "lq_9VL8Oy"}
                 }
                }
                "j" {
                 :type :expr, :by "root", :at 1545210704818, :id "qb9M1ovZPa"
                 :data {
-                 "T" {:type :leaf, :by "root", :at 1545216004712, :text "manager/pull-current!", :id "QVoMVdev9"}
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1566986194268, :text "manager/push-current!", :id "QVoMVdev9"}
+                 "b" {:type :leaf, :by "B1y7Rc-Zz", :at 1566986327763, :text "current", :id "g4Z6Ci8JK6"}
                  "j" {:type :leaf, :by "root", :at 1545210707418, :text "d!", :id "sAZWb_qSe"}
                 }
                }
