@@ -105,14 +105,6 @@
   (comment println "exit code is:" (pr-str code))
   (js/process.exit))
 
-(def pid-file-path (path/join js/__dirname "pid.text"))
-
-(defn put-down-pid! []
-  (fs/writeFile
-   pid-file-path
-   js/process.pid
-   (fn [e] (println "Wrote down pid" js/process.pid))))
-
 (defn sync-clients! [reel]
   (wss-each!
    (fn [sid socket]
@@ -162,12 +154,14 @@
   (comment js/process.on "SIGINT" on-exit!)
   (comment repeat! 600 #(persist-db!))
   (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
-  (put-down-pid!)
   (listen-to-switching!)
   (check-version!))
 
 (defn main-switch! []
-  (let [previous-port (fs/readFileSync pid-file-path "utf8")]
+  (let [port (:port config/site)
+        previous-port (-> (cp/execSync (<< "lsof -ti tcp:~{port} -sTCP:LISTEN"))
+                          .toString
+                          .trim)]
     (fs/writeFileSync wd-file-path (js/process.cwd))
     (cp/execSync (<< "kill -13 ~{previous-port}"))
     (println "Message sent" (<< "kill -13 ~{previous-port}"))))
