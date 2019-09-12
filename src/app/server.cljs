@@ -168,10 +168,11 @@
       (js/process.exit 1))
     (fs/writeFileSync wd-file-path (js/process.cwd))
     (cp/execSync (<< "kill -13 ~{previous-port}"))
-    (let [upstream (last
-                    (string/split
-                     (.toString (cp/execSync "git ls-remote --get-url origin"))
-                     ":"))]
+    (let [upstream (-> (cp/execSync "git ls-remote --get-url origin")
+                       (.toString)
+                       (string/split ":")
+                       (last)
+                       (string/trim))]
       (println "Switching to" upstream))))
 
 (defn main! [] (if (= (aget js/process.argv 2) "switch") (main-switch!) (main-server!)))
