@@ -18,7 +18,8 @@
             [recollect.diff :refer [diff-twig]]
             [recollect.twig :refer [render-twig]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
-            [app.manager :as manager])
+            [app.manager :as manager]
+            [clojure.string :as string])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defonce *client-caches (atom {}))
@@ -162,9 +163,16 @@
         previous-port (-> (cp/execSync (<< "lsof -ti tcp:~{port} -sTCP:LISTEN"))
                           .toString
                           .trim)]
+    (when-not (fs/existsSync ".git")
+      (println (chalk/red "Missing .git/ folder, not a valid path!"))
+      (js/process.exit 1))
     (fs/writeFileSync wd-file-path (js/process.cwd))
     (cp/execSync (<< "kill -13 ~{previous-port}"))
-    (println "Message sent" (<< "kill -13 ~{previous-port}"))))
+    (let [upstream (last
+                    (string/split
+                     (.toString (cp/execSync "git ls-remote --get-url origin"))
+                     ":"))]
+      (println "Switching to" upstream))))
 
 (defn main! [] (if (= (aget js/process.argv 2) "switch") (main-switch!) (main-server!)))
 
