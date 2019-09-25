@@ -53,6 +53,14 @@
 
 (def mount-target (.querySelector js/document ".app"))
 
+(defn notify-user! [new-upstream]
+  (.requestPermission
+   js/Notification
+   (fn [perm]
+     (when (= perm "granted")
+       (let [notify (js/Notification. (str "Switched to " new-upstream))]
+         (set! notify.onclick (fn [] (js/setTimeout (fn [] (.close notify)) 0))))))))
+
 (defn on-keydown [event]
   (cond
     (and (.-metaKey event) (= "k" (.-key event))) (dispatch! :process/clear-logs nil)
@@ -70,6 +78,15 @@
   (connect!)
   (add-watch *store :changes #(render-app! render!))
   (add-watch *states :changes #(render-app! render!))
+  (add-watch
+   *store
+   :upstream
+   (fn [key _ old-store new-store]
+     (let [new-upstream (get-in new-store [:repo :upstream])
+           old-upstream (get-in old-store [:repo :upstream])]
+       (when (and (not= new-upstream old-upstream) (some? old-upstream))
+         (println "switching to" new-upstream)
+         (notify-user! new-upstream)))))
   (on-page-touch #(if (nil? @*store) (connect!) (dispatch! :effect/read-branches nil)))
   (.addEventListener js/window "keydown" (fn [event] (on-keydown event)))
   (println "App started!"))
