@@ -20,10 +20,10 @@
   {:port 8009,
    :title "Rebase Hell",
    :ws-host "localhost",
-   :icon "http://cdn.tiye.me/logo/rebase-hell.png",
+   :icon "https://cdn.tiye.me/logo/rebase-hell.png",
    :dev-ui "http://localhost:8100/main.css",
-   :release-ui "http://cdn.tiye.me/favored-fonts/main.css",
-   :cdn-url "http://cdn.tiye.me/rebase-hell/",
+   :release-ui "https://cdn.tiye.me/favored-fonts/main.css",
+   :cdn-url "https://cdn.tiye.me/rebase-hell/",
    :theme "#eeeeff",
    :storage-key "rebase-hell-storage",
    :storage-file "storage.edn"})
