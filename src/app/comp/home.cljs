@@ -9,7 +9,8 @@
             [clojure.string :as string]
             [respo-alerts.comp.alerts :refer [comp-prompt comp-select]]
             [feather.core :refer [comp-icon]]
-            [copy-text-to-clipboard :as copy!])
+            [copy-text-to-clipboard :as copy!]
+            [app.style :as style])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -35,7 +36,7 @@
 (defn render-button [text danger? on-click]
   (button
    {:style (merge
-            ui/button
+            style/button
             {:margin "4px 4px", :min-width 60}
             (if danger? {:color :red, :border-color :red})),
     :inner-text text,
@@ -103,13 +104,13 @@
    (<> "Logs")
    (=< 16 nil)
    (button
-    {:style ui/button,
+    {:style style/button,
      :inner-text "Status",
      :on-click (fn [e d! m!] (d! :effect/status nil))})
    (=< 16 nil)
    (if (not (empty? logs))
      (button
-      {:style (merge ui/button),
+      {:style (merge style/button),
        :inner-text "Clear",
        :on-click (fn [e d! m!] (d! :process/clear-logs nil))})))
   (if (not (empty? status))
@@ -200,7 +201,7 @@
       :on-click (fn [e d! m!] (d! :effect/read-branches nil))})
     (=< 16 nil)
     (button
-     {:style ui/button,
+     {:style style/button,
       :inner-text "Fetch",
       :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))})
     (=< 16 nil)
@@ -208,7 +209,7 @@
      :pick-branch
      comp-prompt
      states
-     {:trigger (button {:style (merge ui/button), :inner-text "Pick issues"}),
+     {:trigger (button {:style (merge style/button), :inner-text "Pick issues"}),
       :initial "",
       :text "需要 pick 的若干 GitHub issue id",
       :style {:vertical-align :middle},
@@ -225,12 +226,12 @@
     (=< 16 nil)
     (button
      {:inner-text "Stash",
-      :style ui/button,
+      :style style/button,
       :on-click (fn [e d! m!] (d! :effect/stash nil))})
     (=< 16 nil)
     (button
      {:inner-text "Stash Apply",
-      :style ui/button,
+      :style style/button,
       :on-click (fn [e d! m!] (d! :effect/stash-apply nil))}))
    (=< nil 16)
    (div
