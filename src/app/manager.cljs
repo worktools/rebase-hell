@@ -29,6 +29,8 @@
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
+(defn apply-stash! [d!] (run-command! (<< "git stash apply") d! {}))
+
 (defn commit! [current message d!]
   (cond
     (string/starts-with? current "release-")
@@ -39,6 +41,8 @@
        (<< "git add . && \\\ngit commit -m ~(pr-str message)")
        d!
        {:on-finish (fn [] )})))
+
+(defn display-status! [d!] (run-command! (<< "git status") d! {}))
 
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 
@@ -106,6 +110,8 @@
    (<< "git branch -d ~{branch}")
    d!
    {:on-finish (fn [] (d! :effect/read-branches nil))}))
+
+(defn run-stash! [d!] (run-command! (<< "git stash") d! {}))
 
 (defn switch-branch! [current branch-name d!]
   (when (not= current branch-name)
