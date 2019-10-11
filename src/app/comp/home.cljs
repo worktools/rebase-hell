@@ -102,6 +102,11 @@
    {:style (merge ui/row-middle {:height 32})}
    (<> "Logs")
    (=< 16 nil)
+   (button
+    {:style ui/button,
+     :inner-text "Status",
+     :on-click (fn [e d! m!] (d! :effect/status nil))})
+   (=< 16 nil)
    (if (not (empty? logs))
      (button
       {:style (merge ui/button),
@@ -216,7 +221,17 @@
                               (map (fn [x] (println x) x))
                               (map js/parseInt)
                               (sort))]
-           (d! :effect/pick-prs issue-ids))))))
+           (d! :effect/pick-prs issue-ids)))))
+    (=< 16 nil)
+    (button
+     {:inner-text "Stash",
+      :style ui/button,
+      :on-click (fn [e d! m!] (d! :effect/stash nil))})
+    (=< 16 nil)
+    (button
+     {:inner-text "Stash Apply",
+      :style ui/button,
+      :on-click (fn [e d! m!] (d! :effect/stash-apply nil))}))
    (=< nil 16)
    (div
     {:style (merge ui/flex ui/row)}

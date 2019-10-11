@@ -3385,6 +3385,130 @@
                }
               }
              }
+             "yr" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779320900, :id "q7NQ2I_2VL"
+              :data {
+               "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779320900, :text "=<", :id "Nu50S1eR2x"}
+               "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779320900, :text "16", :id "ksMRofzLwH"}
+               "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779320900, :text "nil", :id "70gm6Kph01"}
+              }
+             }
+             "yv" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779322133, :id "zd3AlSlzp"
+              :data {
+               "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779323181, :text "button", :id "zd3AlSlzpleaf"}
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779323576, :id "M-pVLeE6v"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779323958, :text "{}", :id "O4nxvuBcDy"}
+                 "j" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779325297, :id "Uohas0iwEj"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779329642, :text ":inner-text", :id "pJk8BUskD"}
+                   "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779331395, :text "\"Stash", :id "2OECaHj-nD"}
+                  }
+                 }
+                 "r" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779350289, :id "lNdFDlWCKL"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779350289, :text ":style", :id "0VBMEbaSOm"}
+                   "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779350289, :text "ui/button", :id "_-VU6sipH7"}
+                  }
+                 }
+                 "v" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779663957, :id "lekE4U8qi"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779666777, :text ":on-click", :id "lekE4U8qileaf"}
+                   "j" {
+                    :type :expr, :by "B1y7Rc-Zz", :at 1570779667124, :id "sHWfZLeYWZ"
+                    :data {
+                     "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779668842, :text "fn", :id "oZxMDe4-G0"}
+                     "j" {
+                      :type :expr, :by "B1y7Rc-Zz", :at 1570779669097, :id "Ch-_c-CFY5"
+                      :data {
+                       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779669224, :text "e", :id "MClCs0P8wz"}
+                       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779669730, :text "d!", :id "n9-zb6_5AC"}
+                       "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779670404, :text "m!", :id "1VPWG32uQk"}
+                      }
+                     }
+                     "r" {
+                      :type :expr, :by "B1y7Rc-Zz", :at 1570779671095, :id "XyS9MSpprW"
+                      :data {
+                       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779671776, :text "d!", :id "XyS9MSpprWleaf"}
+                       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779678425, :text ":effect/stash", :id "JE4WURVJOw"}
+                       "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779679688, :text "nil", :id "ODmcsuqKT"}
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+             "yw" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779344153, :id "a1kv47XLtX"
+              :data {
+               "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779344153, :text "=<", :id "2LGRXjna9K"}
+               "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779344153, :text "16", :id "WkSigNLkrb"}
+               "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779344153, :text "nil", :id "474_-Jxq7z"}
+              }
+             }
+             "yx" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779322133, :id "JxeHrQPXM"
+              :data {
+               "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779323181, :text "button", :id "zd3AlSlzpleaf"}
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779323576, :id "M-pVLeE6v"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779323958, :text "{}", :id "O4nxvuBcDy"}
+                 "j" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779325297, :id "Uohas0iwEj"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779329642, :text ":inner-text", :id "pJk8BUskD"}
+                   "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779338151, :text "\"Stash Apply", :id "2OECaHj-nD"}
+                  }
+                 }
+                 "r" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779351820, :id "UYJ4PuOl80"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779351820, :text ":style", :id "78vOuf4CDu"}
+                   "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779351820, :text "ui/button", :id "40Uhx-Mr4P"}
+                  }
+                 }
+                 "v" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779683268, :id "UDPIPVplik"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text ":on-click", :id "_5RV3iuIpw"}
+                   "j" {
+                    :type :expr, :by "B1y7Rc-Zz", :at 1570779683268, :id "l4kkfmjUwd"
+                    :data {
+                     "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "fn", :id "ndZiGncqqp"}
+                     "j" {
+                      :type :expr, :by "B1y7Rc-Zz", :at 1570779683268, :id "LFuPHalu46"
+                      :data {
+                       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "e", :id "rfHyos6c0Q"}
+                       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "d!", :id "j6OekfoPXK"}
+                       "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "m!", :id "OB_ueeHeKZ"}
+                      }
+                     }
+                     "r" {
+                      :type :expr, :by "B1y7Rc-Zz", :at 1570779683268, :id "-3i0fss-Wk"
+                      :data {
+                       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "d!", :id "PavvNMrTiI"}
+                       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779689345, :text ":effect/stash-apply", :id "3pdcKJtInZ"}
+                       "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779683268, :text "nil", :id "EdousP2RPH"}
+                      }
+                     }
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
             }
            }
            "R" {
@@ -4336,6 +4460,68 @@
            }
            "v" {
             :type :expr, :by "root", :at 1545214997235, :id "A9MrklZ1Tj"
+            :data {
+             "T" {:type :leaf, :by "root", :at 1545214998776, :text "=<", :id "A9MrklZ1Tjleaf"}
+             "j" {:type :leaf, :by "root", :at 1545214999788, :text "16", :id "QKgf-PAZ6u"}
+             "r" {:type :leaf, :by "root", :at 1545215000352, :text "nil", :id "ACyguZvQBs"}
+            }
+           }
+           "vT" {
+            :type :expr, :by "B1y7Rc-Zz", :at 1570779407127, :id "A0s-MLKRSz"
+            :data {
+             "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779409916, :text "button", :id "A0s-MLKRSzleaf"}
+             "j" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779410145, :id "-YYWd_wevV"
+              :data {
+               "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779410463, :text "{}", :id "ATBA3t0Lod"}
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779410689, :id "Vztd8rC16c"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779411443, :text ":style", :id "xgo-PoSC3"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779416102, :text "ui/button", :id "8XsJj_z9zJ"}
+                }
+               }
+               "r" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779416619, :id "NSnDI7jPP"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779418723, :text ":inner-text", :id "NSnDI7jPPleaf"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779424096, :text "\"Status", :id "Qzdcdx5Xv7"}
+                }
+               }
+               "v" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779425227, :id "ZCJb1_oKQk"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779430030, :text ":on-click", :id "ZCJb1_oKQkleaf"}
+                 "j" {
+                  :type :expr, :by "B1y7Rc-Zz", :at 1570779430685, :id "dpvYdbXkX"
+                  :data {
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779430960, :text "fn", :id "D3CtvZRBCD"}
+                   "j" {
+                    :type :expr, :by "B1y7Rc-Zz", :at 1570779431182, :id "gDQnIHAiar"
+                    :data {
+                     "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779431346, :text "e", :id "tKlxrUpxYs"}
+                     "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779432945, :text "d!", :id "gdhIyaftht"}
+                     "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779434275, :text "m!", :id "IqGonQVoVq"}
+                    }
+                   }
+                   "r" {
+                    :type :expr, :by "B1y7Rc-Zz", :at 1570779435311, :id "6nqJDXy1_w"
+                    :data {
+                     "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779436541, :text "d!", :id "6nqJDXy1_wleaf"}
+                     "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779442942, :text ":effect/status", :id "vsX3KGF6fm"}
+                     "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779443487, :text "nil", :id "s_xGSe906g"}
+                    }
+                   }
+                  }
+                 }
+                }
+               }
+              }
+             }
+            }
+           }
+           "w" {
+            :type :expr, :by "root", :at 1545214997235, :id "90O3pvbg1"
             :data {
              "T" {:type :leaf, :by "root", :at 1545214998776, :text "=<", :id "A9MrklZ1Tjleaf"}
              "j" {:type :leaf, :by "root", :at 1545214999788, :text "16", :id "QKgf-PAZ6u"}
@@ -7875,6 +8061,39 @@
      }
     }
     :defs {
+     "apply-stash!" {
+      :type :expr, :by "B1y7Rc-Zz", :at 1570779763069, :id "eU6SS4lw4B"
+      :data {
+       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779767656, :text "defn", :id "_I0-R6VayM"}
+       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779763069, :text "apply-stash!", :id "D-Dr79UQga"}
+       "n" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779765219, :id "viyq-hZcgZ"
+        :data {
+         "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779766244, :text "d!", :id "sc1yKSxJtr"}
+        }
+       }
+       "r" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779764344, :id "nF57egGylO"
+        :data {
+         "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779764344, :text "run-command!", :id "9nscGe1lut"}
+         "j" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779764344, :id "DrBSJP5Wz4"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779764344, :text "<<", :id "7kCNXRJO45"}
+           "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779811800, :text "\"git stash apply", :id "u7rkZLUWQD"}
+          }
+         }
+         "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779764344, :text "d!", :id "1_-qi8Ute5"}
+         "v" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779764344, :id "wKa0SKJ9qi"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779764344, :text "{}", :id "nGvcQP1vZB"}
+          }
+         }
+        }
+       }
+      }
+     }
      "commit!" {
       :type :expr, :by "root", :at 1546513100909, :id "gxbrrNMEYx"
       :data {
@@ -7998,6 +8217,39 @@
              }
             }
            }
+          }
+         }
+        }
+       }
+      }
+     }
+     "display-status!" {
+      :type :expr, :by "B1y7Rc-Zz", :at 1570779502525, :id "-RbglsWu3R"
+      :data {
+       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779502525, :text "defn", :id "1OwzBjEVyd"}
+       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779502525, :text "display-status!", :id "QMB_UdguMc"}
+       "r" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779502525, :id "7ORYgULbmF"
+        :data {
+         "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779502525, :text "d!", :id "mGAxMYoR_p"}
+        }
+       }
+       "x" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779506737, :id "CCbdWkvUJG"
+        :data {
+         "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779506737, :text "run-command!", :id "P7Pl5UTbhw"}
+         "j" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779506737, :id "zfDn4ZH9JA"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779506737, :text "<<", :id "eoP4zRVyL3"}
+           "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779515913, :text "\"git status", :id "B_UqHUPJoe"}
+          }
+         }
+         "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779506737, :text "d!", :id "j5lu9txcIK"}
+         "v" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779506737, :id "uBuCN-ghWr"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779506737, :text "{}", :id "Ht4LLFXWh-"}
           }
          }
         }
@@ -9236,6 +9488,39 @@
              }
             }
            }
+          }
+         }
+        }
+       }
+      }
+     }
+     "run-stash!" {
+      :type :expr, :by "B1y7Rc-Zz", :at 1570779739563, :id "4OHOR0Wf06"
+      :data {
+       "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779760386, :text "defn", :id "ZyqplHWbWg"}
+       "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779739563, :text "run-stash!", :id "5JtHfOTe3u"}
+       "n" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779757362, :id "xVf3Cza86N"
+        :data {
+         "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779757907, :text "d!", :id "cbQxgAemaD"}
+        }
+       }
+       "r" {
+        :type :expr, :by "B1y7Rc-Zz", :at 1570779755752, :id "zlZJROyfOO"
+        :data {
+         "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779755752, :text "run-command!", :id "fZLjTGxfQi"}
+         "j" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779755752, :id "OLWkDVmtIx"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779755752, :text "<<", :id "CrDCaSNwXg"}
+           "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779799564, :text "\"git stash", :id "6k11JkR2j2"}
+          }
+         }
+         "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779755752, :text "d!", :id "6K7kJ97_-c"}
+         "v" {
+          :type :expr, :by "B1y7Rc-Zz", :at 1570779755752, :id "sFuzxtZlIs"
+          :data {
+           "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779755752, :text "{}", :id "raDRojmNkv"}
           }
          }
         }
@@ -11153,6 +11438,66 @@
                 :data {
                  "T" {:type :leaf, :by "root", :at 1545211285628, :text "manager/rebase-master!", :id "QVoMVdev9"}
                  "j" {:type :leaf, :by "root", :at 1545210707418, :text "d!", :id "sAZWb_qSe"}
+                }
+               }
+              }
+             }
+             "St" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "SZhNkDZEZ9"
+              :data {
+               "T" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "fxnwerFs9p"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "=", :id "aWN0aEBJ_i"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "op", :id "17j27JdzKB"}
+                 "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text ":effect/status", :id "bwSsbnZmrt"}
+                }
+               }
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "hBG0zRrHw5"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "manager/display-status!", :id "y9LVqaZ3wB"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "d!", :id "Xq8CPGUEe4"}
+                }
+               }
+              }
+             }
+             "StD" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "rlThZeXdM"
+              :data {
+               "T" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "fxnwerFs9p"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "=", :id "aWN0aEBJ_i"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "op", :id "17j27JdzKB"}
+                 "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779713759, :text ":effect/stash", :id "bwSsbnZmrt"}
+                }
+               }
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "hBG0zRrHw5"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779722416, :text "manager/run-stash!", :id "y9LVqaZ3wB"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "d!", :id "Xq8CPGUEe4"}
+                }
+               }
+              }
+             }
+             "SuT" {
+              :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "5LHTB_Y1e"
+              :data {
+               "T" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "fxnwerFs9p"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "=", :id "aWN0aEBJ_i"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "op", :id "17j27JdzKB"}
+                 "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779729459, :text ":effect/stash-apply", :id "bwSsbnZmrt"}
+                }
+               }
+               "j" {
+                :type :expr, :by "B1y7Rc-Zz", :at 1570779534765, :id "hBG0zRrHw5"
+                :data {
+                 "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779735761, :text "manager/apply-stash!", :id "y9LVqaZ3wB"}
+                 "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570779534765, :text "d!", :id "Xq8CPGUEe4"}
                 }
                }
               }
