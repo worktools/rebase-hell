@@ -37,7 +37,7 @@
   (button
    {:style (merge
             style/button
-            {:margin "4px 4px", :min-width 60}
+            {:margin "4px 4px"}
             (if danger? {:color :red, :border-color :red})),
     :inner-text text,
     :on-click on-click}))

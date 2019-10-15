@@ -4,11 +4,12 @@
 (def button
   (merge
    ui/button
-   {:border-radius "3px",
-    :min-width 40,
-    :font-size 13,
-    :font-family ui/font-fancy,
-    :line-height "24px"}))
+   {:border-radius "8px",
+    :min-width "48px",
+    :font-size 14,
+    :line-height "28px",
+    :border-color (hsl 200 80 88),
+    :color (hsl 200 80 60)}))
 
 (def link
   {:text-decoration :underline,
