@@ -1,13 +1,13 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.1.20-a6",
+  "version": "0.1.20-a7",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
     "rebase-hell": "./dist/server.js"
   },
   "scripts": {
-    "watch": "shadow-cljs watch client server",
+    "watch": "shadow-cljs watch client server test",
     "build-cdn": "shadow-cljs clj-run build.main/build-cdn",
     "build": "shadow-cljs clj-run build.main/build",
     "page": "shadow-cljs clj-run build.main/page",

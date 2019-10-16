@@ -5,7 +5,8 @@
             [cumulo-util.core :refer [id! unix-time!]]
             [cljs.core.async :refer [chan >! <! put! close! go]]
             [app.util :refer [read-items]]
-            [app.util.github :refer [get-commits! github-api! get-commands-chan!]])
+            [app.util.github :refer [get-commits! github-api! get-commands-chan!]]
+            [app.util :refer [grab-upstream]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -57,7 +58,7 @@
 
 (defn get-upstream! []
   (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
-    (-> remote-url string/trim (string/split ":") last (string/replace ".git" ""))))
+    (grab-upstream remote-url)))
 
 (defn new-branch! [branch-name d!]
   (run-command!
