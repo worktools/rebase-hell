@@ -25,6 +25,44 @@ And open http://fe.jimu.io/rebase-hell/
 * https://git-scm.com/docs/pretty-formats
 * https://hub.github.com/hub-pull-request.1.html
 
+### Jump among Projects
+
+命令行启动时会读取当前项目信息. 但是经常会有多个项目需要维护. 所以增加了 `switch` 自命令.
+
+在 rebase-hell 已经运行的情况下, 在包含 `.git/` 的项目路径下执行命令:
+
+```bash
+rebase-hell switch
+```
+
+可以直接切换项目, 不用重新启动的命令.
+
+### Background service
+
+可以设置一个 `ecosystem.config.js` 配置文件:
+
+```bash
+module.exports = {
+  apps : [{
+    name: "RebaseHell",
+    cwd: "/your-name/git-repo/",
+    script: "rebase-hell",
+    env: {
+      NODE_ENV: "development",
+    },
+    env_production: {
+      NODE_ENV: "production",
+    }
+  }]
+}
+```
+
+然后通过 pm2 启动已经安装好的命令,
+
+```bash
+pm2 start ecosystem.config.js
+```
+
 ### Workflow
 
 https://github.com/Cumulo/cumulo-workflow
