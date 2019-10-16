@@ -13236,32 +13236,7 @@
     }
     :proc {
      :type :expr, :by "B1y7Rc-Zz", :at 1571200393836, :id "rfzhekIVOg"
-     :data {
-      "T" {
-       :type :expr, :by "B1y7Rc-Zz", :at 1571200620289, :id "Nt5KGgSBZt"
-       :data {
-        "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1571200621867, :text "defn", :id "ZPvYyReiaj"}
-        "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1571200621867, :text "main!", :id "vNgMN2XVDl"}
-        "r" {
-         :type :expr, :by "B1y7Rc-Zz", :at 1571200621867, :id "u7xFPZSKwz"
-         :data {}
-        }
-        "v" {
-         :type :expr, :by "B1y7Rc-Zz", :at 1571200621867, :id "ESpU9vlN4o"
-         :data {
-          "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1571200621867, :text "println", :id "XaIJChQlRJ"}
-          "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1571200621867, :text "\"App loaded.", :id "-deySeJ4TW"}
-         }
-        }
-        "x" {
-         :type :expr, :by "B1y7Rc-Zz", :at 1571200621867, :id "3qFJ4qPIzq"
-         :data {
-          "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1571200621867, :text "run-tests", :id "ry694Jd9LC"}
-         }
-        }
-       }
-      }
-     }
+     :data {}
     }
    }
    "app.twig.container" {

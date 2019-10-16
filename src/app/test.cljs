@@ -16,5 +16,3 @@
  (testing
   "parse HTTPS URL"
   (is (thrown? js/Error (grab-upstream "http://github.com/jimengio/rebase-hell.git")))))
-
-(defn main! [] (println "App loaded.") (run-tests))

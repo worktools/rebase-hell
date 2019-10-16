@@ -37,7 +37,6 @@
                  :output-to "target/page.js"
                  :main app.page/main!
                  :devtools {:after-load app.page/main!}}
-          :test {:target :node-script
+          :test {:target :node-test
                  :output-to "target/test.js"
-                 :main app.test/main!
-                 :devtools {:after-load app.test/main!}}}}
+                 :ns-regexp "test$"}}}
