@@ -807,7 +807,21 @@
                 :data {
                  "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570516721254, :text "set!", :id "uUDZoczDbmleaf"}
                  "j" {:type :leaf, :by "B1y7Rc-Zz", :at 1570516728280, :text "js/document.title", :id "-j670F9vt"}
-                 "r" {:type :leaf, :by "B1y7Rc-Zz", :at 1570516737412, :text "new-upstream", :id "xbXynESgy"}
+                 "r" {
+                  :type :expr, :by "root", :at 1571378626976, :id "7YwgCodxin"
+                  :data {
+                   "5" {:type :leaf, :by "root", :at 1571378663569, :text "if", :id "CnGSdljYm"}
+                   "D" {
+                    :type :expr, :by "root", :at 1571378662192, :id "3wMFxpV4Zz"
+                    :data {
+                     "T" {:type :leaf, :by "root", :at 1571378662192, :text "nil?", :id "CW8zyhvjV6"}
+                     "j" {:type :leaf, :by "root", :at 1571378681482, :text "new-store", :id "8REyZHyDmX"}
+                    }
+                   }
+                   "L" {:type :leaf, :by "root", :at 1571378671047, :text "\"(offline)", :id "FiSmzr-kOU"}
+                   "T" {:type :leaf, :by "B1y7Rc-Zz", :at 1570516737412, :text "new-upstream", :id "xbXynESgy"}
+                  }
+                 }
                 }
                }
               }

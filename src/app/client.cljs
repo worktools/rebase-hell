@@ -87,7 +87,7 @@
        (when (and (not= new-upstream old-upstream))
          (println "switching to" new-upstream)
          (comment notify-user! new-upstream)
-         (set! js/document.title new-upstream)))))
+         (set! js/document.title (if (nil? new-store) "(offline)" new-upstream))))))
   (on-page-touch #(if (nil? @*store) (connect!) (dispatch! :effect/read-branches nil)))
   (.addEventListener js/window "keydown" (fn [event] (on-keydown event)))
   (println "App started!"))
