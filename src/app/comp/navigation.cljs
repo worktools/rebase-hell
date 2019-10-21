@@ -19,15 +19,17 @@
             :justify-content :space-between,
             :padding "0 16px",
             :font-size 16,
-            :border-bottom (str "1px solid " (hsl 0 0 0 0.1)),
-            :font-family ui/font-fancy})}
+            :border-bottom (str "1px solid " (hsl 0 0 0 0.1))})}
   (div
-   {:style nil}
-   (span
+   {}
+   (comment
+    span
     {:inner-text (:title config/site), :on-click (action-> :router/change {:name :home})})
-   (=< 16 nil)
    (a
-    {:style {:color (hsl 200 60 80)},
+    {:style {:color (hsl 200 60 66),
+             :font-size 20,
+             :font-family ui/font-fancy,
+             :text-decoration :none},
      :inner-text upstream,
      :href (<< "https://github.com/~{upstream}"),
      :target "_blank"})
@@ -38,7 +40,7 @@
     states
     {:trigger (<>
                (or code "JM")
-               {:color (hsl 0 0 70), :font-family ui/font-code, :font-size 14}),
+               {:color (hsl 0 0 90), :font-family ui/font-code, :font-size 14}),
      :text "Project issue code:",
      :input-style {:font-family ui/font-code},
      :initial code}

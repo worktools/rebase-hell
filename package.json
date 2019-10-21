@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.1.20",
+  "version": "0.1.21-a1",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -33,13 +33,13 @@
     "randomcolor": "^0.5.4",
     "shortid": "^2.2.15",
     "url-parse": "^1.4.7",
-    "ws": "^7.1.2"
+    "ws": "^7.2.0"
   },
   "devDependencies": {
     "copy-text-to-clipboard": "^2.1.1",
     "feather-icons": "^4.24.1",
     "http-server": "^0.11.1",
-    "shadow-cljs": "^2.8.64",
+    "shadow-cljs": "^2.8.65",
     "source-map-support": "^0.5.13"
   }
 }
