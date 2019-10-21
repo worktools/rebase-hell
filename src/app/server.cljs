@@ -93,6 +93,12 @@
      (catch js/Error error (js/console.error error)))
     :effect))
 
+(defn found-git [dir]
+  (comment println "searching dir:" dir)
+  (if (fs/existsSync (path/join dir ".git/"))
+    true
+    (if (string/includes? (subs dir 1) "/") (recur (path/dirname dir)) false)))
+
 (def wd-file-path (path/join js/__dirname "working-directory.text"))
 
 (defn listen-to-switching! []
@@ -166,7 +172,7 @@
         previous-port (-> (cp/execSync (<< "lsof -ti tcp:~{port} -sTCP:LISTEN"))
                           .toString
                           .trim)]
-    (when-not (fs/existsSync ".git")
+    (when-not (found-git (js/process.cwd))
       (println (chalk/red "Missing .git/ folder, not a valid path!"))
       (js/process.exit 1))
     (fs/writeFileSync wd-file-path (js/process.cwd))
