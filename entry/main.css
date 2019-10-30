@@ -34,3 +34,11 @@ body * {
 ::placeholder {
   color: hsl(0,0%,84%);
 }
+
+button:hover {
+  background-color: hsl(0,0%,98%);
+}
+
+button:active {
+  transform: scale(1.03);;
+}

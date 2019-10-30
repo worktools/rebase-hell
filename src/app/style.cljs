@@ -9,7 +9,8 @@
     :font-size 14,
     :line-height "28px",
     :border-color (hsl 200 80 88),
-    :color (hsl 200 80 60)}))
+    :color (hsl 200 80 60),
+    :background-color nil}))
 
 (def link
   {:text-decoration :underline,
