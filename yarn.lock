@@ -221,11 +221,9 @@ colors@1.0.3:
   integrity sha1-BDP0TYCWgP3rYO0mDxsMJi6CpAs=
 
 console-browserify@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/console-browserify/-/console-browserify-1.1.0.tgz#f0241c45730a9fc6323b206dbf38edc741d0bb10"
-  integrity sha1-8CQcRXMKn8YyOyBtvzjtx0HQuxA=
-  dependencies:
-    date-now "^0.1.4"
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/console-browserify/-/console-browserify-1.2.0.tgz#67063cef57ceb6cf4993a2ab3a55840ae8c49336"
+  integrity sha512-ZMkYO/LkF17QvCPqM0gxw8yUzigAOZOSWSHg91FH6orS7vcEj5dVZTidN2fQ14yBSdg97RqhSNwLUXInd52OTA==
 
 constants-browserify@^1.0.0:
   version "1.0.0"
@@ -238,9 +236,9 @@ copy-text-to-clipboard@^2.1.1:
   integrity sha512-oSuMj4ArDGSLcLPsDhzWOhalzOVV0ErCHNfZNNr+spC+iWJ6PVSLzPPrJw/rcdFZyOhugn8iw6O0nrpY/ZrEMg==
 
 core-js@^3.1.3:
-  version "3.3.4"
-  resolved "https://registry.npmjs.org/core-js/-/core-js-3.3.4.tgz#6b0a23392958317bfb46e40b090529a923add669"
-  integrity sha512-BtibooaAmSOptGLRccsuX/dqgPtXwNgqcvYA6kOTTMzonRxZ+pJS4e+6mvVutESfXMeTnK8m3M+aBu3bkJbR+w==
+  version "3.3.5"
+  resolved "https://registry.npmjs.org/core-js/-/core-js-3.3.5.tgz#58d20f48a95a07304b62ff752742b82b56431ed8"
+  integrity sha512-0J3K+Par/ZydhKg8pEiTcK/9d65/nqJOzY62uMkjeBmt05fDOt/khUVjDdh8TpeIuGQDy1yLDDCjiWN/8pFIuw==
 
 core-util-is@~1.0.0:
   version "1.0.2"
@@ -304,11 +302,6 @@ crypto-browserify@^3.11.0:
     public-encrypt "^4.0.0"
     randombytes "^2.0.0"
     randomfill "^1.0.3"
-
-date-now@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.npmjs.org/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
-  integrity sha1-6vQ5/U1ISK105cx9vvIAZyueNFs=
 
 dayjs@^1.8.16:
   version "1.8.16"
@@ -1011,10 +1004,10 @@ shadow-cljs-jar@1.3.1:
   resolved "https://registry.npmjs.org/shadow-cljs-jar/-/shadow-cljs-jar-1.3.1.tgz#a5f8ab7664b40e11345837e4c6bce8e0ac9b2cc3"
   integrity sha512-IJSm4Gfu/wWDsOQ0wNrSxuaGdjzsd78us+3bop3cpWsoO2Igdu6VIBItYrZHRRBKl5LIZKXfnSh/2eWG3C1EFw==
 
-shadow-cljs@^2.8.67:
-  version "2.8.67"
-  resolved "https://registry.npmjs.org/shadow-cljs/-/shadow-cljs-2.8.67.tgz#73f38e7a98e00a3945200e9fcb3060eb31db7c71"
-  integrity sha512-E7IQ3R7SOu9q664504rv7ZNIDuyctJGKVTthCPVuN9phCLlFs8csKLBk2J8fYfGh5xdjN9FwZdYchYuQkAtnSw==
+shadow-cljs@^2.8.68:
+  version "2.8.68"
+  resolved "https://registry.npmjs.org/shadow-cljs/-/shadow-cljs-2.8.68.tgz#d913bdd3b4eb454ed06e3550fd286e42464a1c14"
+  integrity sha512-ifmluCRXAeLPxDLCYeH/R8b8Q+oVCOQtO6ayYkJursHxvy7EP5WWl3VmiyMRVaHahg1Cc2TQbCM4N/C7doQTRw==
   dependencies:
     mkdirp "^0.5.1"
     node-libs-browser "^2.0.0"
@@ -1038,10 +1031,10 @@ source-map-support@^0.4.15:
   dependencies:
     source-map "^0.5.6"
 
-source-map-support@^0.5.13:
-  version "0.5.13"
-  resolved "https://registry.npmjs.org/source-map-support/-/source-map-support-0.5.13.tgz#31b24a9c2e73c2de85066c0feb7d44767ed52932"
-  integrity sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==
+source-map-support@^0.5.16:
+  version "0.5.16"
+  resolved "https://registry.npmjs.org/source-map-support/-/source-map-support-0.5.16.tgz#0ae069e7fe3ba7538c64c98515e35339eac5a042"
+  integrity sha512-efyLRJDr68D9hBBNIPWFjhpFzURh+KJykQwvMyW5UiZzYwoF6l4YMMDIJJEyFWxWCqfyxLzz6tSfUFR+kXXsVQ==
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"

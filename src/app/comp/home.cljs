@@ -119,16 +119,18 @@
      (span {:class-name "rotating"} (comp-i :loader 24 (hsl 0 0 0 0.5)))
      (=< 16 nil)
      (list->
-      {}
+      {:style ui/expand}
       (->> status
            (map
             (fn [[pid command]]
               [pid
                (div
-                {:style {:font-family ui/font-code, :font-size 13, :line-height "20px"}}
+                {:style (merge
+                         ui/row
+                         {:font-family ui/font-code, :font-size 13, :line-height "20px"})}
                 (<> pid {:color (hsl 0 0 80)})
                 (=< 16 nil)
-                (<> command))]))))))
+                (div {:style ui/expand} (<> command)))]))))))
   (list->
    {:style (merge ui/flex {:overflow :auto})}
    (->> logs
