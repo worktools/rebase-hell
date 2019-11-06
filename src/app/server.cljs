@@ -108,6 +108,7 @@
      (let [new-path (fs/readFileSync wd-file-path "utf8")]
        (js/process.chdir new-path)
        (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
+       (dispatch! :effect/read-branches nil "system")
        (println "Switching to" new-path)))))
 
 (defn on-exit! [code]
