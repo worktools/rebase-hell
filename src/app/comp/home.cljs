@@ -51,7 +51,7 @@
   states
   {:trigger (render-button "Commit" false nil),
    :initial (let [prefix (re-find (re-pattern "\\w+-\\d+(?=-)") current)]
-     (if (string/blank? prefix) "" (<< "~{prefix} "))),
+     (if (string/blank? prefix) "" (<< "#~{prefix} "))),
    :text "Commit message",
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/commit result)))))
