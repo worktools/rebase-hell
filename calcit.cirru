@@ -7557,7 +7557,7 @@
                             :data $ {}
                               |T $ {} (:type :leaf) (:by |root) (:at 1547725218722) (:text |string/includes?) (:id |KStq3GJFGaG)
                               |j $ {} (:type :leaf) (:by |root) (:at 1547725218722) (:text |x) (:id |7gM8WtwvGlP)
-                              |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1555584439700) (:text "|\"release-2019W") (:id |QF8iehVRuJI)
+                              |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578291116964) (:text "|\"release-2020W") (:id |QF8iehVRuJI)
                   |v $ {} (:type :leaf) (:by |root) (:at 1547725218722) (:text |sort) (:id |w62e-uOrnEQ)
                   |x $ {} (:type :leaf) (:by |root) (:at 1547725218722) (:text |last) (:id |9CxWvAFgTMD)
           |github-api! $ {} (:type :expr) (:by |root) (:at 1547722189487) (:id |K0UYLg894t)
