@@ -6726,6 +6726,29 @@
                                 :data $ {}
                                   |T $ {} (:type :leaf) (:by |root) (:at 1546512675953) (:text |:display) (:id |2KnMZ8R_6Z)
                                   |j $ {} (:type :leaf) (:by |root) (:at 1546512675953) (:text |:inline-block) (:id |4Eiop3SWDD)
+                      |x $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1578457084379)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |:validator) (:id |hizzJuiYh)
+                          |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1578457084379)
+                            :data $ {}
+                              |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |fn) (:id |Ju7l1PYiK)
+                              |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1578457084379)
+                                :data $ {}
+                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |x) (:id |K9gs70xt2)
+                                :id |_ZFTrMC2E
+                              |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1578457084379)
+                                :data $ {}
+                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |if) (:id |tGgYOP4QB)
+                                  |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1578457084379)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |string/includes?) (:id |j52DiARPk)
+                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text |x) (:id |dCbQAdT_9)
+                                      |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text "|\" ") (:id |BCa05HWfzR)
+                                    :id |e5DQZyuda
+                                  |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578457084379) (:text "|\"text with blanks is not a branch name!") (:id |cPmUDb0u50)
+                                :id |noPlRK8cG
+                            :id |KI-Zpw5zI
+                        :id |9qopb4DzW
                   |y $ {} (:type :expr) (:by |root) (:at 1545825818808) (:id |yg_HqSsItDM)
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |root) (:at 1545825818808) (:text |fn) (:id |wp36dBeWKcB)

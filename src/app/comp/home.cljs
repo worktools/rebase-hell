@@ -147,7 +147,9 @@
   {:trigger (render-button "New Branch" false nil),
    :initial (if (string/blank? code) "JM-" (str code "-")),
    :text "Branch name",
-   :style-trigger {:margin "0 8px", :display :inline-block}}
+   :style-trigger {:margin "0 8px", :display :inline-block},
+   :validator (fn [x]
+     (if (string/includes? x " ") "text with blanks is not a branch name!"))}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/new-branch result)))))
 
 (defcomp
