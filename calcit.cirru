@@ -1302,10 +1302,7 @@
                               |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1572492228013) (:id |xkxHQCYh48)
                                 :data $ {}
                                   |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1572492229559) (:text |:append-html) (:id |xkxHQCYh48leaf)
-                                  |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1572492230248) (:id |MhieJj11WD)
-                                    :data $ {}
-                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1572492231867) (:text |slurp) (:id |oWcW8iY_pa)
-                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1572492235400) (:text "|\"./entry/ga.html") (:id |I9nwAJGaHi)
+                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586236500806) (:text |nil) (:id |yICqGq-4RC)
         :proc $ {} (:type :expr) (:id |HkeeN5LegRBZ) (:by nil) (:at 1500541010211) (:data $ {})
       |app.style $ {}
         :ns $ {} (:type :expr) (:by |root) (:at 1519367963533) (:id |HygVXDNTvf)
@@ -9320,7 +9317,7 @@
                                           |r $ {} (:type :expr) (:by |root) (:at 1545315867658) (:id |QxMTDwWRV3D)
                                             :data $ {}
                                               |T $ {} (:type :leaf) (:by |root) (:at 1545315867658) (:text |<<) (:id |XWKiDQxDtuI)
-                                              |j $ {} (:type :leaf) (:by |root) (:at 1545316056489) (:text "|\"New version ~{npm-version} available, current one is ~{version} . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n") (:id |7X3STOvx8Ii)
+                                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1578543988929) (:text "|\"New version ~{npm-version} available, current one is ~{version} . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n") (:id |7X3STOvx8Ii)
           |*client-caches $ {} (:type :expr) (:id |S1VrmlLWxAr-) (:by nil) (:at 1500541255553)
             :data $ {}
               |T $ {} (:type :leaf) (:id |HyrB7gIWeCrb) (:text |defonce) (:by |root) (:at 1500541255553)
