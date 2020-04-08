@@ -3,11 +3,11 @@
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
             [respo.comp.space :refer [=<]]
-            [respo.core :refer [defcomp <> action-> list-> cursor-> span div button pre a]]
+            [respo.core :refer [defcomp <> >> list-> >> span div button pre a]]
             [app.config :as config]
             [feather.core :refer [comp-i]]
             [clojure.string :as string]
-            [respo-alerts.comp.alerts :refer [comp-prompt comp-select]]
+            [respo-alerts.core :refer [comp-prompt comp-select]]
             [feather.core :refer [comp-icon]]
             [copy-text-to-clipboard :as copy!]
             [app.style :as style])
@@ -45,10 +45,8 @@
 (defcomp
  comp-commit
  (states current)
- (cursor->
-  :prompt
-  comp-prompt
-  states
+ (comp-prompt
+  (>> states :prompt)
   {:trigger (render-button "Commit" false nil),
    :initial (let [prefix (re-find (re-pattern "\\w+-\\d+(?=-)") current)]
      (if (string/blank? prefix) "" (<< "#~{prefix} "))),
@@ -140,10 +138,8 @@
 (defcomp
  comp-new-branch
  (states code)
- (cursor->
-  :new-branch
-  comp-prompt
-  states
+ (comp-prompt
+  (>> states :new-branch)
   {:trigger (render-button "New Branch" false nil),
    :initial (if (string/blank? code) "JM-" (str code "-")),
    :text "Branch name",
@@ -170,7 +166,7 @@
       {:style ui/row}
       (render-button "Pull" false (fn [e d! m!] (d! :effect/pull-current nil))))
      (comp-title "Others")
-     (div {:style ui/row} (cursor-> :branch comp-new-branch states (:code repo))))
+     (div {:style ui/row} (comp-new-branch (>> states :branch) (:code repo))))
     (div
      {}
      (comp-title "Basic")
@@ -182,8 +178,8 @@
      (comp-title "Other")
      (div
       {}
-      (cursor-> :branch comp-new-branch states (:code repo))
-      (cursor-> :commit comp-commit states (:current repo)))
+      (comp-new-branch (>> states :branch) (:code repo))
+      (comp-commit (>> states :commit) (:current repo)))
      (comp-title "Forced")
      (div
       {}
@@ -209,10 +205,8 @@
       :inner-text "Fetch",
       :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))})
     (=< 16 nil)
-    (cursor->
-     :pick-branch
-     comp-prompt
-     states
+    (comp-prompt
+     (>> states :pick-branch)
      {:trigger (button {:style (merge style/button), :inner-text "Pick issues"}),
       :initial "",
       :text "需要 pick 的若干 GitHub issue id",
@@ -258,10 +252,8 @@
                                 (map (fn [branch] {:value branch, :display branch})))]
        (div
         {:style {:padding 8}}
-        (cursor->
-         :remote
-         comp-select
-         states
+        (comp-select
+         (>> states :remote)
          nil
          remote-branches
          {:placeholder "Remote branches", :text "Checkout remote branch"}
@@ -269,6 +261,6 @@
            (if (some? result)
              (do (d! :effect/switch-remote-branch (last (string/split result "/"))))))))))
     (=< 16 nil)
-    (cursor-> :operations comp-operations states repo)))
+    (comp-operations (>> states :operations) repo)))
   (=< 16 nil)
   (comp-logs logs status)))
