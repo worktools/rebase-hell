@@ -15,6 +15,7 @@
     [respo/feather "0.1.1"]
     [respo/markdown "0.2.5"]
     [cirru/bisection-key "0.1.5"]
+    [fipp "0.6.22"]
     [appliedscience/js-interop "0.2.5"]
     [org.clojure/core.incubator "0.1.4"]
   ]
