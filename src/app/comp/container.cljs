@@ -2,7 +2,7 @@
 (ns app.comp.container
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.core :refer [defcomp <> div span action-> cursor-> button]]
+            [respo.core :refer [defcomp <> div span >> button]]
             [respo.comp.inspect :refer [comp-inspect]]
             [respo.comp.space :refer [=<]]
             [app.comp.navigation :refer [comp-navigation]]
@@ -33,7 +33,7 @@
             :background-size :contain}})
   (div
    {:style (merge ui/center {:cursor :pointer, :line-height "32px"}),
-    :on-click (action-> :effect/connect nil)}
+    :on-click (fn [e d!] (d! :effect/connect nil))}
    (<> "No connection..." {:font-family ui/font-fancy, :font-size 24})
    (comp-md
     "A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n"))))
@@ -65,16 +65,14 @@
      (comp-offline)
      (div
       {:style (merge ui/global ui/fullscreen ui/column)}
-      (cursor->
-       :nav
-       comp-navigation
-       states
+      (comp-navigation
+       (>> states :nav)
        (:logged-in? store)
        (:count store)
        (:upstream repo)
        (:code repo))
       (case (:name router)
-        :home (comp-home states repo (:logs store) (:process-status store))
+        :home (comp-home (>> states :home) repo (:logs store) (:process-status store))
         :profile (comp-profile (:user store) (:data router))
         (<> router))
       (comp-status-color (:color store))
