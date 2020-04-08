@@ -37,7 +37,13 @@
   (let [current (if (fs/existsSync "release.edn")
                   (:version (read-string (fs/readFileSync "release.edn" "utf8")))
                   (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))]
+    (println "from" current "to" tag-version)
     (if (= current tag-version)
+      (run-command!
+       (<<
+        "git tag ~{tag-version} && git push origin ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+       d!
+       {:on-finish (fn [] )})
       (do
        (let [pkg (js/JSON.parse (fs/readFileSync "package.json" "utf8"))]
          (aset pkg "version" tag-version)
@@ -51,12 +57,7 @@
         (<<
          "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
         d!
-        {:on-finish (fn [] )}))
-      (run-command!
-       (<<
-        "git tag ~{tag-version} && git push origin ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
-       d!
-       {:on-finish (fn [] )}))))
+        {:on-finish (fn [] )})))))
 
 (defn apply-stash! [d!] (run-command! (<< "git stash apply") d! {}))
 
