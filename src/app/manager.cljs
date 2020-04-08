@@ -1,12 +1,15 @@
 
 (ns app.manager
   (:require ["child_process" :as cp]
+            ["fs" :as fs]
             [clojure.string :as string]
             [cumulo-util.core :refer [id! unix-time!]]
             [cljs.core.async :refer [chan >! <! put! close! go]]
             [app.util :refer [read-items]]
             [app.util.github :refer [get-commits! github-api! get-commands-chan!]]
-            [app.util :refer [grab-upstream]])
+            [app.util :refer [grab-upstream]]
+            [cljs.reader :refer [read-string]]
+            [fipp.edn :refer [pprint]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -29,6 +32,31 @@
        (d! :process/finish (.-pid proc))
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
+
+(defn add-tag! [tag-version upstream d!]
+  (let [current (if (fs/existsSync "release.edn")
+                  (:version (read-string (fs/readFileSync "release.edn" "utf8")))
+                  (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))]
+    (if (= current tag-version)
+      (do
+       (let [pkg (js/JSON.parse (fs/readFileSync "package.json" "utf8"))]
+         (aset pkg "version" tag-version)
+         (fs/writeFileSync "package.json" (str (js/JSON.stringify pkg nil 2) "\n")))
+       (when (fs/existsSync "release.edn")
+         (let [pkg (read-string (fs/readFileSync "release.edn" "utf8"))]
+           (fs/writeFileSync
+            "release.edn"
+            (str (with-out-str (pprint (assoc pkg :version tag-version))) "\n"))))
+       (run-command!
+        (<<
+         "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+        d!
+        {:on-finish (fn [] )}))
+      (run-command!
+       (<<
+        "git tag ~{tag-version} && git push origin ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+       d!
+       {:on-finish (fn [] )}))))
 
 (defn apply-stash! [d!] (run-command! (<< "git stash apply") d! {}))
 
@@ -114,6 +142,13 @@
    {:on-finish (fn [] (d! :effect/read-branches nil))}))
 
 (defn run-stash! [d!] (run-command! (<< "git stash") d! {}))
+
+(defn show-version [op-data upstream d!]
+  (run-command!
+   (<<
+    "cat package.json | grep \"\\\"version\"; [ -f release.edn ] && cat release.edn | grep :version")
+   d!
+   {:on-finish (fn [] )}))
 
 (defn switch-branch! [current branch-name d!]
   (when (not= current branch-name)

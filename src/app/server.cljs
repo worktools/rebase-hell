@@ -89,6 +89,8 @@
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        (= op :effect/commit) (manager/commit! current op-data d!)
        (= op :effect/pick-prs) (manager/pick-prs! op-data upstream d!)
+       (= op :effect/add-tag) (manager/add-tag! op-data upstream d!)
+       (= op :effect/show-version) (manager/show-version op-data upstream d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
      (catch js/Error error (js/console.error error)))
     :effect))
