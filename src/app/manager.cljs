@@ -9,7 +9,8 @@
             [app.util.github :refer [get-commits! github-api! get-commands-chan!]]
             [app.util :refer [grab-upstream]]
             [cljs.reader :refer [read-string]]
-            [fipp.edn :refer [pprint]])
+            [fipp.edn :refer [pprint]]
+            ["chalk" :as chalk])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -88,6 +89,8 @@
 (defn get-upstream! []
   (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
     (grab-upstream remote-url)))
+
+(defn kill-process! [pid d!] (println (chalk/red "kill" pid)) (.kill js/process pid))
 
 (defn new-branch! [branch-name d!]
   (run-command!
