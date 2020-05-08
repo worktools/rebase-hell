@@ -127,7 +127,12 @@
                          ui/row
                          {:font-family ui/font-code, :font-size 13, :line-height "20px"})}
                 (<> pid {:color (hsl 0 0 80)})
-                (=< 16 nil)
+                (=< 4 nil)
+                (comp-icon
+                 :x
+                 {:font-size 12, :color (hsl 0 80 88), :cursor :pointer, :margin-top 4}
+                 (fn [e d!] (d! :effect/kill-process pid)))
+                (=< 12 nil)
                 (div {:style ui/expand} (<> command)))]))))))
   (list->
    {:style (merge ui/flex {:overflow :auto})}
