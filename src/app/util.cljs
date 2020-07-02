@@ -5,6 +5,14 @@
   (cond
     (string/starts-with? url "git@")
       (-> url string/trim (string/split ":") last (string/replace ".git" ""))
+    (string/starts-with? url "ssh://")
+      (-> url
+          string/trim
+          (string/split "://")
+          last
+          (string/replace #"^[\w\d\@\:\.]+" "")
+          (subs 1)
+          (string/replace ".git" ""))
     (string/starts-with? url "https://")
       (-> url
           string/trim

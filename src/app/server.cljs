@@ -16,7 +16,7 @@
             [cumulo-util.core :refer [id! repeat! unix-time! delay!]]
             [app.twig.container :refer [twig-container]]
             [recollect.diff :refer [diff-twig]]
-            [recollect.twig :refer [render-twig]]
+            [recollect.twig :refer [new-twig-loop! clear-twig-caches!]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
             [app.manager :as manager]
             [clojure.string :as string])
@@ -126,14 +126,15 @@
            records (:records reel)
            session (get-in db [:sessions sid])
            old-store (or (get @*client-caches sid) nil)
-           new-store (render-twig (twig-container db session records) old-store)
+           new-store (twig-container db session records)
            changes (diff-twig old-store new-store {:key :id})]
        (when config/dev?
          (println (.gray chalk (str "Changes for " sid ": " (count records)))))
        (if (not= changes [])
          (do
           (wss-send! sid {:kind :patch, :data changes})
-          (swap! *client-caches assoc sid new-store)))))))
+          (swap! *client-caches assoc sid new-store))))))
+  (new-twig-loop!))
 
 (defn render-loop! []
   (when (not (identical? @*reader-reel @*reel))
@@ -193,5 +194,6 @@
 
 (defn reload! []
   (println "Code updated.")
+  (clear-twig-caches!)
   (reset! *reel (refresh-reel @*reel initial-db updater))
   (sync-clients! @*reader-reel))

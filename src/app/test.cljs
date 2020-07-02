@@ -7,8 +7,14 @@
  test-parse-upstream!
  ()
  (testing
-  "parse SSH URL"
+  "parse Git URL"
   (is (= "jimengio/rebase-hell" (grab-upstream "git@github.com:jimengio/rebase-hell.git"))))
+ (testing
+  "parse SSH URL"
+  (is
+   (=
+    "jimengio/jimeng-io"
+    (grab-upstream "ssh://git@git.jimeng.io:2222/jimengio/jimeng-io.git"))))
  (testing
   "parse HTTPS URL"
   (is
