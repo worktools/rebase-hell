@@ -10,55 +10,59 @@
             [app.util :refer [read-items]]
             ["chalk" :as chalk]
             ["fs" :as fs]
-            [applied-science.js-interop :as j])
+            [applied-science.js-interop :as j]
+            [app.env :refer [shell-env]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn gitea-api! [url params on-error]
-  (let [<result (chan)
-        gitea-token (aget js/process.env "GITEA_TOKEN")
-        gitea-host (aget js/process.env "GITEA_HOST")
+  (let [gitea-token (:gitea-token shell-env)
+        gitea-host (:gitea-host shell-env)
         headers {:Authorization (str "token " gitea-token), :Accept "application/json"}]
     (when (nil? gitea-token) (println "Failure: unknown GITEA_TOKEN"))
     (when (nil? gitea-host) (println "Failure: unknown GITEA_HOST"))
-    (-> (axios
-         (clj->js
-          {:method "GET", :baseURL gitea-host, :url url, :headers headers, :params params}))
-        (.then
-         (fn [response] (put! <result (js->clj (.-data response) :keywordize-keys true))))
-        (.catch
-         (fn [error]
-           (println
-            (chalk/red
-             (j/get-in error [:response :status])
-             (j/get-in error [:response :statusText])))
-           (println (chalk/red "Failed to perform request to" url))
-           (println (chalk/red "Headers:" (pr-str headers)))
-           (println (chalk/red "Params:" (pr-str params)))
-           (on-error (str "API failed. " error)))))
-    <result))
+    (go
+     (try
+      (let [response (<p!
+                      (axios
+                       (clj->js
+                        {:method "GET",
+                         :baseURL gitea-host,
+                         :url url,
+                         :headers headers,
+                         :params params})))]
+        (js->clj (.-data response) :keywordize-keys true))
+      (catch
+       js/Error
+       error
+       (println
+        (chalk/red
+         (j/get-in error [:response :status])
+         (j/get-in error [:response :statusText])))
+       (println (chalk/red "Failed to perform request to" url))
+       (println (chalk/red "Headers:" (pr-str headers)))
+       (println (chalk/red "Params:" (pr-str params)))
+       (on-error (str "API failed. " error)))))))
 
 (defn collect-gitea-commits-chan [upstream head-sha base-sha on-error]
-  (let [result> (chan)]
-    (go-loop
-     [acc [] current-sha head-sha size 0]
-     (let [result (<!
-                   (gitea-api!
-                    (<< "repos/~{upstream}/git/commits/~{current-sha}")
-                    {}
-                    on-error))
-           next-acc (conj
-                     acc
-                     {:commit {:message (-> result :commit :message)},
-                      :date (-> result :commit :message),
-                      :sha head-sha})
-           parent-sha (get-in result [:parents 0 :sha])]
-       (comment println (pr-str "COMMIT DATA" current-sha base-sha result))
-       (cond
-         (nil? parent-sha) (on-error "parent sha is nil")
-         (> size 10) (on-error "loop size too large")
-         (= base-sha parent-sha) (>! result> next-acc)
-         :else (recur next-acc parent-sha (inc size)))))
-    result>))
+  (go-loop
+   [acc [] current-sha head-sha size 0]
+   (let [result (<!
+                 (gitea-api!
+                  (<< "repos/~{upstream}/git/commits/~{current-sha}")
+                  {}
+                  on-error))
+         next-acc (conj
+                   acc
+                   {:commit {:message (-> result :commit :message)},
+                    :date (-> result :commit :committer :date),
+                    :sha current-sha})
+         parent-sha (get-in result [:parents 0 :sha])]
+     (comment println (pr-str "COMMIT DATA" parent-sha base-sha result))
+     (cond
+       (nil? parent-sha) (on-error "parent sha is nil")
+       (> size 10) (on-error "loop size too large")
+       (= base-sha parent-sha) next-acc
+       :else (recur next-acc parent-sha (inc size))))))
 
 (defn github-api! [url params on-error]
   (let [<result (chan)
@@ -100,47 +104,39 @@
     <result))
 
 (defn get-gitea-commits! [issue-id upstream on-error]
-  (let [<result (chan)
-        <pr-info (gitea-api! (<< "/repos/~{upstream}/pulls/~{issue-id}") {} on-error)]
+  (let [<pr-info (gitea-api! (<< "/repos/~{upstream}/pulls/~{issue-id}") {} on-error)]
     (go
      (let [pr-info (<! <pr-info)
            head-sha (-> pr-info :head :sha)
            base-sha (-> pr-info :merge_base)
            commits (<! (collect-gitea-commits-chan upstream head-sha base-sha on-error))]
-       (println "COMMITs" (pr-str commits))
-       (>!
-        <result
-        (->> commits
-             (sort-by
-              (fn [x]
-                (println "date" (.valueOf (dayjs (:date x))))
-                (.valueOf (dayjs (:date x)))))
-             vec))))
-    <result))
+       (->> commits
+            (sort-by
+             (fn [x] (comment println "date" (:date x)) (.valueOf (dayjs (:date x)))))
+            vec)))))
 
 (defn log-error! [message d!]
   (d! :process/log {:id (id!), :time (unix-time!), :text message, :kind :error}))
 
-(defn collect-all-commits-chan! [pr-ids upstream d!]
-  (let [<result (chan)
-        remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))
-        github? (string/includes? remote-url "github.com")]
-    (println "requesting commits from:" (if github? "github" "gitea"))
-    (go-loop
-     [acc [] issue-ids pr-ids]
-     (if-not (empty? issue-ids)
-       (let [issue-id (first issue-ids)
-             commits (<!
-                      (if github?
-                        (get-commits! issue-id upstream (fn [error] (log-error! error d!)))
-                        (get-gitea-commits!
-                         issue-id
-                         upstream
-                         (fn [error] (log-error! error d!)))))
-             next-acc (conj acc {:id issue-id, :commits commits})]
-         (recur next-acc (rest issue-ids)))
-       (do (>! <result acc))))
-    <result))
+(defn collect-all-commits-chan! [pr-ids upstream d! github?]
+  (go-loop
+   [acc [] issue-ids pr-ids]
+   (if-not (empty? issue-ids)
+     (let [issue-id (first issue-ids)
+           commits (<!
+                    (if github?
+                      (get-commits! issue-id upstream (fn [error] (log-error! error d!)))
+                      (get-gitea-commits!
+                       issue-id
+                       upstream
+                       (fn [error] (log-error! error d!)))))
+           next-acc (conj acc {:id issue-id, :commits commits})]
+       (recur next-acc (rest issue-ids)))
+     acc)))
+
+(defn detect-github? []
+  (let [remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))]
+    (string/includes? remote-url "github.com")))
 
 (defn format-pick-commands [commits-data]
   (->> commits-data
@@ -182,15 +178,16 @@
         pr-names-dashed (string/join "-" pr-ids)
         pr-title (<< "Automated cherry pick of ~{pr-names}")
         new-branch (str "pick-" pr-names-dashed)
-        remote-url (.toString (cp/execSync "git ls-remote --get-url origin"))
-        github? (string/includes? remote-url "github.com")
-        gitea-host (aget js/process.env "GITEA_HOST")
-        gitea-token (aget js/process.env "GITEA_TOKEN")]
+        github? (detect-github?)]
     (d!
      :process/log
-     {:id (id!), :time (unix-time!), :text (<< "Picking ~{pr-names}..."), :kind :message})
+     {:id (id!),
+      :time (unix-time!),
+      :text (let [target (if github? "GitHub" "Gitea")]
+        (<< "Picking ~{pr-names} from ~{target}...")),
+      :kind :message})
     (go
-     (let [commits-data (<! (collect-all-commits-chan! pr-ids upstream d!))
+     (let [commits-data (<! (collect-all-commits-chan! pr-ids upstream d! github?))
            commands-pick-commits (format-pick-commands commits-data)
            logs-in-body (format-pr-changes commits-data)
            pr-body (<<
@@ -202,15 +199,16 @@
            pr-command (if github?
                         (<<
                          "hub pull-request --base=beego:~{release-branch} --head=beego:~{new-branch} --message=$'~{pr-message}'")
-                        (let [data (js/JSON.stringify
+                        (let [gitea-host (:gitea-host shell-env)
+                              gitea-token (:gitea-token shell-env)
+                              data (js/JSON.stringify
                                     (clj->js
                                      {:title pr-title,
                                       :body pr-body,
                                       :head new-branch,
                                       :base release-branch}))]
-                          (println "upstream" upstream)
                           (<<
-                           "curl -d '~{data}' -H \"Content-Type: application/json\" --header \"Authorization: token ~{gitea-token}\" -X POST ~{gitea-host}repos/~{upstream}/pulls")))
+                           "curl -d '~{data}' -H \"Content-Type: application/json\" --header \"Authorization: token ~{gitea-token}\" -X POST ~{gitea-host}/repos/~{upstream}/pulls")))
            commands (<<
                      "git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\n~{pr-command}\n")]
        (>! <commands commands)))
