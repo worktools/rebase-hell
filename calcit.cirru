@@ -7768,7 +7768,7 @@
                                               |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594017909778) (:text |:date) (:id |QazagzTIMe)
                                               |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594017909778) (:text |x) (:id |ecqIW6gVNz)
                                             :id |OAjxLGAnNj
-                                          |D $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594018095079) (:text |;) (:id |ALeigAvmN)
+                                          |D $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594984166869) (:text |;) (:id |kQjhopPy3C)
                                         :id |xshnzI2AwpB
                                       |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016362662)
                                         :data $ {}
@@ -8307,7 +8307,7 @@
                                               |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |result) (:id |BYZLj4mX76J)
                                               |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |:commit) (:id |MVS7ChayLWY)
                                               |v $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594017974706) (:text |:date) (:id |O7F_lp8yxCU)
-                                              |t $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594018007866) (:text |:committer) (:id |LNxEP6hgxV)
+                                              |t $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594984090045) (:text |:author) (:id |LNxEP6hgxV)
                                             :id |PsouhgciuW1
                                         :id |EbMKlQ6_cHQ
                                       |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
@@ -9008,12 +9008,6 @@
                             :data $ {}
                               |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426449103) (:text |<<) (:id |DkgjUZVl9r)
                               |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553427521963) (:text "|\"Automated cherry pick of ~{pr-names}") (:id |Y7LJXSnlXS)
-                      |D $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553426039813) (:id |CkxgwSpt8x)
-                        :data $ {}
-                          |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426039813) (:text |<commands) (:id |0ZGbkBNsEN)
-                          |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553426039813) (:id |-evy8FR_0Q)
-                            :data $ {}
-                              |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426039813) (:text |chan) (:id |qdvINJ92H0)
                   |r $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553424302382) (:id |sPm6MWBh4V)
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553424302382) (:text |d!) (:id |rfRfPMHQeC)
@@ -9145,13 +9139,6 @@
                                           |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426044335) (:text |string/replace) (:id |fkmdm0ge_07)
                                           |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426044335) (:text "|\"'") (:id |2nUbLtsmZ7N)
                                           |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426044335) (:text "|\"\\'") (:id |JpO8L8H0vpP)
-                              |yyj $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553426044335) (:id |PcA_eHu1prC)
-                                :data $ {}
-                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426044335) (:text |commands) (:id |lK8QwJKxYza)
-                                  |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553426044335) (:id |drUlXoGKDdZ)
-                                    :data $ {}
-                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426044335) (:text |<<) (:id |dmlJCwF2Lo3)
-                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594011568935) (:text "|\"git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\n~{pr-command}\n") (:id |9QWgO0R0tPd)
                               |yyb $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594011499895)
                                 :data $ {}
                                   |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594011509207) (:text |pr-command) (:id |-2TB5rttgKleaf)
@@ -9232,12 +9219,11 @@
                                         :id |EZJ53mjNA
                                     :id |nubCw9CCl4
                                 :id |-2TB5rttgK
-                          |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553427114182) (:id |MTyoTLwWq4)
+                          |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594983896396)
                             :data $ {}
-                              |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553427114182) (:text |>!) (:id |ZagV0IUcGb)
-                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553427114182) (:text |<commands) (:id |TwJfGJGNW0)
-                              |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553427114182) (:text |commands) (:id |OpLu1jprMW)
-                  |x $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1553426051504) (:text |<commands) (:id |HxJRWeYcG)
+                              |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594983896396) (:text |<<) (:id |99jqZTsWa-)
+                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594983896396) (:text "|\"git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\n~{pr-command}\n") (:id |CBaPsLia7m)
+                            :id |cLqP-j2DJD
         :proc $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1553423216630) (:id |bZJJEXkRHQ) (:data $ {})
       |app.comp.profile $ {}
         :ns $ {} (:type :expr) (:id |ByC9-5Lee0rW) (:by nil) (:at 1500541010211)

@@ -54,7 +54,7 @@
          next-acc (conj
                    acc
                    {:commit {:message (-> result :commit :message)},
-                    :date (-> result :commit :committer :date),
+                    :date (-> result :commit :author :date),
                     :sha current-sha})
          parent-sha (get-in result [:parents 0 :sha])]
      (comment println (pr-str "COMMIT DATA" parent-sha base-sha result))
@@ -171,8 +171,7 @@
        last))
 
 (defn get-commands-chan! [pr-ids upstream d!]
-  (let [<commands (chan)
-        release-branch (get-release-branch!)
+  (let [release-branch (get-release-branch!)
         pr-names-list (->> pr-ids (map (fn [x] (str "#" x))))
         pr-names (->> pr-names-list (string/join " "))
         pr-names-dashed (string/join "-" pr-ids)
@@ -208,8 +207,6 @@
                                       :head new-branch,
                                       :base release-branch}))]
                           (<<
-                           "curl -d '~{data}' -H \"Content-Type: application/json\" --header \"Authorization: token ~{gitea-token}\" -X POST ~{gitea-host}/repos/~{upstream}/pulls")))
-           commands (<<
-                     "git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\n~{pr-command}\n")]
-       (>! <commands commands)))
-    <commands))
+                           "curl -d '~{data}' -H \"Content-Type: application/json\" --header \"Authorization: token ~{gitea-token}\" -X POST ~{gitea-host}/repos/~{upstream}/pulls")))]
+       (<<
+        "git checkout -b ~{new-branch} origin/~{release-branch}\n\n~{commands-pick-commits}\n\ngit push origin ~{new-branch}\n\n~{pr-command}\n")))))
