@@ -11,7 +11,7 @@
 
 (defcomp
  comp-navigation
- (states logged-in? count-members upstream code)
+ (states logged-in? count-members repo gitea-domain)
  (div
   {:style (merge
            ui/row-center
@@ -26,24 +26,29 @@
     span
     {:inner-text (:title config/site),
      :on-click (fn [e d!] (d! :router/change {:name :home}))})
-   (a
-    {:style {:color (hsl 200 60 66),
-             :font-size 20,
-             :font-family ui/font-fancy,
-             :text-decoration :none},
-     :inner-text upstream,
-     :href (<< "https://github.com/~{upstream}"),
-     :target "_blank"})
+   (let [upstream (:upstream repo)]
+     (a
+      {:style {:color (hsl 200 60 66),
+               :font-size 20,
+               :font-family ui/font-fancy,
+               :text-decoration :none},
+       :inner-text upstream,
+       :href (case (:host-kind repo)
+         :github (<< "https://github.com/~{upstream}")
+         :gitea (str "https://" gitea-domain "/" upstream)
+         (<< "https://github.com/~{upstream}")),
+       :target "_blank"}))
    (=< 16 nil)
-   (comp-prompt
-    (>> states :code)
-    {:trigger (<>
-               (or code "JM")
-               {:color (hsl 0 0 90), :font-family ui/font-code, :font-size 14}),
-     :text "Project issue code:",
-     :input-style {:font-family ui/font-code},
-     :initial code}
-    (fn [result d! m!] (when-not (string/blank? result) (d! :repo/set-code result)))))
+   (let [code (:code repo)]
+     (comp-prompt
+      (>> states :code)
+      {:trigger (<>
+                 (or code "JM")
+                 {:color (hsl 0 0 90), :font-family ui/font-code, :font-size 14}),
+       :text "Project issue code:",
+       :input-style {:font-family ui/font-code},
+       :initial code}
+      (fn [result d! m!] (when-not (string/blank? result) (d! :repo/set-code result))))))
   (comment
    div
    {:style {:cursor "pointer"}, :on-click (fn [e d!] (d! :router/change {:name :profile}))}

@@ -69,8 +69,8 @@
        (>> states :nav)
        (:logged-in? store)
        (:count store)
-       (:upstream repo)
-       (:code repo))
+       repo
+       (get-in store [:shell-env :gitea-domain]))
       (case (:name router)
         :home (comp-home (>> states :home) repo (:logs store) (:process-status store))
         :profile (comp-profile (:user store) (:data router))

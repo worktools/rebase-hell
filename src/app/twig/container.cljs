@@ -2,7 +2,8 @@
 (ns app.twig.container
   (:require [recollect.twig :refer [deftwig]]
             [app.twig.user :refer [twig-user]]
-            ["randomcolor" :as color]))
+            ["randomcolor" :as color]
+            [app.env :refer [shell-env]]))
 
 (deftwig
  twig-members
@@ -31,4 +32,5 @@
      :color (color/randomColor),
      :repo (:repo db),
      :logs (:logs db),
+     :shell-env shell-env,
      :process-status (:process-status db)})))

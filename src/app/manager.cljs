@@ -10,7 +10,8 @@
             [app.util :refer [grab-upstream]]
             [cljs.reader :refer [read-string]]
             [fipp.edn :refer [pprint]]
-            ["chalk" :as chalk])
+            ["chalk" :as chalk]
+            [app.env :refer [shell-env]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -34,10 +35,18 @@
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
-(defn add-tag! [tag-version upstream d!]
+(defn add-tag! [tag-version upstream host-kind d!]
   (let [current (if (fs/existsSync "release.edn")
                   (:version (read-string (fs/readFileSync "release.edn" "utf8")))
-                  (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))]
+                  (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))
+        web-url (case host-kind
+                  :gitea
+                    (<<
+                     "https://~(:gitea-domain shell-env)/~{upstream}/releases/new?tag=~{tag-version}")
+                  :github
+                    (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+                  (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}"))]
+    (println "host kind" host-kind)
     (println "from" current "to" tag-version)
     (if (= current tag-version)
       (run-command!
@@ -56,7 +65,7 @@
             (str (with-out-str (pprint (assoc pkg :version tag-version))) "\n"))))
        (run-command!
         (<<
-         "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+         "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo ~{web-url}")
         d!
         {:on-finish (fn [] )})))))
 
