@@ -18,7 +18,7 @@ And open http://fe.jimu.io/rebase-hell/
 * 安装 hub 命令行工具 https://hub.github.com
 * 在 GitHub 上生成有仓库可读权限的 Token [教程](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
 * 在环境变量添加 toke, 比如 `.bashrc` 里配置 `export GITHUB_TOKEN=<token>`
-  * Gitea 对应要添加 `GITEA_TOKEN` 和 `GITEA_HOST`
+  * Gitea 对应要添加 `GITEA_TOKEN`, `GITEA_HOST`(e.g. `https://git.xxx.com/api/v1/`), `GITEA_DOMAIN`(e.g. `git.xxx.com`)
 * 配置完成后启动, 在 "Pick PR" 功能当中输入一个或者多个 issue id 来生成命令
 
 ### Docs

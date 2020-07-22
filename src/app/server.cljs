@@ -68,7 +68,8 @@
         d! #(dispatch! %1 %2 sid)
         db (:db @*reel)
         current (get-in db [:repo :current])
-        upstream (get-in db [:repo :upstream])]
+        upstream (get-in db [:repo :upstream])
+        host-kind (get-in db [:repo :host-kind])]
     (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
@@ -89,7 +90,7 @@
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        (= op :effect/commit) (manager/commit! current op-data d!)
        (= op :effect/pick-prs) (manager/pick-prs! op-data upstream d!)
-       (= op :effect/add-tag) (manager/add-tag! op-data upstream d!)
+       (= op :effect/add-tag) (manager/add-tag! op-data upstream host-kind d!)
        (= op :effect/show-version) (manager/show-version op-data upstream d!)
        (= op :effect/kill-process) (manager/kill-process! op-data d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))
