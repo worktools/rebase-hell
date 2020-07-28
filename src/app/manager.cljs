@@ -46,12 +46,10 @@
                   :github
                     (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
                   (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}"))]
-    (println "host kind" host-kind)
-    (println "from" current "to" tag-version)
+    (println "host kind" host-kind "from" current "to" tag-version)
     (if (= current tag-version)
       (run-command!
-       (<<
-        "git tag ~{tag-version} && git push origin ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
+       (<< "git tag ~{tag-version} && git push origin ~{tag-version} && echo ~{web-url}")
        d!
        {:on-finish (fn [] )})
       (do
