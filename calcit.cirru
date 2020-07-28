@@ -3789,7 +3789,7 @@
                           |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1586318349597)
                             :data $ {}
                               |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318349597) (:text |<<) (:id |hN-7fjNU3y)
-                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318349597) (:text "|\"git tag ~{tag-version} && git push origin ~{tag-version} && echo https://github.com/~{upstream}/releases/new?tag=~{tag-version}") (:id |_yuqg0ZXBC)
+                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595918006402) (:text "|\"git tag ~{tag-version} && git push origin ~{tag-version} && echo ~{web-url}") (:id |_yuqg0ZXBC)
                             :id |RbRYQXKgvz
                           |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318349597) (:text |d!) (:id |1FBT-XeG9k)
                           |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1586318349597)
@@ -3891,13 +3891,9 @@
                       |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318314891) (:text |current) (:id |ePRiqvjJ9)
                       |v $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318317036) (:text "|\"to") (:id |bTYW8l2_r)
                       |x $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1586318319334) (:text |tag-version) (:id |OUWaT0u7o)
+                      |b $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595918047249) (:text "|\"host kind") (:id |d03z15unZ8)
+                      |f $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595918049901) (:text |host-kind) (:id |AjunVj-F4U)
                     :id |K1s1b-1Js
-                  |N $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1595390432776)
-                    :data $ {}
-                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595390433616) (:text |println) (:id |LE43c6t7Udleaf)
-                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595390435268) (:text "|\"host kind") (:id |IKQPBLak7t)
-                      |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1595390438007) (:text |host-kind) (:id |ocSwCm8V6L)
-                    :id |LE43c6t7Ud
                 :id |Cu9SJKhyF
             :id |eyQYOOAoJj
           |apply-stash! $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1570779763069) (:id |eU6SS4lw4B)
