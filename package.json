@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.7-a4",
+  "version": "0.2.7-a5",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -37,6 +37,7 @@
   "devDependencies": {
     "copy-text-to-clipboard": "^2.2.0",
     "feather-icons": "^4.28.0",
+    "node-notifier": "^8.0.0",
     "shadow-cljs": "^2.10.19",
     "source-map-support": "^0.5.19"
   }
