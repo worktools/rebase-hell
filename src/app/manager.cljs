@@ -39,28 +39,30 @@
   (let [current (if (fs/existsSync "release.edn")
                   (:version (read-string (fs/readFileSync "release.edn" "utf8")))
                   (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))
+        use-current? (or (= current tag-version) (re-matches #"\.{2,}" tag-version))
+        target-version (if use-current? current tag-version)
         web-url (case host-kind
                   :gitea
                     (<<
-                     "https://~(:gitea-domain shell-env)/~{upstream}/releases/new?tag=~{tag-version}")
+                     "https://~(:gitea-domain shell-env)/~{upstream}/releases/new?tag=~{target-version}")
                   :github
-                    (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}")
-                  (<< "https://github.com/~{upstream}/releases/new?tag=~{tag-version}"))]
-    (println "host kind" host-kind "from" current "to" tag-version)
-    (if (= current tag-version)
+                    (<< "https://github.com/~{upstream}/releases/new?tag=~{target-version}")
+                  (<< "https://github.com/~{upstream}/releases/new?tag=~{target-version}"))]
+    (println "host kind" host-kind "from" current "to" target-version)
+    (if use-current?
       (run-command!
-       (<< "git tag ~{tag-version} && git push origin ~{tag-version} && echo ~{web-url}")
+       (<< "git tag ~{current} && git push origin ~{current} && echo ~{web-url}")
        d!
        {:on-finish (fn [] )})
       (do
        (let [pkg (js/JSON.parse (fs/readFileSync "package.json" "utf8"))]
-         (aset pkg "version" tag-version)
+         (aset pkg "version" target-version)
          (fs/writeFileSync "package.json" (str (js/JSON.stringify pkg nil 2) "\n")))
        (when (fs/existsSync "release.edn")
          (let [pkg (read-string (fs/readFileSync "release.edn" "utf8"))]
            (fs/writeFileSync
             "release.edn"
-            (str (with-out-str (pprint (assoc pkg :version tag-version))) "\n"))))
+            (str (with-out-str (pprint (assoc pkg :version target-version))) "\n"))))
        (run-command!
         (<<
          "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo ~{web-url}")
