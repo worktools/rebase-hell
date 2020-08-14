@@ -188,7 +188,9 @@
 
 (defn main! [] (if (= (aget js/process.argv 2) "switch") (main-switch!) (main-server!)))
 
-(defn reload! []
+(defn ^:dev/after-load
+  reload!
+  []
   (println "Code updated.")
   (clear-twig-caches!)
   (reset! *reel (refresh-reel @*reel initial-db updater))
