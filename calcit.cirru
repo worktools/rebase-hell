@@ -8615,11 +8615,21 @@
                                   |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |nil?) (:id |tIQNdaCMeQ6)
                                   |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |parent-sha) (:id |q2NJtD1wm7Y)
                                 :id |uIsO5FKWr2X
-                              |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
+                              |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748365049)
                                 :data $ {}
-                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |on-error) (:id |J-i-SoJoYh-)
-                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text "|\"parent sha is nil") (:id |FdySzcrTHz0)
-                                :id |aZVrp5Ubxh7
+                                  |T $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |on-error) (:id |J-i-SoJoYh-)
+                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text "|\"parent sha is nil") (:id |FdySzcrTHz0)
+                                    :id |aZVrp5Ubxh7
+                                  |D $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748366756) (:text |do) (:id |-blQcKR7r)
+                                  |L $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748368657)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748369530) (:text |println) (:id |ooI55TSeHW)
+                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748822647) (:text "|\"parent sha is nil, gets nothing") (:id |LgiJkUxru4)
+                                    :id |MBH-moXEk
+                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748379741) (:text |nil) (:id |vrlePQKQ8)
+                                :id |odm_x2-A24
                             :id |p0highK4NOK
                           |r $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
                             :data $ {}
@@ -8629,11 +8639,31 @@
                                   |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |size) (:id |BuVr9H6DtYx)
                                   |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |10) (:id |prSU9WFBMCk)
                                 :id |EedSaIf4GTw
-                              |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
+                              |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748386038)
                                 :data $ {}
-                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |on-error) (:id |Dvu6uSyjdMx)
-                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text "|\"loop size too large") (:id |RuzDRbm1SSB)
-                                :id |qbAye8l9u-R
+                                  |T $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1594016815414) (:text |on-error) (:id |Dvu6uSyjdMx)
+                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748833759) (:text "|\"loop size too large, nothing to return, might be in wrong repo?") (:id |RuzDRbm1SSB)
+                                    :id |qbAye8l9u-R
+                                  |D $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748386562) (:text |do) (:id |oIAf6jUAf)
+                                  |L $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748387362)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748397977) (:text |println) (:id |gMmCJjMygv)
+                                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748410890) (:text "|\"Loop not stopped...") (:id |uFxxQRGCX)
+                                      |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748421358) (:text |parent-sha) (:id |V2zjMLp6e)
+                                    :id |uZ9ThALE7
+                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748393698) (:text |nil) (:id |uPxYeGmuY4)
+                                  |P $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748552464)
+                                    :data $ {}
+                                      |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748553184) (:text |println) (:id |kUxwsyKlMleaf)
+                                      |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1597748553717)
+                                        :data $ {}
+                                          |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748553717) (:text |pr-str) (:id |IEdQUc0W8E)
+                                          |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1597748553717) (:text |next-acc) (:id |mDxMFv9lCT)
+                                        :id |ET6ROhygeG
+                                    :id |kUxwsyKlM
+                                :id |PBvdEOuqE
                             :id |uRYU6vcGIrA
                           |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1594016815414)
                             :data $ {}

@@ -1,0 +1,5 @@
+{
+ :users {}
+ :enabled-apps #{}
+ :all-apps []
+}
