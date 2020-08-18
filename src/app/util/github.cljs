@@ -59,8 +59,14 @@
          parent-sha (get-in result [:parents 0 :sha])]
      (comment println (pr-str "COMMIT DATA" parent-sha base-sha result))
      (cond
-       (nil? parent-sha) (on-error "parent sha is nil")
-       (> size 10) (on-error "loop size too large")
+       (nil? parent-sha)
+         (do (println "parent sha is nil, gets nothing") (on-error "parent sha is nil") nil)
+       (> size 10)
+         (do
+          (println "Loop not stopped..." parent-sha)
+          (println (pr-str next-acc))
+          (on-error "loop size too large, nothing to return, might be in wrong repo?")
+          nil)
        (= base-sha parent-sha) next-acc
        :else (recur next-acc parent-sha (inc size))))))
 
