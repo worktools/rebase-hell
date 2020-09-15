@@ -3,7 +3,7 @@
   :dependencies [
     [mvc-works/hsl "0.1.2"]
     [mvc-works/shell-page "0.1.15"]
-    [mvc-works/ws-edn "0.1.4-a1"]
+    [mvc-works/ws-edn "0.1.4"]
     [mvc-works/chan-utils "0.1.1"]
     [cumulo/recollect "0.6.3"]
     [cumulo/reel "0.2.0"]

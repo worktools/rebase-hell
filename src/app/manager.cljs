@@ -89,7 +89,7 @@
 (defn finish-current! [branch-name d!]
   (run-command!
    (<<
-    "git fetch && git checkout master && git merge origin/master && git branch -d ~{branch-name}")
+    "git fetch --prune && git checkout master && git merge origin/master && git branch -d ~{branch-name}")
    d!
    {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
 
