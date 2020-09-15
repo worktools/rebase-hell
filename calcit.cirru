@@ -4332,7 +4332,7 @@
                   |j $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1566905945245) (:id |YG09Ma_hfJ)
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1566905945245) (:text |<<) (:id |f5i5MbrpfS)
-                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1571154514697) (:text "|\"git fetch && git checkout master && git merge origin/master && git branch -d ~{branch-name}") (:id |ach2lCKOyS)
+                      |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1600158766127) (:text "|\"git fetch --prune && git checkout master && git merge origin/master && git branch -d ~{branch-name}") (:id |ach2lCKOyS)
                   |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1566905945245) (:text |d!) (:id |bxwJHZ8-08)
                   |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1566905945245) (:id |f0rhB4-ClU)
                     :data $ {}
