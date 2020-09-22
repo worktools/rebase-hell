@@ -19,7 +19,8 @@
             [recollect.twig :refer [new-twig-loop! clear-twig-caches!]]
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
             [app.manager :as manager]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [app.env :refer [run-mode]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defonce *client-caches (atom {}))
@@ -186,7 +187,7 @@
     (cp/execSync (<< "kill -13 ~{previous-port}"))
     (let [upstream (manager/get-upstream!)] (println "Switching to" upstream "at" git-path))))
 
-(defn main! [] (if (= (aget js/process.argv 2) "switch") (main-switch!) (main-server!)))
+(defn main! [] (if (= run-mode :switch) (main-switch!) (main-server!)))
 
 (defn ^:dev/after-load
   reload!
