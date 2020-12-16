@@ -36,9 +36,14 @@
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
 (defn add-tag! [tag-version upstream host-kind d!]
-  (let [current (if (fs/existsSync "release.edn")
-                  (:version (read-string (fs/readFileSync "release.edn" "utf8")))
-                  (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8"))))
+  (let [has-clj-config? (fs/existsSync "release.edn")
+        has-npm-config? (fs/existsSync "package.json")
+        current (cond
+                  has-clj-config?
+                    (:version (read-string (fs/readFileSync "release.edn" "utf8")))
+                  has-npm-config?
+                    (.-version (js/JSON.parse (fs/readFileSync "package.json" "utf8")))
+                  :else "0.0.0")
         use-current? (or (= current tag-version) (re-matches #"\.{2,}" tag-version))
         target-version (if use-current? current tag-version)
         web-url (case host-kind
@@ -55,19 +60,25 @@
        d!
        {:on-finish (fn [] )})
       (do
-       (let [pkg (js/JSON.parse (fs/readFileSync "package.json" "utf8"))]
-         (aset pkg "version" target-version)
-         (fs/writeFileSync "package.json" (str (js/JSON.stringify pkg nil 2) "\n")))
-       (when (fs/existsSync "release.edn")
+       (when has-npm-config?
+         (let [pkg (js/JSON.parse (fs/readFileSync "package.json" "utf8"))]
+           (aset pkg "version" target-version)
+           (fs/writeFileSync "package.json" (str (js/JSON.stringify pkg nil 2) "\n"))))
+       (when has-clj-config?
          (let [pkg (read-string (fs/readFileSync "release.edn" "utf8"))]
            (fs/writeFileSync
             "release.edn"
             (str (with-out-str (pprint (assoc pkg :version target-version))) "\n"))))
-       (run-command!
-        (<<
-         "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo ~{web-url}")
-        d!
-        {:on-finish (fn [] )})))))
+       (if (or has-npm-config? has-clj-config?)
+         (run-command!
+          (<<
+           "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo ~{web-url}")
+          d!
+          {:on-finish (fn [] )})
+         (run-command!
+          (<< "git tag ~{tag-version} && git push origin ~{tag-version} && echo ~{web-url}")
+          d!
+          {:on-finish (fn [] )}))))))
 
 (defn apply-stash! [d!] (run-command! (<< "git stash apply") d! {}))
 
@@ -157,11 +168,18 @@
 (defn run-stash! [d!] (run-command! (<< "git stash") d! {}))
 
 (defn show-version [op-data upstream d!]
-  (run-command!
-   (<<
-    "cat package.json | grep \"\\\"version\"; [ -f release.edn ] && cat release.edn | grep :version")
-   d!
-   {:on-finish (fn [] )}))
+  (let [files (fs/readdirSync ".")
+        maybe-nimble (->> files (filter (fn [x] (string/ends-with? x ".nimble"))) (first))]
+    (cond
+      (pos? (.indexOf files "package.json"))
+        (run-command! "cat package.json | grep \"\\\"version\"" d! {:on-finish (fn [] )})
+      (pos? (.indexOf files "release.edn"))
+        (run-command! "cat release.edn | grep :version" d! {:on-finish (fn [] )})
+      (pos? (.indexOf files "compact.cirru"))
+        (run-command! "cat compact.cirru | grep version\n" d! {:on-finish (fn [] )})
+      (some? maybe-nimble)
+        (run-command! (<< "cat ~{maybe-nimble} | grep version") d! {:on-finish (fn [] )})
+      :else (do))))
 
 (defn switch-branch! [current branch-name d!]
   (when (not= current branch-name)
