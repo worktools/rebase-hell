@@ -194,7 +194,10 @@
     (dispatch! :repo/set-upstream upstream "system")
     (dispatch! :effect/read-branches nil "system")
     (dispatch! :session/track-footprint [new-path (:upstream upstream)] "system")
-    (println "Switching to" new-path)))
+    (println "Switching to" new-path)
+    (dispatch!
+     :process/log
+     {:id (id!), :time (unix-time!), :text (str "Switched to: " new-path), :kind :log})))
 
 (defn switch-remote-branch! [branch-name d!]
   (run-command!
