@@ -188,6 +188,14 @@
      d!
      {:on-finish (fn [] (d! :repo/set-current branch-name))})))
 
+(defn switch-path [new-path dispatch!]
+  (js/process.chdir new-path)
+  (let [upstream (get-upstream!)]
+    (dispatch! :repo/set-upstream upstream "system")
+    (dispatch! :effect/read-branches nil "system")
+    (dispatch! :session/track-footprint [new-path (:upstream upstream)] "system")
+    (println "Switching to" new-path)))
+
 (defn switch-remote-branch! [branch-name d!]
   (run-command!
    (<< "git checkout ~{branch-name}")

@@ -78,6 +78,7 @@
        (= op :effect/read-branches) (manager/read-branches! d!)
        (= op :effect/switch-branch) (manager/switch-branch! current op-data d!)
        (= op :effect/switch-remote-branch) (manager/switch-remote-branch! op-data d!)
+       (= op :effect/switch-path) (manager/switch-path op-data d!)
        (= op :effect/new-branch) (manager/new-branch! op-data d!)
        (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-current) (manager/pull-current! d!)
@@ -112,9 +113,11 @@
    (fn [e]
      (let [new-path (fs/readFileSync wd-file-path "utf8")]
        (js/process.chdir new-path)
-       (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
-       (dispatch! :effect/read-branches nil "system")
-       (println "Switching to" new-path)))))
+       (let [upstream (manager/get-upstream!)]
+         (dispatch! :repo/set-upstream upstream "system")
+         (dispatch! :effect/read-branches nil "system")
+         (dispatch! :session/track-footprint [new-path (:upstream upstream)] "system")
+         (println "Switching to" new-path))))))
 
 (defn on-exit! [code]
   (persist-db!)
@@ -170,7 +173,9 @@
   (render-loop!)
   (comment js/process.on "SIGINT" on-exit!)
   (comment repeat! 600 #(persist-db!))
-  (dispatch! :repo/set-upstream (manager/get-upstream!) "system")
+  (let [upstream (manager/get-upstream!)]
+    (dispatch! :repo/set-upstream upstream "system")
+    (dispatch! :session/track-footprint [(js/process.cwd) (:upstream upstream)] "system"))
   (listen-to-switching!)
   (check-version!))
 

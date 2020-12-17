@@ -30,6 +30,7 @@
       :modules {
         :client {:init-fn app.client/main!}
       }
+      :devtools {:loader-mode :script}
       :release {:output-dir "dist/"}
       :build-options {:manifest-name "assets.edn"}
     }

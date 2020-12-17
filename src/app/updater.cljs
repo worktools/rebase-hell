@@ -26,5 +26,6 @@
             :process/finish process/finish
             :process/log process/log
             :process/clear-logs process/clear-logs
+            :session/track-footprint session/track-footprint
             (do (println "Unknown op:" op) identity))]
     (f db op-data sid op-id op-time)))

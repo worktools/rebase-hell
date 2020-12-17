@@ -15,3 +15,12 @@
 
 (defn remove-message [db op-data sid op-id op-time]
   (update-in db [:sessions sid :messages] (fn [messages] (dissoc messages (:id op-data)))))
+
+(defn track-footprint [db op-data sid op-id op-time]
+  (update
+   db
+   :footprints
+   (fn [xs]
+     (let [[dirpath upstream] op-data]
+       (println "running" op-data)
+       (assoc xs dirpath upstream)))))
