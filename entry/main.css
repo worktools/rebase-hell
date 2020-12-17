@@ -15,7 +15,7 @@ body * {
 }
 
 .hoverable:hover {
-  background-color: hsl(0,0%,96%);
+  background-color: hsl(0,0%,95%);
 }
 
 .rotating {

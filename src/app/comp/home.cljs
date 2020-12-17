@@ -54,6 +54,28 @@
    :style-trigger {:margin "0 8px", :display :inline-block}}
   (fn [result d! m!] (if (not (string/blank? result)) (d! :effect/commit result)))))
 
+(defcomp
+ comp-footprints
+ (footprints current)
+ (list->
+  {:style {:max-width 200}}
+  (->> footprints
+       (remove (fn [[k v]] (= v current)))
+       (map
+        (fn [[k v]]
+          [k
+           (div
+            {:style {:line-height 1.2,
+                     :padding "6px 4px",
+                     :overflow :hidden,
+                     :cursor :pointer},
+             :class-name "hoverable",
+             :on-click (fn [e d!] (d! :effect/switch-path k))}
+            (div {} (<> v))
+            (div
+             {:style {:font-size 10, :color (hsl 0 0 70)}}
+             (<> (string/replace k (re-pattern "^/\\w+/\\w+/") "~/"))))])))))
+
 (def style-log
   {:line-height "20px",
    :font-size 13,
@@ -192,8 +214,8 @@
       (render-button "Force push" true (fn [e d! m!] (d! :effect/force-push nil))))))))
 
 (defcomp
- comp-home
- (states repo logs status)
+ comp-quick-ops
+ (states)
  (let [tag-plugin (use-prompt
                    (>> states :tag)
                    {:initial "",
@@ -203,90 +225,97 @@
                     :placeholder "x.x.x or x.x.x-yx...",
                     :button-text "提交 tag"})]
    (div
-    {:style (merge ui/row ui/flex {:padding 16, :overflow :auto})}
-    (div
-     {:style (merge ui/flex ui/column)}
-     (div
-      {}
-      (a
-       {:style {:cursor :pointer},
-        :inner-text "Branches",
-        :on-click (fn [e d! m!] (d! :effect/read-branches nil))})
-      (=< 16 nil)
-      (button
-       {:style style/button,
-        :inner-text "Fetch",
-        :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))})
-      (=< 16 nil)
-      (comp-prompt
-       (>> states :pick-branch)
-       {:trigger (button {:style (merge style/button), :inner-text "Pick issues"}),
-        :initial "",
-        :text "需要 pick 的若干 GitHub issue id",
-        :style {:vertical-align :middle},
-        :placeholder "100 or \"100, 101\"",
-        :button-text "生成命令"}
-       (fn [result d! m!]
-         (if-not (string/blank? result)
-           (let [issue-ids (->> (string/split result #"(\s|\,)+")
-                                (filter (fn [x] (re-matches #"\d+" x)))
-                                (map (fn [x] (println x) x))
-                                (map js/parseInt)
-                                (sort))]
-             (d! :effect/pick-prs issue-ids)))))
-      (=< 16 nil)
-      (button
-       {:inner-text "Stash",
-        :style style/button,
-        :on-click (fn [e d! m!] (d! :effect/stash nil))})
-      (=< 16 nil)
-      (button
-       {:inner-text "Stash Apply",
-        :style style/button,
-        :on-click (fn [e d! m!] (d! :effect/stash-apply nil))})
-      (=< 16 nil)
-      (button
-       {:style (merge style/button),
-        :inner-text "Tag",
-        :on-click (fn [e d!]
-          (d! :effect/show-version nil)
-          ((:show tag-plugin)
-           d!
-           (fn [result]
-             (if-not (string/blank? result)
-               (let [tag (string/trim result)]
-                 (when-not (string/blank? tag) (d! :effect/add-tag tag)))))))}))
-     (=< nil 16)
-     (div
-      {:style (merge ui/flex ui/row)}
-      (div
-       {:style {:overflow :auto, :background-color (hsl 0 0 97)}}
-       (list->
-        {}
-        (->> (:branches repo)
-             (sort)
-             (map (fn [branch] [branch (comp-branch branch (:current repo) false)]))))
-       (=< nil 16)
-       (let [remote-branches (->> (:remote-branches repo)
-                                  (filter
-                                   (fn [branch-path]
-                                     (let [short-name (last (string/split branch-path "/"))]
-                                       (and (not (contains? (:branches repo) short-name))
-                                            (not= short-name "HEAD")))))
-                                  (sort)
-                                  (map (fn [branch] {:value branch, :display branch})))]
-         (div
-          {:style {:padding 8}}
-          (comp-select
-           (>> states :remote)
-           nil
-           remote-branches
-           {:placeholder "Remote branches", :text "Checkout remote branch"}
-           (fn [result d! m!]
-             (if (some? result)
-               (do (d! :effect/switch-remote-branch (last (string/split result "/"))))))))))
-      (=< 16 nil)
-      (comp-operations (>> states :operations) repo)))
+    {}
+    (a
+     {:style {:cursor :pointer},
+      :inner-text "Branches",
+      :on-click (fn [e d! m!] (d! :effect/read-branches nil))})
     (=< 16 nil)
-    (comp-logs logs status)
+    (button
+     {:style style/button,
+      :inner-text "Fetch",
+      :on-click (fn [e d! m!] (d! :effect/fetch-origin nil))})
+    (=< 16 nil)
+    (comp-prompt
+     (>> states :pick-branch)
+     {:trigger (button {:style (merge style/button), :inner-text "Pick issues"}),
+      :initial "",
+      :text "需要 pick 的若干 GitHub issue id",
+      :style {:vertical-align :middle},
+      :placeholder "100 or \"100, 101\"",
+      :button-text "生成命令"}
+     (fn [result d! m!]
+       (if-not (string/blank? result)
+         (let [issue-ids (->> (string/split result #"(\s|\,)+")
+                              (filter (fn [x] (re-matches #"\d+" x)))
+                              (map (fn [x] (println x) x))
+                              (map js/parseInt)
+                              (sort))]
+           (d! :effect/pick-prs issue-ids)))))
+    (=< 16 nil)
+    (button
+     {:inner-text "Stash",
+      :style style/button,
+      :on-click (fn [e d! m!] (d! :effect/stash nil))})
+    (=< 16 nil)
+    (button
+     {:inner-text "Stash Apply",
+      :style style/button,
+      :on-click (fn [e d! m!] (d! :effect/stash-apply nil))})
+    (=< 16 nil)
+    (button
+     {:style (merge style/button),
+      :inner-text "Tag",
+      :on-click (fn [e d!]
+        (d! :effect/show-version nil)
+        ((:show tag-plugin)
+         d!
+         (fn [result]
+           (if-not (string/blank? result)
+             (let [tag (string/trim result)]
+               (when-not (string/blank? tag) (d! :effect/add-tag tag)))))))})
     (:ui tag-plugin))))
+
+(defcomp
+ comp-home
+ (states repo logs status footprints)
+ (div
+  {:style (merge ui/row ui/flex {:padding 16, :overflow :auto})}
+  (div
+   {:style (merge ui/flex ui/column)}
+   (comp-quick-ops (>> states :quick-ops))
+   (=< nil 16)
+   (div
+    {:style (merge ui/flex ui/row)}
+    (div
+     {:style (merge ui/column {:background-color (hsl 0 0 97)})}
+     (list->
+      {}
+      (->> (:branches repo)
+           (sort)
+           (map (fn [branch] [branch (comp-branch branch (:current repo) false)]))))
+     (=< nil 16)
+     (let [remote-branches (->> (:remote-branches repo)
+                                (filter
+                                 (fn [branch-path]
+                                   (let [short-name (last (string/split branch-path "/"))]
+                                     (and (not (contains? (:branches repo) short-name))
+                                          (not= short-name "HEAD")))))
+                                (sort)
+                                (map (fn [branch] {:value branch, :display branch})))]
+       (div
+        {:style {:padding 8}}
+        (comp-select
+         (>> states :remote)
+         nil
+         remote-branches
+         {:placeholder "Remote branches", :text "Checkout remote branch"}
+         (fn [result d! m!]
+           (if (some? result)
+             (do (d! :effect/switch-remote-branch (last (string/split result "/")))))))))
+     (div {:style ui/expand})
+     (comp-footprints footprints (:upstream repo)))
+    (=< 16 nil)
+    (comp-operations (>> states :operations) repo)))
+  (=< 16 nil)
+  (comp-logs logs status)))

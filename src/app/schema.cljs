@@ -26,4 +26,5 @@
           :remote-branches #{},
           :code "JM"},
    :logs (do log {}),
-   :process-status {}})
+   :process-status {},
+   :footprints {}})

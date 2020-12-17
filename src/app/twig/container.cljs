@@ -33,4 +33,5 @@
      :repo (:repo db),
      :logs (:logs db),
      :shell-env shell-env,
-     :process-status (:process-status db)})))
+     :process-status (:process-status db),
+     :footprints (:footprints db)})))

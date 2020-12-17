@@ -72,7 +72,13 @@
        repo
        (get-in store [:shell-env :gitea-domain]))
       (case (:name router)
-        :home (comp-home (>> states :home) repo (:logs store) (:process-status store))
+        :home
+          (comp-home
+           (>> states :home)
+           repo
+           (:logs store)
+           (:process-status store)
+           (:footprints store))
         :profile (comp-profile (:user store) (:data router))
         (<> router))
       (comp-status-color (:color store))
