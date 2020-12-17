@@ -42,3 +42,12 @@ button:hover {
 button:active {
   transform: scale(1.03);;
 }
+
+
+.close-icon {
+  opacity: 0.3;
+}
+
+.close-icon:hover {
+  opacity: 1;
+}
