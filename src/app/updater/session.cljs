@@ -13,6 +13,9 @@
 (defn disconnect [db op-data sid op-id op-time]
   (update db :sessions (fn [session] (dissoc session sid))))
 
+(defn drop-footprint [db op-data sid op-id op-time]
+  (update db :footprints (fn [xs] (println "removing" xs op-data) (dissoc xs op-data))))
+
 (defn remove-message [db op-data sid op-id op-time]
   (update-in db [:sessions sid :messages] (fn [messages] (dissoc messages (:id op-data)))))
 

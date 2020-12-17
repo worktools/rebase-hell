@@ -58,7 +58,7 @@
  comp-footprints
  (footprints current)
  (list->
-  {:style {:max-width 200}}
+  {:style {:max-width 280}}
   (->> footprints
        (remove (fn [[k v]] (= v current)))
        (map
@@ -71,7 +71,15 @@
                      :cursor :pointer},
              :class-name "hoverable",
              :on-click (fn [e d!] (d! :effect/switch-path k))}
-            (div {} (<> v))
+            (div
+             {:style ui/row-parted}
+             (<> v ui/expand)
+             (span
+              {:class-name "close-icon"}
+              (comp-icon
+               :x
+               {:font-size 14, :color (hsl 0 90 70)}
+               (fn [e d!] (d! :session/drop-footprint k)))))
             (div
              {:style {:font-size 10, :color (hsl 0 0 70)}}
              (<> (string/replace k (re-pattern "^/\\w+/\\w+/") "~/"))))])))))
