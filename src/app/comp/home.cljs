@@ -61,28 +61,28 @@
   {:style {:max-width 280}}
   (->> footprints
        (remove (fn [[k v]] (= v current)))
+       (sort-by (fn [[k v]] (println v) v))
        (map
         (fn [[k v]]
           [k
            (div
-            {:style {:line-height 1.2,
-                     :padding "6px 4px",
-                     :overflow :hidden,
-                     :cursor :pointer},
+            {:style (merge
+                     ui/row-parted
+                     {:line-height "1.4em",
+                      :padding "6px 6px",
+                      :font-size 13,
+                      :overflow :hidden,
+                      :cursor :pointer}),
              :class-name "hoverable",
-             :on-click (fn [e d!] (d! :effect/switch-path k))}
-            (div
-             {:style ui/row-parted}
-             (<> v ui/expand)
-             (span
-              {:class-name "close-icon"}
-              (comp-icon
-               :x
-               {:font-size 14, :color (hsl 0 90 70)}
-               (fn [e d!] (d! :session/drop-footprint k)))))
-            (div
-             {:style {:font-size 10, :color (hsl 0 0 70)}}
-             (<> (string/replace k (re-pattern "^/\\w+/\\w+/") "~/"))))])))))
+             :on-click (fn [e d!] (d! :effect/switch-path k)),
+             :title k}
+            (<> v ui/expand)
+            (span
+             {:class-name "close-icon"}
+             (comp-icon
+              :x
+              {:font-size 14, :color (hsl 0 90 70)}
+              (fn [e d!] (d! :session/drop-footprint k)))))])))))
 
 (def style-log
   {:line-height "20px",
