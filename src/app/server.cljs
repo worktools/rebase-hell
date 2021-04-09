@@ -20,7 +20,8 @@
             [ws-edn.server :refer [wss-serve! wss-send! wss-each!]]
             [app.manager :as manager]
             [clojure.string :as string]
-            [app.env :refer [run-mode]])
+            [app.env :refer [run-mode]]
+            [app.util.string :refer [detects-main]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defonce *client-caches (atom {}))
@@ -70,7 +71,8 @@
         db (:db @*reel)
         current (get-in db [:repo :current])
         upstream (get-in db [:repo :upstream])
-        host-kind (get-in db [:repo :host-kind])]
+        host-kind (get-in db [:repo :host-kind])
+        main-branch (detects-main (:branches (:repo db)))]
     (if config/dev? (println "Dispatch!" sid (str op) (pr-str op-data)))
     (try
      (cond
@@ -83,8 +85,8 @@
        (= op :effect/fetch-origin) (manager/fetch-origin! d!)
        (= op :effect/pull-current) (manager/pull-current! d!)
        (= op :effect/push-current) (manager/push-current! current d!)
-       (= op :effect/finish-branch) (manager/finish-current! current d!)
-       (= op :effect/rebase-master) (manager/rebase-master! d!)
+       (= op :effect/finish-branch) (manager/finish-current! current main-branch d!)
+       (= op :effect/rebase-master) (manager/rebase-master! main-branch d!)
        (= op :effect/status) (manager/display-status! d!)
        (= op :effect/stash) (manager/run-stash! d!)
        (= op :effect/stash-apply) (manager/apply-stash! d!)
@@ -92,7 +94,7 @@
        (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
        (= op :effect/commit) (manager/commit! current op-data d!)
        (= op :effect/pick-prs) (manager/pick-prs! op-data upstream d!)
-       (= op :effect/add-tag) (manager/add-tag! op-data upstream host-kind d!)
+       (= op :effect/add-tag) (manager/add-tag! op-data upstream host-kind main-branch d!)
        (= op :effect/show-version) (manager/show-version op-data upstream d!)
        (= op :effect/kill-process) (manager/kill-process! op-data d!)
        :else (reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)))

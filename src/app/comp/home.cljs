@@ -10,7 +10,8 @@
             [respo-alerts.core :refer [comp-prompt comp-select use-prompt]]
             [feather.core :refer [comp-icon]]
             [copy-text-to-clipboard :as copy!]
-            [app.style :as style])
+            [app.style :as style]
+            [app.util.string :refer [default-branch?]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defcomp
@@ -28,7 +29,7 @@
        (d! :effect/switch-remote-branch (last (string/split branch "/")))
        (d! :effect/switch-branch branch)))}
   (<> branch)
-  (if (and (not= current branch) (not= branch "master") (not remote?))
+  (if (and (not= current branch) (not= (default-branch? branch)) (not remote?))
     (a
      {:on-click (fn [e d! m!] (d! :effect/remove-branch branch))}
      (comp-i :x 14 (hsl 20 80 80))))))
@@ -193,7 +194,7 @@
  (states repo)
  (div
   {:style (merge ui/flex ui/column {:background-color (hsl 0 0 97), :padding 8})}
-  (if (= "master" (:current repo))
+  (if (default-branch? (:current repo))
     (div
      {}
      (comp-title "Basic")
