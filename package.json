@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -26,19 +26,19 @@
   "dependencies": {
     "axios": "^0.21.0",
     "chalk": "^4.1.0",
-    "dayjs": "^1.9.7",
+    "dayjs": "^1.10.4",
     "latest-version": "^5.1.0",
     "md5": "^2.3.0",
     "randomcolor": "^0.6.2",
     "shortid": "^2.2.16",
-    "url-parse": "^1.4.7",
-    "ws": "^7.4.1"
+    "url-parse": "^1.5.1",
+    "ws": "^7.4.4"
   },
   "devDependencies": {
-    "copy-text-to-clipboard": "^2.2.0",
+    "copy-text-to-clipboard": "^3.0.1",
     "feather-icons": "^4.28.0",
-    "node-notifier": "^8.0.1",
-    "shadow-cljs": "^2.11.8",
+    "node-notifier": "^9.0.1",
+    "shadow-cljs": "^2.12.3",
     "source-map-support": "^0.5.19"
   }
 }

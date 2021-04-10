@@ -11,7 +11,8 @@
             [cljs.reader :refer [read-string]]
             [fipp.edn :refer [pprint]]
             ["chalk" :as chalk]
-            [app.env :refer [shell-env]])
+            [app.env :refer [shell-env]]
+            [app.util.string :refer [default-branch?]])
   (:require-macros [clojure.core.strint :refer [<<]]))
 
 (defn run-command! [command d! options]
@@ -35,7 +36,7 @@
        (when-let [on-finish (:on-finish options)] (on-finish))))
     (.on ^js proc "error" (fn [error] (js/console.error error)))))
 
-(defn add-tag! [tag-version upstream host-kind d!]
+(defn add-tag! [tag-version upstream host-kind main-branch d!]
   (let [has-clj-config? (fs/existsSync "release.edn")
         has-npm-config? (fs/existsSync "package.json")
         current (cond
@@ -72,7 +73,7 @@
        (if (or has-npm-config? has-clj-config?)
          (run-command!
           (<<
-           "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin master ~{tag-version} && echo ~{web-url}")
+           "git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin ~{main-branch} ~{tag-version} && echo ~{web-url}")
           d!
           {:on-finish (fn [] )})
          (run-command!
@@ -86,7 +87,8 @@
   (cond
     (string/starts-with? current "release-")
       (d! :session/add-message {:text "Can't commit to release branch!"})
-    (= current "master") (d! :session/add-message {:text "Can't commit to master branch!"})
+    (default-branch? current)
+      (d! :session/add-message {:text "Can't commit to master branch!"})
     :else
       (run-command!
        (<< "git add . && \\\ngit commit -m ~(pr-str message)")
@@ -97,10 +99,10 @@
 
 (defn fetch-origin! [d!] (run-command! (<< "git fetch origin --prune") d! {}))
 
-(defn finish-current! [branch-name d!]
+(defn finish-current! [branch-name main-branch d!]
   (run-command!
    (<<
-    "git fetch --prune && git checkout master && git merge origin/master && git branch -d ~{branch-name}")
+    "git fetch --prune && git checkout ~{main-branch} && git merge origin/~{main-branch} && git branch -d ~{branch-name}")
    d!
    {:on-finish (fn [] (d! :effect/read-branches branch-name))}))
 
@@ -129,7 +131,8 @@
   (cond
     (string/starts-with? current "release-")
       (d! :session/add-message {:text "Can't push to release branch!"})
-    (= current "master") (d! :session/add-message {:text "Can't push to master branch!"})
+    (default-branch? current)
+      (d! :session/add-message {:text "Can't push to master branch!"})
     :else (run-command! (<< "git push origin ~{current}") d! {})))
 
 (defn read-branches! [d!]
@@ -157,7 +160,8 @@
         :repo/set-branches
         {:branches branches, :current current, :remote-branches remote-branches})))))
 
-(defn rebase-master! [d!] (run-command! (<< "git rebase origin/master") d! {}))
+(defn rebase-master! [main-branch d!]
+  (run-command! (<< "git rebase origin/~{main-branch}") d! {}))
 
 (defn remove-branch! [branch d!]
   (run-command!
