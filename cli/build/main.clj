@@ -1,11 +1,15 @@
 
 (ns build.main
   (:require [shadow.cljs.devtools.api :as shadow]
+            [clojure.string :as string]
             [clojure.java.shell :refer [sh]]))
 
 (defn sh! [command]
   (println command)
-  (println (:out (sh "bash" "-c" command))))
+  (let [result (sh "bash" "-c" command)]
+    (if (string/blank? (:err result))
+      (println (:out result))
+      (throw (Exception. (:err result))))))
 
 (defn build-cdn []
   (sh! "rm -rf dist/*")
