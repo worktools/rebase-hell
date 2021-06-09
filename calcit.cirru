@@ -6210,10 +6210,6 @@
                                       |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1613486310127) (:text |k)
                                       |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1613486310467) (:text |v)
                               |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1613486311356) (:text |v)
-                              |n $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1613486328018)
-                                :data $ {}
-                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1613486329065) (:text |println)
-                                  |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1613486329451) (:text |v)
               |n $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1608185687778)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1608185689793) (:text |footprints)

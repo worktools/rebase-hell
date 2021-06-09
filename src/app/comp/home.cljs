@@ -62,7 +62,7 @@
   {:style {:max-width 280}}
   (->> footprints
        (remove (fn [[k v]] (= v current)))
-       (sort-by (fn [[k v]] (println v) v))
+       (sort-by (fn [[k v]] v))
        (map
         (fn [[k v]]
           [k
