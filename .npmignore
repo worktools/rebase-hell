@@ -14,3 +14,9 @@ calcit.cirru
 yarn.lock
 
 .github/
+
+/compact.cirru
+/client.js
+/index.html
+/server.js
+/webpack.config.js

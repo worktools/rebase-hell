@@ -45,7 +45,7 @@ jobs:
 
     - run: yarn && yarn compile-server && yarn compile-page && yarn release-page && yarn release-server
 
-    - run: mkdir -p dist-server && mv js-out/bundle.js dist-server && cp package.json dist-server/
+    - run: mkdir -p dist-server && mv js-out/bundle.js dist-server
       name: Copy server scripts
 
     - name: Upload web assets
@@ -78,7 +78,6 @@ jobs:
     # - name: Display status from deploy
     #   run: echo "${{ steps.deploy-server.outputs.status }}"
 
-
-      - run: yarn && yarn pkg && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+    - run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.npm_token}}
