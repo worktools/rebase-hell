@@ -1584,7 +1584,7 @@
               host $ either (-> url-obj .-query .-host) (:ws-host config/site)
             ws-connect! (str "\"ws://" host "\":" port)
               {}
-                :on-open $ fn (event) (simulate-login!)
+                :on-open $ fn (event) (simulate-login!) (dispatch! :effect/read-branches nil)
                 :on-close $ fn (event) (reset! *store nil) (js/console.error "\"Lost connection!")
                 :on-data on-server-data
         |main! $ quote
