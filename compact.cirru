@@ -1580,8 +1580,8 @@
         |connect! $ quote
           defn connect! () $ let
               url-obj $ url-parse js/location.href true
-              host $ either (-> url-obj .-query .-host) js/location.hostname
               port $ either (-> url-obj .-query .-port) (:port config/site)
+              host $ either (-> url-obj .-query .-host) (:ws-host config/site)
             ws-connect! (str "\"ws://" host "\":" port)
               {}
                 :on-open $ fn (event) (simulate-login!)
