@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:reload-fn |app.server/reload!) (:port 6001) (:output |src) (:storage-key |calcit.cirru) (:version |0.2.14-a1)
+  :configs $ {} (:reload-fn |app.server/reload!) (:port 6001) (:output |src) (:storage-key |calcit.cirru) (:version |0.2.14-a2)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
     :init-fn |app.server/main!
     :extension |.cljs

@@ -1,10 +1,10 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.14-a1",
+  "version": "0.2.14-a2",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
-    "rebase-hell": "./dist-server/bundle.js"
+    "rebase-hell": "./bin.js"
   },
   "scripts": {
     "watch-server": "cr --emit-js",
