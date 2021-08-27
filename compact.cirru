@@ -2,7 +2,7 @@
 {} (:package |app)
   :configs $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
-    :version |0.2.14-a2
+    :version |0.2.14-a3
   :files $ {}
     |app.comp.home $ {}
       :ns $ quote
@@ -12,7 +12,6 @@
           [] respo.comp.space :refer $ [] =<
           [] respo.core :refer $ [] defcomp <> >> list-> >> span div button pre a
           [] app.config :as config
-          [] feather.core :refer $ [] comp-i
           [] respo-alerts.core :refer $ [] use-prompt use-modal-menu
           [] feather.core :refer $ [] comp-icon comp-i
           [] "\"copy-text-to-clipboard" :default copy!
@@ -90,8 +89,12 @@
                   {} $ :style
                     merge ui/row-middle $ {} (:padding 16)
                   span
-                    {} $ :class-name "\"rotating"
-                    comp-i :loader 24 $ hsl 0 0 0 0.5
+                    {} (:class-name "\"rotating")
+                      :style $ merge ui/center
+                        {} (:width 24) (:height 24) (:line-height "\"24px")
+                    comp-icon :loader
+                      &{} :font-size 24 :color (hsl 0 0 0 0.5) :height 24
+                      , nil
                   =< 16 nil
                   list->
                     {} $ :style ui/expand
@@ -394,10 +397,9 @@
                 div
                   {} $ :style (merge ui/global ui/fullscreen ui/column)
                   comp-navigation (>> states :nav) (:logged-in? store) (:count store) repo $ get-in store ([] :shell-env :gitea-domain)
-                  case (:name router)
+                  case-default (:name router) (<> router)
                     :home $ comp-home (>> states :home) repo (:logs store) (:process-status store) (:footprints store)
                     :profile $ comp-profile (:user store) (:data router)
-                    <> router
                   comp-status-color $ :color store
                   when dev? $ comp-inspect "\"Store" store
                     {} (:bottom 0) (:left 0) (:max-width |100%)
@@ -589,7 +591,8 @@
             let
                 op-id $ id!
                 op-time $ unix-time!
-                d! $ \ dispatch! % %2 sid
+                d! $ fn (op' data' ? sid')
+                  dispatch! op' data' $ either sid' sid
                 db $ :db @*reel
                 current $ get-in db ([] :repo :current)
                 upstream $ get-in db ([] :repo :upstream)
@@ -1641,7 +1644,7 @@
           defn reload! () $ if
             or (some? client-errors) (some? server-errors)
             hud! "\"error" $ str client-errors &newline server-errors
-            do (hud! "\"inactive" nil) (remove-watch *store :changes) (remove-watch *states :changes) (clear-cache!) (render-app!)
+            do (hud! "\"ok~" nil) (remove-watch *store :changes) (remove-watch *states :changes) (clear-cache!) (render-app!)
               add-watch *store :changes $ fn (store prev) (render-app!)
               add-watch *states :changes $ fn (states prev) (render-app!)
               println "\"Code updated."
