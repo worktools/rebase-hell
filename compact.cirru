@@ -691,10 +691,12 @@
               merge base-data $ {}
                 :user $ memof-call twig-user
                   get-in db $ [] :users (:user-id session)
-                :router $ assoc router :data
-                  case-default (:name router) ({})
-                    :home $ :pages db
-                    :profile $ memof-call twig-members (:sessions db) (:users db)
+                :router $ assoc
+                  or router $ {}
+                  , :data
+                    case-default (:name router) ({})
+                      :home $ :pages db
+                      :profile $ memof-call twig-members (:sessions db) (:users db)
                 :count $ count (:sessions db)
                 :color $ color/randomColor
                 :repo $ :repo db
@@ -1151,7 +1153,7 @@
               (default-branch? current)
                 d! :session/add-message $ {} (:text "\"Can't commit to master branch!")
               true $ run-command!
-                str "\"git add . && \\\ngit commit -m " $ pr-str message
+                str "\"git add . && \\\ngit commit -m " $ js/JSON.stringify message
                 , d!
                   {} $ :on-finish
                     fn $

@@ -9634,7 +9634,19 @@
                               |j $ {}
                                 :data $ {}
                                   |D $ {} (:text |assoc) (:type :leaf) (:at 1524070634499) (:by |root) (:id |rJbWgKgBhz)
-                                  |T $ {} (:text |router) (:type :leaf) (:at 1500541255553) (:by |root) (:id |BJaEl8ZxCS-)
+                                  |T $ {}
+                                    :data $ {}
+                                      |D $ {} (:text |or) (:type :leaf) (:at 1630048393803) (:by |B1y7Rc-Zz)
+                                      |T $ {} (:text |router) (:type :leaf) (:at 1500541255553) (:by |root) (:id |BJaEl8ZxCS-)
+                                      |j $ {}
+                                        :data $ {}
+                                          |T $ {} (:text |{}) (:type :leaf) (:at 1630048395043) (:by |B1y7Rc-Zz)
+                                        :type :expr
+                                        :at 1630048394729
+                                        :by |B1y7Rc-Zz
+                                    :type :expr
+                                    :at 1630048393021
+                                    :by |B1y7Rc-Zz
                                   |j $ {} (:text |:data) (:type :leaf) (:at 1524070635855) (:by |root) (:id |rygQeYlH3G)
                                   |r $ {}
                                     :data $ {}
@@ -15929,7 +15941,7 @@
                               |j $ {} (:text "|\"git add . && \\\ngit commit -m ") (:type :leaf) (:at 1630040245784) (:by |B1y7Rc-Zz) (:id |XdkTOIjiXA)
                               |r $ {}
                                 :data $ {}
-                                  |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1630040247107) (:text |pr-str)
+                                  |T $ {} (:text |js/JSON.stringify) (:type :leaf) (:at 1630048372475) (:by |B1y7Rc-Zz)
                                   |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1630040247107) (:text |message)
                                 :type :expr
                                 :at 1630040247107
