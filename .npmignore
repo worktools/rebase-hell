@@ -1,12 +1,16 @@
 
-.shadow-cljs/
-cli/
-entry/
-src/
-target/
-.nrepl-port
+.compact-inc.cirru
+.calcit-error.cirru
+
+js-out/
+dist/
+out-page/
+
+yarn-error.log
+
+assets/
 calcit.cirru
-shadow-cljs.edn
+
 yarn.lock
-upload.edn
+
 .github/
