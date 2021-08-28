@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@calcit/procs@^0.4.20":
-  version "0.4.21"
-  resolved "https://registry.npmjs.org/@calcit/procs/-/procs-0.4.21.tgz#ee361880b91d1c09010f3f69aa91e9ba33701a08"
-  integrity sha512-IpKTx2KqTT+AZDIGyBYy7yqTyl90XoAUG/xqUNIoc+ZmJ4z3MGP2dn5Dj9lMmT+y6Ua/U+reH3iDZyzUbEBY8w==
+"@calcit/procs@^0.4.23":
+  version "0.4.23"
+  resolved "https://registry.npmjs.org/@calcit/procs/-/procs-0.4.23.tgz#6e0c796ac0513707a07ec06c6637635281d0752c"
+  integrity sha512-qMGbgIvBhGo8+mw3WtrieolNACI1Gi45sPvzxe3Ifk2yRcyEoeF7FWa3LCwq0rXhiK9DoroUT8qbYTL1DS6juQ==
   dependencies:
     "@calcit/ternary-tree" "0.0.16"
     "@cirru/parser.ts" "^0.0.3"
@@ -402,10 +402,10 @@ crypt@0.0.2:
   resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
   integrity sha1-iNf/fsDfuG9xPch7u0LQRNPmxBs=
 
-dayjs@^1.10.4:
-  version "1.10.4"
-  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.10.4.tgz#8e544a9b8683f61783f570980a8a80eaf54ab1e2"
-  integrity sha512-RI/Hh4kqRc1UKLOAf/T5zdMMX5DQIlDxwUe3wSyMMnEbGunnpENCdbUgM+dW7kXidZqCttBrmw7BhN4TMddkCw==
+dayjs@^1.10.6:
+  version "1.10.6"
+  resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.10.6.tgz#288b2aa82f2d8418a6c9d4df5898c0737ad02a63"
+  integrity sha512-AztC/IOW4L1Q41A86phW5Thhcrco3xuAA+YX/BLpLWWjRcTj5TOt/QImBLmCKlrF7u7k47arTnOyL6GnbG8Hvw==
 
 decompress-response@^3.3.0:
   version "3.3.0"
