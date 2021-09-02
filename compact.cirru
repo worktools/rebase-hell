@@ -456,7 +456,7 @@
               :branches $ #{}
               :current "\"master"
               :remote-branches $ #{}
-              :code "\"JM"
+              :code "\"ISSUE"
             :logs $ do log ({})
             :process-status $ {}
             :footprints $ {}
@@ -624,8 +624,8 @@
                   (= op :effect/add-tag) (manager/add-tag! op-data upstream host-kind main-branch d!)
                   (= op :effect/show-version) (manager/show-version op-data upstream d!)
                   (= op :effect/kill-process) (manager/kill-process! op-data d!)
-                  true $ reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time)
-                fn (error) (js/console.error error)
+                  true $ reset! *reel (reel-reducer @*reel updater op op-data sid op-id op-time config/dev?)
+                fn (error) (js/console.error "\"Dispatch error:" error)
               , :effect
         |check-version! $ quote
           defn check-version! () $ let
@@ -1042,7 +1042,7 @@
         |kill-process! $ quote
           defn kill-process! (pid d!)
             println $ chalk/red "\"kill" pid
-            .kill js/process pid
+            js/process.kill pid
         |pick-prs! $ quote
           defn pick-prs! (prs upstream d!) "\"TODO"
         |run-stash! $ quote
