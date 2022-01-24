@@ -1,9 +1,8 @@
 
 {}
-  :configs $ {} (:reload-fn |app.server/reload!) (:port 6001) (:output |src) (:storage-key |calcit.cirru) (:version |0.2.14-a3)
-    :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
-    :init-fn |app.server/main!
-    :extension |.cljs
+  :users $ {}
+    |B1y7Rc-Zz $ {} (:avatar nil) (:name |chen) (:nickname |chen) (:id |B1y7Rc-Zz) (:theme :star-trail) (:password |d41d8cd98f00b204e9800998ecf8427e)
+    |root $ {} (:avatar nil) (:name |root) (:nickname |root) (:id |root) (:theme :star-trail) (:password |d41d8cd98f00b204e9800998ecf8427e)
   :ir $ {} (:package |app)
     :root $ {} (:def |main!) (:ns |main)
     :files $ {}
@@ -16439,7 +16438,15 @@
                         :at 1617992532224
                         :by |B1y7Rc-Zz
                       |r $ {} (:text "|\"main") (:type :leaf) (:at 1617992539569) (:by |B1y7Rc-Zz)
-                      |v $ {} (:text "|\"master") (:type :leaf) (:at 1617992545190) (:by |B1y7Rc-Zz)
+                      |v $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1643011948489)
+                        :data $ {}
+                          |T $ {} (:text "|\"master") (:type :leaf) (:at 1617992545190) (:by |B1y7Rc-Zz)
+                          |D $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1643011949249) (:text |if)
+                          |L $ {} (:type :expr) (:by |B1y7Rc-Zz) (:at 1643011949625)
+                            :data $ {}
+                              |T $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1643011950677) (:text |contains?)
+                              |j $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1643011952272) (:text |branches)
+                              |r $ {} (:type :leaf) (:by |B1y7Rc-Zz) (:at 1643011955400) (:text "|\"develop")
                     :type :expr
                     :at 1617992530543
                     :by |B1y7Rc-Zz
@@ -23113,6 +23120,8 @@
           :at 1527788708227
           :by |root
           :id |HJghs43Tk7
-  :users $ {}
-    |B1y7Rc-Zz $ {} (:avatar nil) (:name |chen) (:nickname |chen) (:id |B1y7Rc-Zz) (:theme :star-trail) (:password |d41d8cd98f00b204e9800998ecf8427e)
-    |root $ {} (:avatar nil) (:name |root) (:nickname |root) (:id |root) (:theme :star-trail) (:password |d41d8cd98f00b204e9800998ecf8427e)
+  :configs $ {} (:reload-fn |app.server/reload!) (:port 6001) (:output |src) (:storage-key |calcit.cirru) (:version |0.2.14-a4)
+    :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
+    :init-fn |app.server/main!
+    :extension |.cljs
+  :entries $ {}

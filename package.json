@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.14-a3",
+  "version": "0.2.14-a4",
   "description": "Cumulo Workflow",
   "main": "index.js",
   "bin": {
@@ -23,23 +23,23 @@
   "author": "jiyinyiyong",
   "license": "MIT",
   "dependencies": {
-    "@calcit/procs": "^0.4.26",
-    "axios": "^0.21.0",
+    "@calcit/procs": "^0.5.15",
+    "axios": "^0.25.0",
     "chalk": "^4.1.2",
-    "dayjs": "^1.10.6",
+    "dayjs": "^1.10.7",
     "latest-version": "^5.1.0",
     "md5": "^2.3.0",
     "randomcolor": "^0.6.2",
     "shortid": "^2.2.16",
-    "url-parse": "^1.5.3",
-    "ws": "^8.2.1"
+    "url-parse": "^1.5.4",
+    "ws": "^8.4.2"
   },
   "devDependencies": {
     "bottom-tip": "^0.1.2",
     "copy-text-to-clipboard": "^3.0.1",
     "feather-icons": "^4.28.0",
-    "vite": "^2.5.3",
-    "webpack": "^5.51.1",
-    "webpack-cli": "^4.8.0"
+    "vite": "^2.7.13",
+    "webpack": "^5.67.0",
+    "webpack-cli": "^4.9.1"
   }
 }
