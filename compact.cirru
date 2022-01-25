@@ -2,7 +2,8 @@
 {} (:package |app)
   :configs $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
-    :version |0.2.14-a3
+    :version |0.2.14-a5
+  :entries $ {}
   :files $ {}
     |app.comp.home $ {}
       :ns $ quote
@@ -1170,7 +1171,7 @@
         |detects-main $ quote
           defn detects-main (branches)
             if (set? branches)
-              if (contains? branches "\"main") "\"main" "\"master"
+              if (contains? branches "\"main") "\"main" $ if (contains? branches "\"develop") "\"develop" "\"master"
               , "\"master"
         |default-branch? $ quote
           defn default-branch? (x)
