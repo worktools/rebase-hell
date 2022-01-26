@@ -4740,7 +4740,7 @@
                               |p $ {}
                                 :data $ {}
                                   |T $ {} (:text |render-button) (:type :leaf) (:at 1546512483001) (:by |root) (:id |GzfUs5DyM-)
-                                  |j $ {} (:text "|\"Rebase master") (:type :leaf) (:at 1546512483001) (:by |root) (:id |DiUW9ez6-m)
+                                  |j $ {} (:text "|\"Rebase main") (:type :leaf) (:at 1643206913317) (:by |B1y7Rc-Zz) (:id |DiUW9ez6-m)
                                   |r $ {} (:text |true) (:type :leaf) (:at 1546512483001) (:by |root) (:id |EWkqz7jlfs)
                                   |v $ {}
                                     :data $ {}
@@ -6593,7 +6593,7 @@
                           |r $ {}
                             :data $ {}
                               |T $ {} (:text |:current) (:type :leaf) (:at 1545189231569) (:by |root) (:id |qVvVRLyeU_leaf)
-                              |j $ {} (:text "|\"master") (:type :leaf) (:at 1545189236262) (:by |root) (:id |xqa_Nzoyvw)
+                              |j $ {} (:text "|\"main") (:type :leaf) (:at 1643207097647) (:by |B1y7Rc-Zz) (:id |xqa_Nzoyvw)
                             :type :expr
                             :at 1545189228782
                             :by |root
@@ -15720,7 +15720,7 @@
                               |T $ {}
                                 :data $ {}
                                   |D $ {} (:text |:text) (:type :leaf) (:at 1547004651545) (:by |root) (:id |JtXOkqYOI)
-                                  |T $ {} (:text "|\"Can't push to master branch!") (:type :leaf) (:at 1547004782554) (:by |root) (:id |JtNJ7s1QMb)
+                                  |T $ {} (:text "|\"Can't push to main branch!") (:type :leaf) (:at 1643207115419) (:by |B1y7Rc-Zz) (:id |JtNJ7s1QMb)
                                 :type :expr
                                 :at 1547004650433
                                 :by |root
@@ -16086,7 +16086,7 @@
                               |j $ {}
                                 :data $ {}
                                   |T $ {} (:text |:text) (:type :leaf) (:at 1547008157239) (:by |root) (:id |67w-DLzHVSc)
-                                  |j $ {} (:text "|\"Can't commit to master branch!") (:type :leaf) (:at 1547008163988) (:by |root) (:id |ykVpmzlj-ah)
+                                  |j $ {} (:text "|\"Can't commit to main branch!") (:type :leaf) (:at 1643207133071) (:by |B1y7Rc-Zz) (:id |ykVpmzlj-ah)
                                 :type :expr
                                 :at 1547008157239
                                 :by |root
@@ -16484,6 +16484,14 @@
                       |T $ {} (:text |=) (:type :leaf) (:at 1617991895124) (:by |B1y7Rc-Zz)
                       |j $ {} (:text |x) (:type :leaf) (:at 1617991895938) (:by |B1y7Rc-Zz)
                       |r $ {} (:text "|\"master") (:type :leaf) (:at 1617991901968) (:by |B1y7Rc-Zz)
+                    :type :expr
+                    :at 1617991895088
+                    :by |B1y7Rc-Zz
+                  |v $ {}
+                    :data $ {}
+                      |T $ {} (:text |=) (:type :leaf) (:at 1617991895124) (:by |B1y7Rc-Zz)
+                      |j $ {} (:text |x) (:type :leaf) (:at 1617991895938) (:by |B1y7Rc-Zz)
+                      |r $ {} (:text "|\"develop") (:type :leaf) (:at 1643207164775) (:by |B1y7Rc-Zz)
                     :type :expr
                     :at 1617991895088
                     :by |B1y7Rc-Zz

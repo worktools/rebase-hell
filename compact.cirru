@@ -357,7 +357,7 @@
                     comp-commit (>> states :commit) (:current repo)
                   comp-title "\"Forced"
                   div ({})
-                    render-button "\"Rebase master" true $ fn (e d!) (d! :effect/rebase-master nil)
+                    render-button "\"Rebase main" true $ fn (e d!) (d! :effect/rebase-master nil)
                     render-button "\"Force push" true $ fn (e d!) (d! :effect/force-push nil)
         |render-button $ quote
           defn render-button (text danger? on-click)
@@ -455,7 +455,7 @@
             :users $ do user ({})
             :repo $ {} (:upstream nil) (:host-kind :unknown)
               :branches $ #{}
-              :current "\"master"
+              :current "\"main"
               :remote-branches $ #{}
               :code "\"ISSUE"
             :logs $ do log ({})
@@ -1124,7 +1124,7 @@
                 .starts-with? current "\"release-"
                 d! :session/add-message $ {} (:text "\"Can't push to release branch!")
               (default-branch? current)
-                d! :session/add-message $ {} (:text "\"Can't push to master branch!")
+                d! :session/add-message $ {} (:text "\"Can't push to main branch!")
               true $ run-command! (str "\"git push origin " current) d! ({})
         |fetch-origin! $ quote
           defn fetch-origin! (d!)
@@ -1155,7 +1155,7 @@
                 .starts-with? current "\"release-"
                 d! :session/add-message $ {} (:text "\"Can't commit to release branch!")
               (default-branch? current)
-                d! :session/add-message $ {} (:text "\"Can't commit to master branch!")
+                d! :session/add-message $ {} (:text "\"Can't commit to main branch!")
               true $ run-command!
                 str "\"git add . && \\\ngit commit -m " $ js/JSON.stringify message
                 , d!
@@ -1175,7 +1175,7 @@
               , "\"master"
         |default-branch? $ quote
           defn default-branch? (x)
-            or (= x "\"main") (= x "\"master")
+            or (= x "\"main") (= x "\"master") (= x "\"develop")
     |app.env $ {}
       :ns $ quote
         ns app.env $ :require ([] clojure.string :as string) ([] "\"chalk" :as chalk)
