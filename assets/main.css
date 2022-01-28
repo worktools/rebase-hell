@@ -3,6 +3,7 @@ body {
   margin: 0;
   overscroll-behavior-y: none;
   overscroll-behavior-x: none;
+  background-color: hsl(0, 0%, 96%);
 }
 
 body * {
@@ -18,7 +19,7 @@ body * {
 }
 
 .hoverable:hover {
-  background-color: hsl(0,0%,95%);
+  background-color: hsl(0,0%,98%);
 }
 
 .rotating {

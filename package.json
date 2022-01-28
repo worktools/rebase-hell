@@ -7,14 +7,14 @@
     "rebase-hell": "./bin.js"
   },
   "scripts": {
-    "watch-server": "cr --emit-js",
+    "watch-server": "cr --emit-js --entry server",
     "build-server": "yarn webpack && node js-out/bundle.js",
     "dev-server": "hot=true webpack --watch",
-    "compile-server": "cr --emit-js --once",
-    "compile-page": "cr --emit-js --once --init-fn app.client/main! --reload-fn app.client/reload! --emit-path out-page",
+    "compile-server": "cr --emit-js --once --entry server",
+    "compile-page": "cr --emit-js --once --emit-path out-page",
     "release-page": "vite build --base=./",
     "release-server": "webpack",
-    "watch-page": "cr --emit-js --emit-path out-page/ --init-fn app.client/main! --reload-fn app.client/reload!"
+    "watch-page": "cr --emit-js --emit-path out-page/"
   },
   "repository": {
     "type": "git",
