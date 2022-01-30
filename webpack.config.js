@@ -21,7 +21,7 @@ module.exports = {
   externals: {
     ws: "commonjs ws",
     randomcolor: "commonjs randomcolor",
-    shortid: "commonjs shortid",
+    nanoid: "commonjs nanoid",
     md5: "commonjs md5",
     'latest-version': "commonjs latest-version",
   },

@@ -23147,7 +23147,7 @@
           :at 1527788708227
           :by |root
           :id |HJghs43Tk7
-  :configs $ {} (:reload-fn |app.client/reload!) (:port 6001) (:storage-key |calcit.cirru) (:version |0.2.14-a5)
+  :configs $ {} (:reload-fn |app.client/reload!) (:port 6001) (:storage-key |calcit.cirru) (:version |0.2.14-a6)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
     :init-fn |app.client/main!
   :entries $ {}

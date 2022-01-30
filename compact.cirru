@@ -2,7 +2,7 @@
 {} (:package |app)
   :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
-    :version |0.2.14-a5
+    :version |0.2.14-a6
   :entries $ {}
     :server $ {} (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
       :modules $ [] |lilac/ |recollect/ |memof/ |ws-edn.calcit/ |cumulo-util.calcit/ |cumulo-reel.calcit/
