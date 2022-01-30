@@ -1,9 +1,12 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!)
-    :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |cumulo-reel.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/
-    :version |0.2.14-a5
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!)
+    :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
+    :version |0.2.14-a6
   :entries $ {}
+    :server $ {} (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
+      :modules $ [] |lilac/ |recollect/ |memof/ |ws-edn.calcit/ |cumulo-util.calcit/ |cumulo-reel.calcit/
+      :init-fn |app.server/main!
   :files $ {}
     |app.comp.home $ {}
       :ns $ quote
@@ -54,7 +57,6 @@
                     div
                       {} $ :style
                         merge ui/column $ {}
-                          :background-color $ hsl 0 0 97
                       list-> ({})
                         -> (:branches repo) (.to-list) (sort &compare)
                           map $ fn (branch)
@@ -62,9 +64,9 @@
                       =< nil 16
                       div $ {} (:style ui/expand)
                       comp-footprints footprints $ :upstream repo
-                    =< 16 nil
+                    comp-thin-divider
                     comp-operations (>> states :operations) repo
-                =< 16 nil
+                comp-thin-divider
                 comp-logs logs status
         |comp-logs $ quote
           defcomp comp-logs (logs status)
@@ -193,9 +195,12 @@
             div
               {} (:class-name "\"hoverable")
                 :style $ merge ui/row-parted
-                  {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200)
+                  {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200) (:font-family ui/font-code)
                   if (= current branch)
-                    {} $ :background-color (hsl 0 0 93)
+                    {}
+                      :background-color $ hsl 0 0 100
+                      :border-radius "\"4px"
+                      :box-shadow $ str "\"0px 0px 2px " (hsl 0 0 0 0.1)
                   if remote? $ {}
                     :color $ hsl 0 0 80
                     :line-height "\"26px"
@@ -253,10 +258,10 @@
                     :button-text "\"生成命令"
               div ({})
                 a $ {}
-                  :style $ {} (:cursor :pointer)
+                  :style $ {} (:cursor :pointer) (:font-family ui/font-fancy)
                   :inner-text "\"Branches"
                   :on-click $ fn (e d!) (d! :effect/read-branches nil)
-                =< 16 nil
+                =< 24 nil
                 button $ {} (:style style/button) (:inner-text "\"Fetch")
                   :on-click $ fn (e d!) (d! :effect/fetch-origin nil)
                 =< 16 nil
@@ -284,12 +289,11 @@
                   :style $ merge style/button
                   :inner-text "\"Tag"
                   :on-click $ fn (e d!) (d! :effect/show-version nil)
-                      :show tag-plugin
-                      , d! $ fn (result)
-                        if-not (.blank? result)
-                          let
-                              tag $ .trim result
-                            when-not (.blank? tag) (d! :effect/add-tag tag)
+                    .show tag-plugin d! $ fn (result)
+                      if-not (.blank? result)
+                        let
+                            tag $ .trim result
+                          when-not (.blank? tag) (d! :effect/add-tag tag)
                 .render tag-plugin
                 .render branch-plugin
         |comp-new-branch $ quote
@@ -316,6 +320,11 @@
           def numbers-pattern $ new js/RegExp "\"^\\d+$"
         |title-seperators $ quote
           def title-seperators $ new js/RegExp "\"(\\s|\\,)+"
+        |comp-thin-divider $ quote
+          defn comp-thin-divider () $ div
+            {} $ :style
+              {} (:height "\"80%") (:width 1) (:margin "\"auto 12px")
+                :background-color $ hsl 0 0 92
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?://\\S+"
         |issue-id-pattern $ quote
@@ -326,16 +335,13 @@
             :padding "\"12px"
             :overflow :auto
             :font-family ui/font-code
-            :background-color $ hsl 260 10 96
+            :background-color $ hsl 260 10 100
             :color $ hsl 0 0 40
             :white-space :pre-line
         |comp-operations $ quote
           defcomp comp-operations (states repo)
             div
-              {} $ :style
-                merge ui/flex ui/column $ {}
-                  :background-color $ hsl 0 0 97
-                  :padding 8
+              {} $ :style (merge ui/flex ui/column)
               if
                 default-branch? $ :current repo
                 div ({}) (comp-title "\"Basic")
@@ -1396,10 +1402,10 @@
             :font-family ui/font-fancy
         |button $ quote
           def button $ merge ui/button
-            {} (:border-radius "\"8px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px")
+            {} (:border-radius "\"4px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px") (:font-family ui/font-fancy)
               :border-color $ hsl 200 80 88
               :color $ hsl 200 80 60
-              :background-color nil
+              :background-color $ hsl 200 40 98
     |app.test $ {}
       :ns $ quote
         ns app.test $ :require
@@ -1469,7 +1475,8 @@
               div
                 {} $ :style
                   merge ui/row-center $ {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
-                    :border-bottom $ str "|1px solid " (hsl 0 0 0 0.1)
+                    :background-color $ hsl 0 0 98
+                    :border-bottom $ str "|1px solid " (hsl 0 0 50 0.1)
                 div ({})
                   ; span $ {}
                     :inner-text $ :title config/site
