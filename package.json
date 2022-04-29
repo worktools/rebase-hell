@@ -1,10 +1,10 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.15-a3",
+  "version": "0.2.15-a4",
   "description": "git helper tool",
   "main": "index.js",
   "bin": {
-    "rebase-hell": "./server.mjs"
+    "rebase-hell": "./bin.js"
   },
   "scripts": {
     "compile-server": "cr --emit-js --once --entry server",
