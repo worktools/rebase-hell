@@ -1,6 +1,6 @@
 {
   "name": "@jimengio/rebase-hell",
-  "version": "0.2.15-a1",
+  "version": "0.2.15-a3",
   "description": "git helper tool",
   "main": "index.js",
   "bin": {
