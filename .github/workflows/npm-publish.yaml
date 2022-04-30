@@ -36,17 +36,17 @@ jobs:
         && git clone https://github.com/Respo/respo.calcit.git
         && git clone https://github.com/Respo/respo-ui.calcit.git
         && git clone https://github.com/Respo/respo-message.calcit.git
-        && git clone https://github.com/Cumulo/cumulo-util.calcit.git --branch 0.0.3
+        && git clone https://github.com/Cumulo/cumulo-util.calcit.git
         && git clone https://github.com/Cumulo/cumulo-reel.calcit.git
-        && git clone https://github.com/mvc-works/ws-edn.calcit.git --branch 0.0.5
+        && git clone https://github.com/mvc-works/ws-edn.calcit.git
         && git clone https://github.com/Respo/respo-feather.calcit.git
         && git clone https://github.com/Respo/respo-markdown.calcit.git
         && git clone https://github.com/Respo/alerts.calcit.git
 
-    - run: yarn && yarn compile-server && yarn compile-page && yarn release-page && yarn release-server
+    - run: yarn && yarn compile-server && yarn compile-page && yarn release-page
 
-    - run: mkdir -p dist-server && mv js-out/bundle.js dist-server
-      name: Copy server scripts
+    # - run: mkdir -p dist-server && mv js-out/bundle.js dist-server
+    #   name: Copy server scripts
 
     - name: Upload web assets
       id: deploy
