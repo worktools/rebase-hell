@@ -42,7 +42,7 @@ rebase-hell switch
 
 可以设置一个 `ecosystem.config.js` 配置文件:
 
-```bash
+```js
 module.exports = {
   apps : [{
     name: "RebaseHell",
