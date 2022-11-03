@@ -121,7 +121,7 @@
                 repo $ :repo store
               if (nil? store) (comp-offline)
                 div
-                  {} $ :style (merge ui/global ui/fullscreen ui/column)
+                  {} $ :class-name (str-spaced css/global css/fullscreen css/column)
                   comp-navigation (>> states :nav) (:logged-in? store) (:count store) repo $ get-in store ([] :shell-env :gitea-domain)
                   case-default (:name router) (<> router)
                     :home $ comp-home (>> states :home) repo (:logs store) (:process-status store) (:footprints store)
@@ -136,8 +136,9 @@
                   if dev? $ comp-reel (:reel-length store) ({})
         |comp-offline $ quote
           defcomp comp-offline () $ div
-            {} $ :style
-              merge ui/global ui/fullscreen ui/column-dispersive $ {}
+            {}
+              :class-name $ str-spaced css/global css/fullscreen css/column-dispersive
+              :style $ {}
                 :background-color $ :theme config/site
             div $ {}
               :style $ {} (:height 0)
@@ -148,45 +149,49 @@
                 :height 128
                 :background-size :contain
             div
-              {}
-                :style $ merge ui/center
-                  {} (:cursor :pointer) (:line-height "\"32px")
+              {} (:class-name css/center)
+                :style $ {} (:cursor :pointer) (:line-height "\"32px")
                 :on-click $ fn (e d!) (d! :effect/connect nil)
               <> "\"No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
               comp-md "\"A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n"
         |comp-status-color $ quote
           defcomp comp-status-color (color)
-            div $ {}
+            div $ {} (:class-name css-status-color)
               :style $ let
                   size 24
-                {} (:width size) (:height size) (:position :absolute) (:bottom 60) (:left 8) (:background-color color) (:border-radius "\"50%") (:opacity 0.6) (:pointer-events :none)
+                {} (:width size) (:height size) (:background-color color)
+        |css-status-color $ quote
+          defstyle css-status-color $ {}
+            "\"$0" $ {} (:position :absolute) (:bottom 60) (:left 8) (:border-radius "\"50%") (:opacity 0.6) (:pointer-events :none)
         |style-body $ quote
           def style-body $ {} (:padding "|8px 16px")
       :ns $ quote
         ns app.comp.container $ :require
-          [] hsl.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp <> div span >> button
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] respo.comp.space :refer $ [] =<
-          [] app.comp.navigation :refer $ [] comp-navigation
-          [] app.comp.profile :refer $ [] comp-profile
-          [] app.comp.login :refer $ [] comp-login
-          [] respo-message.comp.messages :refer $ [] comp-messages
-          [] cumulo-reel.comp.reel :refer $ [] comp-reel
-          [] app.config :refer $ [] dev?
-          [] app.schema :as schema
-          [] app.config :as config
-          [] app.comp.home :refer $ [] comp-home
-          [] respo-md.comp.md :refer $ [] comp-md
+          hsl.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp <> div span >> button
+          respo.comp.inspect :refer $ comp-inspect
+          respo.comp.space :refer $ =<
+          app.comp.navigation :refer $ comp-navigation
+          app.comp.profile :refer $ comp-profile
+          app.comp.login :refer $ comp-login
+          respo-message.comp.messages :refer $ comp-messages
+          cumulo-reel.comp.reel :refer $ comp-reel
+          app.config :refer $ dev?
+          app.schema :as schema
+          app.config :as config
+          app.comp.home :refer $ comp-home
+          respo-md.comp.md :refer $ comp-md
+          respo.css :refer $ defstyle
+          respo-ui.css :as css
     |app.comp.home $ {}
       :defs $ {}
         |comp-branch $ quote
           defcomp comp-branch (branch current remote?)
             div
-              {} (:class-name "\"hoverable")
-                :style $ merge ui/row-parted
-                  {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200) (:font-family ui/font-code)
+              {}
+                :class-name $ str-spaced "\"hoverable" css/row-parted css-branch
+                :style $ merge
                   if (= current branch)
                     {}
                       :background-color $ hsl 0 0 100
@@ -245,9 +250,7 @@
                 .map-pair $ fn (k v)
                   [] k $ div
                     {}
-                      :style $ merge ui/row-parted
-                        {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:overflow :hidden) (:cursor :pointer)
-                      :class-name "\"hoverable"
+                      :class-name $ str-spaced "\"hoverable" css-footprint
                       :on-click $ fn (e d!) (d! :effect/switch-path k)
                       :title k
                     <> v ui/expand
@@ -284,20 +287,19 @@
                 {} $ :style
                   merge ui/row ui/flex $ {} (:padding 16) (:overflow :auto)
                 div
-                  {} $ :style (merge ui/flex ui/column)
+                  {} $ :class-name (str-spaced css/flex css/column)
                   comp-quick-ops $ >> states :quick-ops
                   =< nil 16
                   div
-                    {} $ :style (merge ui/flex ui/row)
+                    {} $ :class-name (str-spaced css/flex css/row)
                     div
-                      {} $ :style
-                        merge ui/column $ {}
+                      {} $ :class-name css/column
                       list-> ({})
                         -> (:branches repo) (.to-list) (sort &compare)
                           map $ fn (branch)
                             [] branch $ comp-branch branch (:current repo) false
                       =< nil 16
-                      div $ {} (:style ui/expand)
+                      div $ {} (:class-name css/expand)
                       comp-footprints footprints $ :upstream repo
                     comp-thin-divider
                     comp-operations (>> states :operations) repo
@@ -313,9 +315,7 @@
               div
                 {} $ :style
                   {} $ :position :relative
-                pre $ {}
-                  :style $ merge style-log
-                    {} $ :margin-bottom 4
+                pre $ {} (:class-name css-log)
                   :inner-text $ :text log
                 if-not (empty? urls)
                   list-> ({})
@@ -339,41 +339,38 @@
         |comp-logs $ quote
           defcomp comp-logs (logs status)
             div
-              {} $ :style (merge ui/flex ui/column)
+              {} $ :class-name (str-spaced css/flex css/column)
               div
-                {} $ :style
-                  merge ui/row-middle $ {} (:height 32)
+                {} (:class-name css/row-middle)
+                  :style $ {} (:height 32)
                 <> "\"Logs"
                 =< 16 nil
-                button $ {} (:style style/button) (:inner-text "\"Status")
+                button $ {} (:class-name css-button) (:inner-text "\"Status")
                   :on-click $ fn (e d!) (d! :effect/status nil)
                 =< 16 nil
                 if
                   not $ empty? logs
-                  button $ {}
-                    :style $ merge style/button
-                    :inner-text "\"Clear"
+                  button $ {} (:class-name css-button) (:inner-text "\"Clear")
                     :on-click $ fn (e d!) (d! :process/clear-logs nil)
               if
                 not $ empty? status
                 div
-                  {} $ :style
-                    merge ui/row-middle $ {} (:padding 16)
+                  {} (:class-name css/row-middle)
+                    :style $ {} (:padding 16)
                   span
-                    {} (:class-name "\"rotating")
-                      :style $ merge ui/center
-                        {} (:width 24) (:height 24) (:line-height "\"24px")
+                    {}
+                      :class-name $ str-spaced "\"rotating" css/center
+                      :style $ {} (:width 24) (:height 24) (:line-height "\"24px")
                     comp-icon :loader
                       &{} :font-size 24 :color (hsl 0 0 0 0.5) :height 24
                       , nil
                   =< 16 nil
                   list->
-                    {} $ :style ui/expand
+                    {} $ :class-name css/expand
                     -> status (.to-list)
                       .map-pair $ fn (pid command)
                         [] pid $ div
-                          {} $ :style
-                            merge ui/row $ {} (:font-family ui/font-code) (:font-size 13) (:line-height "\"20px")
+                          {} $ :class-name css-command
                           <> pid $ {}
                             :color $ hsl 0 0 80
                           =< 4 nil
@@ -388,8 +385,8 @@
                             {} $ :style ui/expand
                             <> command
               list->
-                {} $ :style
-                  merge ui/flex $ {} (:overflow :auto)
+                {} (:class-name css/flex)
+                  :style $ {} (:overflow :auto)
                 -> logs (.to-list)
                   .sort-by $ fn (pair)
                     negate $ :time (last pair)
@@ -462,12 +459,10 @@
                   :inner-text "\"Branches"
                   :on-click $ fn (e d!) (d! :effect/read-branches nil)
                 =< 24 nil
-                button $ {} (:style style/button) (:inner-text "\"Fetch")
+                button $ {} (:class-name css-button) (:inner-text "\"Fetch")
                   :on-click $ fn (e d!) (d! :effect/fetch-origin nil)
                 =< 16 nil
-                button $ {}
-                  :style $ merge style/button
-                  :inner-text "\"Pick issues"
+                button $ {} (:class-name css-button) (:inner-text "\"Pick issues")
                   :on-click $ fn (e d!)
                     .show branch-plugin d! $ fn (result)
                       if-not (.blank? result)
@@ -479,15 +474,13 @@
                               .sort &compare
                           d! :effect/pick-prs issue-ids
                 =< 16 nil
-                button $ {} (:inner-text "\"Stash") (:style style/button)
+                button $ {} (:inner-text "\"Stash") (:class-name css-button)
                   :on-click $ fn (e d!) (d! :effect/stash nil)
                 =< 16 nil
-                button $ {} (:inner-text "\"Stash Apply") (:style style/button)
+                button $ {} (:inner-text "\"Stash Apply") (:class-name css-button)
                   :on-click $ fn (e d!) (d! :effect/stash-apply nil)
                 =< 16 nil
-                button $ {}
-                  :style $ merge style/button
-                  :inner-text "\"Tag"
+                button $ {} (:class-name css-button) (:inner-text "\"Tag")
                   :on-click $ fn (e d!) (d! :effect/show-version nil)
                     .show tag-plugin d! $ fn (result)
                       if-not (.blank? result)
@@ -498,52 +491,73 @@
                 .render branch-plugin
         |comp-thin-divider $ quote
           defn comp-thin-divider () $ div
-            {} $ :style
-              {} (:height "\"80%") (:width 1) (:margin "\"auto 12px")
-                :background-color $ hsl 0 0 92
+            {} $ :class-name css-thin-divider
         |comp-title $ quote
           defcomp comp-title (title)
             div
-              {} $ :style
-                {} (:font-family ui/font-fancy) (:margin "\"8px 0 4px 0")
+              {} $ :class-name css-section-title
               <> title
+        |css-branch $ quote
+          defstyle css-branch $ {}
+            "\"$0" $ {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200) (:font-family ui/font-code)
+        |css-button $ quote
+          defstyle css-button $ {} ("\"$0" style/button)
+        |css-command $ quote
+          defstyle css-command $ {}
+            "\"$0" $ merge ui/row
+              {} (:font-family ui/font-code) (:font-size 13) (:line-height "\"20px")
+        |css-footprint $ quote
+          defstyle css-footprint $ {}
+            "\"$0" $ merge ui/row-parted
+              {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:overflow :hidden) (:cursor :pointer)
+        |css-log $ quote
+          defstyle css-log $ {}
+            "\"$0" $ {} (:line-height "\"20px") (:font-size 13)
+              :border $ str "\"1px solid " (hsl 0 0 92)
+              :padding "\"12px"
+              :overflow :auto
+              :font-family ui/font-code
+              :background-color $ hsl 260 10 100
+              :color $ hsl 0 0 40
+              :white-space :pre-line
+              :margin-bottom 4
+        |css-section-title $ quote
+          defstyle css-section-title $ {}
+            "\"$0" $ {} (:font-family ui/font-fancy) (:margin "\"8px 0 4px 0")
+        |css-thin-divider $ quote
+          defstyle css-thin-divider $ {}
+            "\"$0" $ {} (:height "\"80%") (:width 1) (:margin "\"auto 12px")
+              :background-color $ hsl 0 0 92
         |issue-id-pattern $ quote
           def issue-id-pattern $ new js/RegExp "\"\\w+-\\d+(?=-)"
         |numbers-pattern $ quote
           def numbers-pattern $ new js/RegExp "\"^\\d+$"
         |render-button $ quote
           defn render-button (text danger? on-click)
-            button $ {}
-              :style $ merge style/button
+            button $ {} (:class-name css-button)
+              :style $ merge
                 {} $ :margin "\"4px 4px"
                 if danger? $ {} (:color :red) (:border-color :red)
               :inner-text text
               :on-click on-click
-        |style-log $ quote
-          def style-log $ {} (:line-height "\"20px") (:font-size 13)
-            :border $ str "\"1px solid " (hsl 0 0 92)
-            :padding "\"12px"
-            :overflow :auto
-            :font-family ui/font-code
-            :background-color $ hsl 260 10 100
-            :color $ hsl 0 0 40
-            :white-space :pre-line
         |title-seperators $ quote
           def title-seperators $ new js/RegExp "\"(\\s|\\,)+"
         |url-pattern $ quote
           def url-pattern $ new js/RegExp "\"https?://\\S+"
       :ns $ quote
         ns app.comp.home $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.comp.space :refer $ [] =<
-          [] respo.core :refer $ [] defcomp <> >> list-> >> span div button pre a
-          [] app.config :as config
-          [] respo-alerts.core :refer $ [] use-prompt use-modal-menu
-          [] feather.core :refer $ [] comp-icon comp-i
-          [] "\"copy-text-to-clipboard" :default copy!
-          [] app.style :as style
-          [] app.util.string :refer $ [] default-branch?
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.comp.space :refer $ =<
+          respo.core :refer $ defcomp <> >> list-> >> span div button pre a
+          app.config :as config
+          respo-alerts.core :refer $ use-prompt use-modal-menu
+          feather.core :refer $ comp-icon comp-i
+          "\"copy-text-to-clipboard" :default copy!
+          app.style :as style
+          app.util.string :refer $ default-branch?
+          respo.css :refer $ defstyle
+          respo-ui.css :as css
     |app.comp.login $ {}
       :defs $ {}
         |comp-login $ quote
@@ -610,10 +624,7 @@
                     :input-style $ {} (:font-family ui/font-code)
                     :initial code
               div
-                {} $ :style
-                  merge ui/row-center $ {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
-                    :background-color $ hsl 0 0 98
-                    :border-bottom $ str "|1px solid " (hsl 0 0 50 0.1)
+                {} $ :class-name css-navigation
                 div ({})
                   ; span $ {}
                     :inner-text $ :title config/site
@@ -621,23 +632,13 @@
                       d! :router/change $ {} (:name :home)
                   let
                       upstream $ :upstream repo
-                    a $ {}
-                      :style $ {}
-                        :color $ hsl 200 60 66
-                        :font-size 20
-                        :font-family ui/font-fancy
-                        :text-decoration :none
-                      :inner-text upstream
+                    a $ {} (:class-name css-nav-title) (:inner-text upstream)
                       :href $ case-default (:host-kind repo) (str "\"https://github.com/" upstream)
                         :github $ str "\"https://github.com/" upstream
                         :gitea $ str "\"https://" gitea-domain "\"/" upstream
                       :target "\"_blank"
                   =< 16 nil
-                  span $ {}
-                    :style $ {}
-                      :color $ hsl 0 0 90
-                      :font-family ui/font-code
-                      :font-size 14
+                  span $ {} (:class-name css-nav-label)
                     :inner-text $ or code "\"ISSUE"
                     :on-click $ fn (e d!)
                       .show code-plugin d! $ fn (result)
@@ -651,14 +652,35 @@
                   =< 8 nil
                   <> count-members
                 .render code-plugin
+        |css-nav-label $ quote
+          defstyle css-nav-label $ {}
+            "\"$0" $ {}
+              :color $ hsl 0 0 90
+              :font-family ui/font-code
+              :font-size 14
+        |css-nav-title $ quote
+          defstyle css-nav-title $ {}
+            "\"$0" $ {}
+              :color $ hsl 200 60 66
+              :font-size 20
+              :font-family ui/font-fancy
+              :text-decoration :none
+        |css-navigation $ quote
+          defstyle css-navigation $ {}
+            "\"$0" $ merge ui/row-center
+              {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
+                :background-color $ hsl 0 0 98
+                :border-bottom $ str "|1px solid " (hsl 0 0 50 0.1)
       :ns $ quote
         ns app.comp.navigation $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.comp.space :refer $ [] =<
-          [] respo.core :refer $ [] defcomp <> >> span div a
-          [] app.config :as config
-          [] respo-alerts.core :refer $ [] use-prompt
+          respo-ui.core :refer $ hsl
+          respo-ui.core :as ui
+          respo.comp.space :refer $ =<
+          respo.core :refer $ defcomp <> >> span div a
+          app.config :as config
+          respo-alerts.core :refer $ use-prompt
+          respo-ui.css :as css
+          respo.css :refer $ defstyle
     |app.comp.profile $ {}
       :defs $ {}
         |comp-profile $ quote
