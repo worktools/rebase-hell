@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.16)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.17)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -122,7 +122,7 @@
               if (nil? store) (comp-offline)
                 div
                   {} $ :class-name (str-spaced css/global css/fullscreen css/column)
-                  comp-navigation (>> states :nav) (:logged-in? store) (:count store) repo $ get-in store ([] :shell-env :gitea-domain)
+                  comp-navigation (>> states :nav) (:logged-in? store) (:count store) repo
                   case-default (:name router) (<> router)
                     :home $ comp-home (>> states :home) repo (:logs store) (:process-status store) (:footprints store)
                     :profile $ comp-profile (:user store) (:data router)
@@ -462,18 +462,6 @@
                 button $ {} (:class-name css-button) (:inner-text "\"Fetch")
                   :on-click $ fn (e d!) (d! :effect/fetch-origin nil)
                 =< 16 nil
-                button $ {} (:class-name css-button) (:inner-text "\"Pick issues")
-                  :on-click $ fn (e d!)
-                    .show branch-plugin d! $ fn (result)
-                      if-not (.blank? result)
-                        let
-                            issue-ids $ -> (.!split result title-seperators) (to-calcit-data)
-                              filter $ fn (x) (.!test numbers-pattern x)
-                              map $ fn (x) (println x) x
-                              map js/parseInt
-                              .sort &compare
-                          d! :effect/pick-prs issue-ids
-                =< 16 nil
                 button $ {} (:inner-text "\"Stash") (:class-name css-button)
                   :on-click $ fn (e d!) (d! :effect/stash nil)
                 =< 16 nil
@@ -616,7 +604,7 @@
     |app.comp.navigation $ {}
       :defs $ {}
         |comp-navigation $ quote
-          defcomp comp-navigation (states logged-in? count-members repo gitea-domain)
+          defcomp comp-navigation (states logged-in? count-members repo)
             let
                 code $ :code repo
                 code-plugin $ use-prompt (>> states :code)
@@ -635,7 +623,6 @@
                     a $ {} (:class-name css-nav-title) (:inner-text upstream)
                       :href $ case-default (:host-kind repo) (str "\"https://github.com/" upstream)
                         :github $ str "\"https://github.com/" upstream
-                        :gitea $ str "\"https://" gitea-domain "\"/" upstream
                       :target "\"_blank"
                   =< 16 nil
                   span $ {} (:class-name css-nav-label)
@@ -726,12 +713,12 @@
                   <> "\"Log out"
       :ns $ quote
         ns app.comp.profile $ :require
-          [] respo-ui.core :refer $ [] hsl
-          [] app.schema :as schema
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] defcomp list-> <> span div button
-          [] respo.comp.space :refer $ [] =<
-          [] app.config :as config
+          respo-ui.core :refer $ hsl
+          app.schema :as schema
+          respo-ui.core :as ui
+          respo.core :refer $ defcomp list-> <> span div button
+          respo.comp.space :refer $ =<
+          app.config :as config
     |app.config $ {}
       :defs $ {}
         |cdn? $ quote
@@ -755,28 +742,8 @@
             , :switch :server
         |shell-env $ quote
           def shell-env $ if (= run-mode :switch) nil
-            {}
-              :gitea-host $ let
-                  host $ aget js/process.env "\"GITEA_HOST"
-                cond
-                    not $ string? host
-                    do
-                      println $ .!red chalk "\"GITEA_HOST not found in shell"
-                      , nil
-                  (.ends-with? host "\"/")
-                    .slice host 0 $ dec (count host)
-                  :else host
-              :gitea-domain $ let
-                  domain $ aget js/process.env "\"GITEA_DOMAIN"
-                when (nil? domain)
-                  println $ .!red chalk "\"GITEA_DOMAIN not found in shell"
-                , domain
-              :gitea-token $ let
-                  token $ aget js/process.env "\"GITEA_TOKEN"
-                when (nil? token)
-                  println $ .!red chalk "\"GITEA_TOKEN not found in shell"
-                , token
-              :github-token $ let
+            {} $ :github-token
+              let
                   token $ aget js/process.env "\"GITHUB_TOKEN"
                 when (nil? token)
                   println $ .!red chalk "\"GITHUB_TOKEN not found in shell"
@@ -791,20 +758,15 @@
         |add-tag! $ quote
           defn add-tag! (tag-version upstream host-kind main-branch d!)
             let
-                has-clj-config? $ fs/existsSync "\"release.edn"
                 has-npm-config? $ fs/existsSync "\"package.json"
                 current $ cond
-                  has-clj-config? $ :version
-                    parse-cirru-edn $ fs/readFileSync "\"release.edn" "\"utf8"
                   has-npm-config? $ .-version
                     js/JSON.parse $ fs/readFileSync "\"package.json" "\"utf8"
-                  :else "\"0.0.0"
+                  true "\"0.0.0"
                 use-current? $ or (= current tag-version) (.!test dots-pattern tag-version)
                 target-version $ if use-current? current tag-version
-                web-url $ case host-kind
-                  :gitea $ << "\"https://~(:gitea-domain shell-env)/~{upstream}/releases/new?tag=~{target-version}"
+                web-url $ case-default host-kind (<< "\"https://github.com/~{upstream}/releases/new?tag=~{target-version}")
                   :github $ << "\"https://github.com/~{upstream}/releases/new?tag=~{target-version}"
-                  << "\"https://github.com/~{upstream}/releases/new?tag=~{target-version}"
               println "\"host kind" host-kind "\"from" current "\"to" target-version
               if use-current?
                 run-command! (<< "\"git tag ~{current} && git push origin ~{current} && echo ~{web-url}") d! $ {}
@@ -814,12 +776,7 @@
                       pkg $ js/JSON.parse (fs/readFileSync "\"package.json" "\"utf8")
                     aset pkg "\"version" target-version
                     fs/writeFileSync "\"package.json" $ str (js/JSON.stringify pkg nil 2) &newline
-                  when has-clj-config? $ let
-                      pkg $ parse-cirru-edn (fs/readFileSync "\"release.edn" "\"utf8")
-                    fs/writeFileSync "\"release.edn" $ str
-                      format-cirru-edn $ assoc pkg :version target-version
-                      , &newline
-                  if (or has-npm-config? has-clj-config?)
+                  if has-npm-config?
                     run-command! (<< "\"git add . && git commit -m \"release ~{tag-version}\" && git tag ~{tag-version} && git push origin ~{main-branch} ~{tag-version} && echo ~{web-url}") d! $ {}
                       :on-finish $ fn ()
                     run-command! (<< "\"git tag ~{tag-version} && git push origin ~{tag-version} && echo ~{web-url}") d! $ {}
@@ -866,8 +823,6 @@
           defn new-branch! (branch-name d!)
             run-command! (str "\"git checkout -b " branch-name) d! $ {}
               :on-finish $ fn () (d! :effect/read-branches branch-name)
-        |pick-prs! $ quote
-          defn pick-prs! (prs upstream d!) "\"TODO"
         |pull-current! $ quote
           defn pull-current! (d!)
             run-command! "\"git pull" d! $ {}
@@ -981,14 +936,13 @@
             run-command! (str "\"git checkout " branch-name) d! $ {}
               :on-finish $ fn () (d! :effect/read-branches branch-name)
       :ns $ quote
-        ns app.manager $ :require ([] "\"child_process" :as cp) ([] "\"fs" :as fs)
-          [] cumulo-util.core :refer $ [] id! unix-time!
-          [] app.util :refer $ [] read-items
-          [] app.util.github :refer $ [] get-commits! github-api! get-commands-chan!
-          [] app.util :refer $ [] grab-upstream
-          [] "\"chalk" :as chalk
-          [] app.env :refer $ [] shell-env
-          [] app.util.string :refer $ [] default-branch?
+        ns app.manager $ :require ("\"child_process" :as cp) ("\"fs" :as fs)
+          cumulo-util.core :refer $ id! unix-time!
+          app.util :refer $ read-items
+          app.util :refer $ grab-upstream
+          "\"chalk" :as chalk
+          app.env :refer $ shell-env
+          app.util.string :refer $ default-branch?
           app.util :refer $ pos?
     |app.schema $ {}
       :defs $ {}
@@ -1039,16 +993,17 @@
           def chalk $ new Chalk
         |check-version! $ quote
           defn check-version! () $ let
-              pkg $ .parse js/JSON
+              pkg $ js/JSON.parse
                 fs/readFileSync $ path/join
                   dirname $ fileURLToPath js/import.meta.url
                   , "\"../package.json"
               version $ .-version pkg
             ->
               latest-version $ .-name pkg
-              .then $ fn (npm-version)
+              .!then $ fn (npm-version)
                 if (= npm-version version) (println "\"Running latest version" version)
                   println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n")
+              .!catch $ fn (err) (js/console.error err)
         |dispatch! $ quote
           defn dispatch! (op op-data sid)
             let
@@ -1083,7 +1038,6 @@
                   (= op :effect/force-push) (manager/force-push! current d!)
                   (= op :effect/remove-branch) (manager/remove-branch! op-data d!)
                   (= op :effect/commit) (manager/commit! current op-data d!)
-                  (= op :effect/pick-prs) (manager/pick-prs! op-data upstream d!)
                   (= op :effect/add-tag) (manager/add-tag! op-data upstream host-kind main-branch d!)
                   (= op :effect/show-version) (manager/show-version op-data upstream d!)
                   (= op :effect/kill-process) (manager/kill-process! op-data d!)
@@ -1487,18 +1441,10 @@
                 {}
                   :upstream $ -> url (.trim) (.split "\":") last (.replace "\".git" "\"")
                   :host-kind :github
-              (.starts-with? url "\"ssh://")
-                {}
-                  :upstream $ -> url .trim (.split "\"://") last (.!replace host-pattern "\"") (.slice 1) (.replace "\".git" "\"")
-                  :host-kind $ do "\"TODO, currently only Gitea" :gitea
               (.starts-with? url "\"https://")
                 {}
                   :upstream $ -> url .trim (.split "\":") last (.!replace "\"//github.com/" "\"") (.!replace "\".git" "\"")
-                  :host-kind $ cond
-                      .includes? url $ :gitea-domain shell-env
-                      , :gitea
-                    (.includes? url "\"github.com") :github
-                    true $ do (println "\"Unknown host kind:" url) :unknown
+                  :host-kind $ if (.includes? url "\"github.com") :github :unknown
               true $ raise (str "\"Invalid url:" url)
         |host-pattern $ quote
           def host-pattern $ new js/RegExp "\"^[\\w\\d\\@\\:\\.]+"
@@ -1510,187 +1456,6 @@
       :ns $ quote
         ns app.util $ :require ([] clojure.string :as string)
           [] app.env :refer $ [] shell-env
-    |app.util.github $ {}
-      :defs $ {}
-        |collect-all-commits-chan! $ quote
-          defn collect-all-commits-chan! (pr-ids upstream d! github?)
-            go-loop
-              [] acc ([]) issue-ids pr-ids
-              if-not (empty? issue-ids)
-                let
-                    issue-id $ first issue-ids
-                    commits $ <!
-                      if github?
-                        get-commits! issue-id upstream $ fn (error) (log-error! error d!)
-                        get-gitea-commits! issue-id upstream $ fn (error) (log-error! error d!)
-                    next-acc $ conj acc
-                      {} (:id issue-id) (:commits commits)
-                  recur next-acc $ rest issue-ids
-                , acc
-        |collect-gitea-commits-chan $ quote
-          defn collect-gitea-commits-chan (upstream head-sha base-sha on-error)
-            go-loop
-              [] acc ([]) current-sha head-sha size 0
-              let
-                  result $ <!
-                    gitea-api! (<< "\"repos/~{upstream}/git/commits/~{current-sha}") ({}) on-error
-                  next-acc $ conj acc
-                    {}
-                      :commit $ {}
-                        :message $ -> result :commit :message
-                      :date $ -> result :commit :author :date
-                      :sha current-sha
-                  parent-sha $ get-in result ([] :parents 0 :sha)
-                ; println $ pr-str "\"COMMIT DATA" parent-sha base-sha result
-                cond
-                    nil? parent-sha
-                    do (println "\"parent sha is nil, gets nothing") (on-error "\"parent sha is nil") nil
-                  (> size 10)
-                    do (println "\"Loop not stopped..." parent-sha)
-                      println $ pr-str next-acc
-                      on-error "\"loop size too large, nothing to return, might be in wrong repo?"
-                      , nil
-                  (= base-sha parent-sha) next-acc
-                  :else $ recur next-acc parent-sha (inc size)
-        |detect-github? $ quote
-          defn detect-github? () $ let
-              remote-url $ .toString (cp/execSync "\"git ls-remote --get-url origin")
-            .includes? remote-url "\"github.com"
-        |format-pick-commands $ quote
-          defn format-pick-commands (commits-data)
-            ->> commits-data
-              map $ fn (piece)
-                let
-                    pr-id $ :id piece
-                    commits $ map :sha (:commits piece)
-                    commands $ ->> commits
-                      map $ fn (commit) (<< "\"git cherry-pick ~{commit}")
-                      string/join \newline
-                  ; println "\"commits" $ :commits piece
-                  << "\"# pick ~{pr-id}\n\n~{commands}"
-              string/join $ str \newline \newline
-        |format-pr-changes $ quote
-          defn format-pr-changes (commits-data)
-            ->> commits-data
-              map $ fn (piece)
-                let
-                    pr-id $ :id piece
-                    commits $ :commits piece
-                    logs $ ->> commits
-                      map $ fn (x)
-                        get-in x $ [] :commit :message
-                    changes $ ->> logs
-                      map $ fn (log) (str "\"- " log)
-                      string/join \newline
-                  << "\"#~{pr-id}\n\n~{changes}\n"
-              string/join $ str \newline \newline
-        |get-commands-chan! $ quote
-          defn get-commands-chan! (pr-ids upstream d!) "\"TODO"
-        |get-commits! $ quote
-          defn get-commits! (issue-id upstream on-error)
-            let
-                <result $ chan
-                <commits $ github-api! (<< "\"https://api.github.com/repos/~{upstream}/pulls/~{issue-id}/commits") ({}) on-error
-              go $ let
-                  commits $ <! <commits
-                ; println $ pr-str commits
-                >! <result $ ->> commits
-                  sort-by $ fn (x)
-                    ; println "\"date" $ .valueOf
-                      dayjs $ get-in x ([] :commit :author :date)
-                    .valueOf $ dayjs
-                      get-in x $ [] :commit :author :date
-                  , vec
-              , <result
-        |get-gitea-commits! $ quote
-          defn get-gitea-commits! (issue-id upstream on-error)
-            let
-                <pr-info $ gitea-api! (<< "\"/repos/~{upstream}/pulls/~{issue-id}") ({}) on-error
-              go $ let
-                  pr-info $ <! <pr-info
-                  head-sha $ -> pr-info :head :sha
-                  base-sha $ -> pr-info :merge_base
-                  commits $ <! (collect-gitea-commits-chan upstream head-sha base-sha on-error)
-                ->> commits
-                  sort-by $ fn (x)
-                    ; println "\"date" $ :date x
-                    .valueOf $ dayjs (:date x)
-                  , vec
-        |get-release-branch! $ quote
-          defn get-release-branch! () $ ->
-            read-items $ .!toString (cp/execSync "\"git fetch && git branch -r --format=\"%(refname:lstrip=3)\"")
-            filter $ fn (x) (.includes? x "\"release-2020W")
-            .sort &compare
-            , last
-        |gitea-api! $ quote
-          defn gitea-api! (url params on-error)
-            let
-                gitea-token $ :gitea-token shell-env
-                gitea-host $ :gitea-host shell-env
-                headers $ {}
-                  :Authorization $ str "\"token " gitea-token
-                  :Accept "\"application/json"
-              when (nil? gitea-token) (println "\"Failure: unknown GITEA_TOKEN")
-              when (nil? gitea-host) (println "\"Failure: unknown GITEA_HOST")
-              go $ try
-                let
-                    response $ <p!
-                      axios $ clj->js
-                        {} (:method "\"GET") (:baseURL gitea-host) (:url url) (:headers headers) (:params params)
-                  js->clj (.-data response) :keywordize-keys true
-                catch js/Error error
-                  println $ chalk/red
-                    j/get-in error $ [] :response :status
-                    j/get-in error $ [] :response :statusText
-                  println $ chalk/red "\"Failed to perform request to" url
-                  println $ chalk/red "\"Headers:" (pr-str headers)
-                  println $ chalk/red "\"Params:" (pr-str params)
-                  on-error $ str "\"API failed. " error
-        |github-api! $ quote
-          defn github-api! (url params on-error)
-            let
-                <result $ chan
-                github-token $ aget js/process.env "\"GITHUB_TOKEN"
-                headers $ {}
-                  :Authorization $ str "\"token " github-token
-                  :Accept "\"application/json"
-              when (nil? github-token) (println "\"Failure: unknown GITHUB_TOKEN")
-              ->
-                axios $ clj->js
-                  {} (:method "\"GET") (:url url) (:headers headers) (:params params)
-                .then $ fn (response)
-                  put! <result $ js->clj (.-data response) :keywordize-keys true
-                .catch $ fn (error)
-                  println $ chalk/red
-                    j/get-in error $ [] :response :status
-                    j/get-in error $ [] :response :statusText
-                  println $ chalk/red "\"Failed to perform request to" url
-                  println $ chalk/red "\"Headers:" (pr-str headers)
-                  println $ chalk/red "\"Params:" (pr-str params)
-                  on-error $ str "\"API failed. " error
-              , <result
-        |log-error! $ quote
-          defn log-error! (message d!)
-            d! :process/log $ {}
-              :id $ id!
-              :time $ unix-time!
-              :text message
-              :kind :error
-      :ns $ quote
-        ns app.util.github
-          :require ([] "\"axios" :as axios)
-            [] cljs.core.async :refer $ [] chan >! <! put! close! go go-loop
-            [] cljs.core.async.interop :refer $ [] <p!
-            [] "\"dayjs" :as dayjs
-            [] "\"child_process" :as cp
-            [] clojure.string :as string
-            [] cumulo-util.core :refer $ [] id! unix-time!
-            [] app.util :refer $ [] read-items
-            [] "\"chalk" :as chalk
-            [] "\"fs" :as fs
-            [] applied-science.js-interop :as j
-            [] app.env :refer $ [] shell-env
-          :require-macros $ [] clojure.core.strint :refer ([] <<)
     |app.util.string $ {}
       :defs $ {}
         |default-branch? $ quote
