@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v1
 
@@ -19,7 +19,7 @@ jobs:
     - name: add cr
       run: |
         mkdir -p $GITHUB_WORKSPACE/bin
-        wget -O $GITHUB_WORKSPACE/bin/cr https://github.com/calcit-lang/calcit/releases/download/0.6.9/cr
+        wget -O $GITHUB_WORKSPACE/bin/cr https://github.com/calcit-lang/calcit/releases/download/0.6.16/cr
         chmod +x $GITHUB_WORKSPACE/bin/cr
         echo "::add-path::$GITHUB_WORKSPACE/bin"
 
@@ -58,18 +58,3 @@ jobs:
 
     - name: Display status from deploy
       run: echo "${{ steps.deploy.outputs.status }}"
-
-    # - name: Upload server script
-    #   id: deploy-server
-    #   uses: Pendect/action-rsyncer@v1.1.0
-    #   env:
-    #     DEPLOY_KEY: ${{secrets.rsync_private_key}}
-    #   with:
-    #     flags: '-avzr --progress'
-    #     options: ''
-    #     ssh_options: ''
-    #     src: 'dist-server/*'
-    #     dest: 'rsync-user@tiye.me:/servers/rebase-hell/'
-
-    # - name: Display status from deploy
-    #   run: echo "${{ steps.deploy-server.outputs.status }}"

@@ -7,13 +7,13 @@ on:
 
 jobs:
   publish-npm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
 
     - uses: actions/setup-node@v2
       with:
-        node-version: 14
+        node-version: 16
         registry-url: https://registry.npmjs.org/
 
     - name: ACTIONS_ALLOW_UNSECURE_COMMANDS
@@ -23,7 +23,7 @@ jobs:
     - name: add cr
       run: |
         mkdir -p $GITHUB_WORKSPACE/bin
-        wget -O $GITHUB_WORKSPACE/bin/cr https://github.com/calcit-lang/calcit/releases/download/0.6.9/cr
+        wget -O $GITHUB_WORKSPACE/bin/cr https://github.com/calcit-lang/calcit/releases/download/0.6.16/cr
         chmod +x $GITHUB_WORKSPACE/bin/cr
         echo "::add-path::$GITHUB_WORKSPACE/bin"
 
