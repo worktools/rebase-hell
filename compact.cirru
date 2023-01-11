@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.17)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.18)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -431,6 +431,7 @@
                     render-button "\"Push" false $ fn (e d!) (d! :effect/push-current nil)
                     render-button "\"Pull" false $ fn (e d!) (d! :effect/pull-current nil)
                     render-button "\"Finish" false $ fn (e d!) (d! :effect/finish-branch nil)
+                    render-button "\"RmRemote" false $ fn (e d!) (d! :effect/rm-remote nil)
                   comp-title "\"Other"
                   div ({})
                     comp-new-branch (>> states :branch) (:code repo)
@@ -861,6 +862,12 @@
           defn remove-branch! (branch d!)
             run-command! (str "\"git branch -d " branch) d! $ {}
               :on-finish $ fn () (d! :effect/read-branches nil)
+        |remove-remote! $ quote
+          defn remove-remote! (current d!)
+            cond
+                default-branch? current
+                d! :session/add-message $ {} (:text "\"Can't remove a main branch!")
+              true $ run-command! (str "\"git push origin :" current) d! ({})
         |run-command! $ quote
           defn run-command! (command d! options)
             let
@@ -1031,6 +1038,7 @@
                   (= op :effect/pull-current) (manager/pull-current! d!)
                   (= op :effect/push-current) (manager/push-current! current d!)
                   (= op :effect/finish-branch) (manager/finish-current! current main-branch d!)
+                  (= op :effect/rm-remote) (manager/remove-remote! current d!)
                   (= op :effect/rebase-master) (manager/rebase-master! main-branch d!)
                   (= op :effect/status) (manager/display-status! d!)
                   (= op :effect/stash) (manager/run-stash! d!)
