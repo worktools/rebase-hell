@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.18)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.19)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -97,15 +97,15 @@
               do $ println "\"Found no storage."
       :ns $ quote
         ns app.client $ :require
-          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
-          [] respo.cursor :refer $ [] update-states
-          [] app.comp.container :refer $ [] comp-container
-          [] app.schema :as schema
-          [] app.config :as config
-          [] ws-edn.client :refer $ [] ws-connect! ws-send!
-          [] recollect.patch :refer $ [] patch-twig
-          [] cumulo-util.core :refer $ [] on-page-touch
-          [] "\"url-parse" :default url-parse
+          respo.core :refer $ render! clear-cache! realize-ssr!
+          respo.cursor :refer $ update-states
+          app.comp.container :refer $ comp-container
+          app.schema :as schema
+          app.config :as config
+          ws-edn.client :refer $ ws-connect! ws-send!
+          recollect.patch :refer $ patch-twig
+          cumulo-util.core :refer $ on-page-touch
+          "\"url-parse" :default url-parse
           "\"bottom-tip" :default hud!
           "\"./calcit.build-errors" :default client-errors
           "\"../js-out/calcit.build-errors" :default server-errors
@@ -595,13 +595,13 @@
                 format-cirru-edn $ [] username password
       :ns $ quote
         ns app.comp.login $ :require
-          [] respo.core :refer $ [] defcomp <> div input button span
-          [] respo.comp.space :refer $ [] =<
-          [] respo.comp.inspect :refer $ [] comp-inspect
-          [] respo-ui.core :as ui
-          [] app.schema :as schema
-          [] app.style :as style
-          [] app.config :as config
+          respo.core :refer $ defcomp <> div input button span
+          respo.comp.space :refer $ =<
+          respo.comp.inspect :refer $ comp-inspect
+          respo-ui.core :as ui
+          app.schema :as schema
+          app.style :as style
+          app.config :as config
     |app.comp.navigation $ {}
       :defs $ {}
         |comp-navigation $ quote
@@ -735,8 +735,6 @@
       :ns $ quote (ns app.config)
     |app.env $ {}
       :defs $ {}
-        |chalk $ quote
-          def chalk $ new Chalk
         |run-mode $ quote
           def run-mode $ if
             = (aget js/process.argv 2) "\"switch"
@@ -750,8 +748,7 @@
                   println $ .!red chalk "\"GITHUB_TOKEN not found in shell"
                 , token
       :ns $ quote
-        ns app.env $ :require ([] clojure.string :as string)
-          [] "\"chalk" :refer $ Chalk
+        ns app.env $ :require ("\"chalk" :default chalk)
     |app.manager $ {}
       :defs $ {}
         |<< $ quote
@@ -818,7 +815,7 @@
             grab-upstream remote-url
         |kill-process! $ quote
           defn kill-process! (pid d!)
-            println $ chalk/red "\"kill" pid
+            println $ .!red chalk "\"kill" pid
             js/process.kill pid
         |new-branch! $ quote
           defn new-branch! (branch-name d!)
@@ -947,7 +944,7 @@
           cumulo-util.core :refer $ id! unix-time!
           app.util :refer $ read-items
           app.util :refer $ grab-upstream
-          "\"chalk" :as chalk
+          "\"chalk" :default chalk
           app.env :refer $ shell-env
           app.util.string :refer $ default-branch?
           app.util :refer $ pos?
@@ -996,8 +993,6 @@
         |*reel $ quote
           defatom *reel $ merge reel-schema
             {} (:base @*initial-db) (:db @*initial-db)
-        |chalk $ quote
-          def chalk $ new Chalk
         |check-version! $ quote
           defn check-version! () $ let
               pkg $ js/JSON.parse
@@ -1177,28 +1172,26 @@
             dirname $ fileURLToPath js/import.meta.url
             , "\"working-directory.text"
       :ns $ quote
-        ns app.server $ :require ([] app.schema :as schema)
-          [] app.updater :refer $ [] updater
-          [] cljs.reader :refer $ [] read-string
-          [] cumulo-reel.core :refer $ [] reel-reducer refresh-reel reel-schema
-          [] "\"fs" :as fs
-          [] "\"path" :as path
-          [] "\"util" :as util
-          [] "\"chalk" :refer $ Chalk
-          [] "\"latest-version" :default latest-version
-          [] "\"url-parse" :default url-parse
-          [] "\"child_process" :as cp
-          [] app.config :as config
-          [] cumulo-util.file :refer $ [] write-mildly! get-backup-path! merge-local-edn!
-          [] cumulo-util.core :refer $ [] id! repeat! unix-time! delay!
-          [] app.twig.container :refer $ [] twig-container
-          [] recollect.diff :refer $ [] diff-twig
-          [] recollect.twig :refer $ [] new-twig-loop! clear-twig-caches!
-          [] ws-edn.server :refer $ [] wss-serve! wss-send! wss-each!
-          [] app.manager :as manager
-          [] clojure.string :as string
-          [] app.env :refer $ [] run-mode
-          [] app.util.string :refer $ [] detects-main
+        ns app.server $ :require (app.schema :as schema)
+          app.updater :refer $ updater
+          cumulo-reel.core :refer $ reel-reducer refresh-reel reel-schema
+          "\"fs" :as fs
+          "\"path" :as path
+          "\"util" :as util
+          "\"chalk" :default chalk
+          "\"latest-version" :default latest-version
+          "\"url-parse" :default url-parse
+          "\"child_process" :as cp
+          app.config :as config
+          cumulo-util.file :refer $ write-mildly! get-backup-path! merge-local-edn!
+          cumulo-util.core :refer $ id! repeat! unix-time! delay!
+          app.twig.container :refer $ twig-container
+          recollect.diff :refer $ diff-twig
+          recollect.twig :refer $ new-twig-loop! clear-twig-caches!
+          ws-edn.server :refer $ wss-serve! wss-send! wss-each!
+          app.manager :as manager
+          app.env :refer $ run-mode
+          app.util.string :refer $ detects-main
           app.util :refer $ pos?
           "\"url" :refer $ fileURLToPath
           "\"path" :refer $ dirname
@@ -1267,10 +1260,10 @@
                   [] (:user-id session) :name
       :ns $ quote
         ns app.twig.container $ :require
-          [] app.twig.user :refer $ [] twig-user
-          [] "\"randomcolor" :as color
-          [] app.env :refer $ [] shell-env
-          [] memof.alias :refer $ [] memof-call
+          app.twig.user :refer $ twig-user
+          "\"randomcolor" :as color
+          app.env :refer $ shell-env
+          memof.alias :refer $ memof-call
     |app.twig.user $ {}
       :defs $ {}
         |twig-user $ quote
@@ -1305,8 +1298,8 @@
                   :session/drop-footprint session/drop-footprint
               f db op-data sid op-id op-time
       :ns $ quote
-        ns app.updater $ :require ([] app.updater.session :as session) ([] app.updater.user :as user) ([] app.updater.router :as router) ([] app.updater.repo :as repo) ([] app.updater.process :as process) ([] app.schema :as schema)
-          [] respo-message.updater :refer $ [] update-messages
+        ns app.updater $ :require (app.updater.session :as session) (app.updater.user :as user) (app.updater.router :as router) (app.updater.repo :as repo) (app.updater.process :as process) (app.schema :as schema)
+          respo-message.updater :refer $ update-messages
     |app.updater.process $ {}
       :defs $ {}
         |clear-logs $ quote
@@ -1333,8 +1326,7 @@
                 pid $ :pid op-data
                 command $ :command op-data
               assoc-in db ([] :process-status pid) command
-      :ns $ quote
-        ns app.updater.process $ :require ([] clojure.string :as string)
+      :ns $ quote (ns app.updater.process)
     |app.updater.repo $ {}
       :defs $ {}
         |set-code $ quote
@@ -1462,8 +1454,8 @@
           defn read-items (x)
             -> (or x "\"") (.trim) (.split &newline)
       :ns $ quote
-        ns app.util $ :require ([] clojure.string :as string)
-          [] app.env :refer $ [] shell-env
+        ns app.util $ :require
+          app.env :refer $ shell-env
     |app.util.string $ {}
       :defs $ {}
         |default-branch? $ quote
