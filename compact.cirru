@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.19)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.20)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -34,6 +34,7 @@
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
+            if config/dev? $ load-console-formatter!
             render-app!
             connect!
             add-watch *store :changes $ fn (s p) (render-app!)
@@ -621,8 +622,11 @@
                       d! :router/change $ {} (:name :home)
                   let
                       upstream $ :upstream repo
+                      address $ :address repo
+                    js/console.log repo
                     a $ {} (:class-name css-nav-title) (:inner-text upstream)
-                      :href $ case-default (:host-kind repo) (str "\"https://github.com/" upstream)
+                      :href $ case-default (:host-kind repo)
+                        if (.starts-with? address "\"git@") (replace-git-at-url address) (str "\"https://github.com/" upstream)
                         :github $ str "\"https://github.com/" upstream
                       :target "\"_blank"
                   =< 16 nil
@@ -659,6 +663,9 @@
               {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
                 :background-color $ hsl 0 0 98
                 :border-bottom $ str "|1px solid " (hsl 0 0 50 0.1)
+        |replace-git-at-url $ quote
+          defn replace-git-at-url (address)
+            -> address (.!replace "\"git@" "\"https://") (.replace "\".com:" "\".com/")
       :ns $ quote
         ns app.comp.navigation $ :require
           respo-ui.core :refer $ hsl
@@ -811,7 +818,8 @@
             run-command! (str "\"git push origin " branch "\" -f") d! $ {}
         |get-upstream! $ quote
           defn get-upstream! () $ let
-              remote-url $ .toString (cp/execSync "\"git ls-remote --get-url origin")
+              remote-url $ .trim
+                .!toString $ cp/execSync "\"git ls-remote --get-url origin"
             grab-upstream remote-url
         |kill-process! $ quote
           defn kill-process! (pid d!)
@@ -1087,7 +1095,7 @@
             ; js/process.on "\"SIGINT" on-exit!
             ; repeat! 600 $ "#()" persist-db!
             let
-                upstream $ manager/get-upstream!
+                upstream $ w-log (manager/get-upstream!)
               dispatch! :repo/set-upstream upstream "\"system"
               dispatch! :session/track-footprint
                 [] (js/process.cwd) (:upstream upstream)
@@ -1343,6 +1351,7 @@
             -> db
               assoc-in ([] :repo :upstream) (:upstream op-data)
               assoc-in ([] :repo :host-kind) (:host-kind op-data)
+              assoc-in ([] :repo :address) (:address op-data)
       :ns $ quote (ns app.updater.repo)
     |app.updater.router $ {}
       :defs $ {}
@@ -1438,11 +1447,11 @@
           defn grab-upstream (url)
             cond
                 .starts-with? url "\"git@"
-                {}
+                {} (:address url)
                   :upstream $ -> url (.trim) (.split "\":") last (.replace "\".git" "\"")
-                  :host-kind :github
+                  :host-kind $ if (.includes? url "\"github.com") :github :unknown
               (.starts-with? url "\"https://")
-                {}
+                {} (:address url)
                   :upstream $ -> url .trim (.split "\":") last (.!replace "\"//github.com/" "\"") (.!replace "\".git" "\"")
                   :host-kind $ if (.includes? url "\"github.com") :github :unknown
               true $ raise (str "\"Invalid url:" url)

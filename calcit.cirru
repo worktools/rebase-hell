@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.19)
+  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.20)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -212,6 +212,13 @@
                       |j $ {} (:at 1544874529605) (:by |B1y7Rc-Zz) (:id |VT1AFOCPy3) (:text |config/dev?) (:type :leaf)
                       |r $ {} (:at 1544874539526) (:by |B1y7Rc-Zz) (:id |tJW-De5LCf) (:text "|\"dev") (:type :leaf)
                       |v $ {} (:at 1544874537560) (:by |B1y7Rc-Zz) (:id |1o5SA2gNC) (:text "|\"release") (:type :leaf)
+              |v $ {} (:at 1676535965475) (:by |B1y7Rc-Zz) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1676535966626) (:by |B1y7Rc-Zz) (:text |if) (:type :leaf)
+                  |b $ {} (:at 1676535967978) (:by |B1y7Rc-Zz) (:text |config/dev?) (:type :leaf)
+                  |h $ {} (:at 1676535968501) (:by |B1y7Rc-Zz) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1676535972571) (:by |B1y7Rc-Zz) (:text |load-console-formatter!) (:type :leaf)
               |x $ {} (:at 1500541010211) (:by nil) (:id |HJdBX9IglRHW) (:type :expr)
                 :data $ {}
                   |T $ {} (:at 1500541010211) (:by |root) (:id |B1tBm9LgeCBZ) (:text |render-app!) (:type :leaf)
@@ -4446,6 +4453,17 @@
                                         :data $ {}
                                           |T $ {} (:at 1595389693924) (:by |B1y7Rc-Zz) (:id |tliMpBc9kK) (:text |:upstream) (:type :leaf)
                                           |j $ {} (:at 1595389694715) (:by |B1y7Rc-Zz) (:id |Jvb74b1UJ) (:text |repo) (:type :leaf)
+                                  |b $ {} (:at 1676535721164) (:by |B1y7Rc-Zz) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1676535729476) (:by |B1y7Rc-Zz) (:text |address) (:type :leaf)
+                                      |b $ {} (:at 1676535726198) (:by |B1y7Rc-Zz) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1676535728502) (:by |B1y7Rc-Zz) (:text |:address) (:type :leaf)
+                                          |b $ {} (:at 1676535726198) (:by |B1y7Rc-Zz) (:text |repo) (:type :leaf)
+                              |P $ {} (:at 1676535950545) (:by |B1y7Rc-Zz) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1676535954405) (:by |B1y7Rc-Zz) (:text |js/console.log) (:type :leaf)
+                                  |b $ {} (:at 1676535955743) (:by |B1y7Rc-Zz) (:text |repo) (:type :leaf)
                               |T $ {} (:at 1550031861601) (:by |root) (:id |Rd7XzmHM5) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1553422475441) (:by |B1y7Rc-Zz) (:id |Rd7XzmHM5leaf) (:text |a) (:type :leaf)
@@ -4470,11 +4488,23 @@
                                                 :data $ {}
                                                   |T $ {} (:at 1595389732569) (:by |B1y7Rc-Zz) (:id |YTonAtC34m) (:text |:host-kind) (:type :leaf)
                                                   |j $ {} (:at 1595389734156) (:by |B1y7Rc-Zz) (:id |00i7DneCD) (:text |repo) (:type :leaf)
-                                              |P $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:type :expr)
+                                              |P $ {} (:at 1676535842732) (:by |B1y7Rc-Zz) (:type :expr)
                                                 :data $ {}
-                                                  |T $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text |str) (:type :leaf)
-                                                  |j $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text "|\"https://github.com/") (:type :leaf)
-                                                  |r $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text |upstream) (:type :leaf)
+                                                  |D $ {} (:at 1676535843208) (:by |B1y7Rc-Zz) (:text |if) (:type :leaf)
+                                                  |L $ {} (:at 1676535855324) (:by |B1y7Rc-Zz) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1676535847049) (:by |B1y7Rc-Zz) (:text |.starts-with?) (:type :leaf)
+                                                      |b $ {} (:at 1676535850759) (:by |B1y7Rc-Zz) (:text |address) (:type :leaf)
+                                                      |h $ {} (:at 1676535852960) (:by |B1y7Rc-Zz) (:text "|\"git@") (:type :leaf)
+                                                  |P $ {} (:at 1676535856305) (:by |B1y7Rc-Zz) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1676535860574) (:by |B1y7Rc-Zz) (:text |replace-git-at-url) (:type :leaf)
+                                                      |b $ {} (:at 1676535862650) (:by |B1y7Rc-Zz) (:text |address) (:type :leaf)
+                                                  |T $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text |str) (:type :leaf)
+                                                      |j $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text "|\"https://github.com/") (:type :leaf)
+                                                      |r $ {} (:at 1630036093895) (:by |B1y7Rc-Zz) (:text |upstream) (:type :leaf)
                                               |T $ {} (:at 1595389735213) (:by |B1y7Rc-Zz) (:id |CcUlPoeho) (:type :expr)
                                                 :data $ {}
                                                   |D $ {} (:at 1595389736472) (:by |B1y7Rc-Zz) (:id |2_uz422_Pr) (:text |:github) (:type :leaf)
@@ -4723,6 +4753,27 @@
                                           |h $ {} (:at 1666797975944) (:by |B1y7Rc-Zz) (:text |0) (:type :leaf)
                                           |l $ {} (:at 1666797975944) (:by |B1y7Rc-Zz) (:text |50) (:type :leaf)
                                           |o $ {} (:at 1666797975944) (:by |B1y7Rc-Zz) (:text |0.1) (:type :leaf)
+          |replace-git-at-url $ {} (:at 1676535863416) (:by |B1y7Rc-Zz) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1676535863416) (:by |B1y7Rc-Zz) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1676535863416) (:by |B1y7Rc-Zz) (:text |replace-git-at-url) (:type :leaf)
+              |h $ {} (:at 1676535863416) (:by |B1y7Rc-Zz) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1676535863416) (:by |B1y7Rc-Zz) (:text |address) (:type :leaf)
+              |l $ {} (:at 1676535994796) (:by |B1y7Rc-Zz) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1676535999870) (:by |B1y7Rc-Zz) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1676536001433) (:by |B1y7Rc-Zz) (:text |address) (:type :leaf)
+                  |h $ {} (:at 1676536002093) (:by |B1y7Rc-Zz) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1676536003551) (:by |B1y7Rc-Zz) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1676536008006) (:by |B1y7Rc-Zz) (:text "|\"git@") (:type :leaf)
+                      |h $ {} (:at 1676536012352) (:by |B1y7Rc-Zz) (:text "|\"https://") (:type :leaf)
+                  |l $ {} (:at 1676536014696) (:by |B1y7Rc-Zz) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1676536016379) (:by |B1y7Rc-Zz) (:text |.replace) (:type :leaf)
+                      |b $ {} (:at 1676536020441) (:by |B1y7Rc-Zz) (:text "|\".com:") (:type :leaf)
+                      |h $ {} (:at 1676536026054) (:by |B1y7Rc-Zz) (:text "|\".com/") (:type :leaf)
         :ns $ {} (:at 1500541010211) (:by nil) (:id |BkUXGcUegABW) (:type :expr)
           :data $ {}
             |T $ {} (:at 1500541010211) (:by |root) (:id |S1DXG98elCSb) (:text |ns) (:type :leaf)
@@ -5703,13 +5754,16 @@
                       |T $ {} (:at 1547722979989) (:by |root) (:id |Q6nKUujFV) (:type :expr)
                         :data $ {}
                           |D $ {} (:at 1547722994270) (:by |root) (:id |_Pk7LueGMJ) (:text |remote-url) (:type :leaf)
-                          |T $ {} (:at 1547723375061) (:by |root) (:id |TucgtQ3bdF) (:type :expr)
+                          |T $ {} (:at 1676535636672) (:by |B1y7Rc-Zz) (:type :expr)
                             :data $ {}
-                              |D $ {} (:at 1547723376688) (:by |root) (:id |lnHlriRMQN) (:text |.toString) (:type :leaf)
-                              |T $ {} (:at 1547722957873) (:by |root) (:id |gFshu8ota) (:type :expr)
+                              |D $ {} (:at 1676535637575) (:by |B1y7Rc-Zz) (:text |.trim) (:type :leaf)
+                              |T $ {} (:at 1547723375061) (:by |root) (:id |TucgtQ3bdF) (:type :expr)
                                 :data $ {}
-                                  |T $ {} (:at 1547722973171) (:by |root) (:id |gFshu8otaleaf) (:text |cp/execSync) (:type :leaf)
-                                  |j $ {} (:at 1547722967147) (:by |root) (:id |7Ptb1zX1c) (:text "|\"git ls-remote --get-url origin") (:type :leaf)
+                                  |D $ {} (:at 1676535159201) (:by |B1y7Rc-Zz) (:id |lnHlriRMQN) (:text |.!toString) (:type :leaf)
+                                  |T $ {} (:at 1547722957873) (:by |root) (:id |gFshu8ota) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1547722973171) (:by |root) (:id |gFshu8otaleaf) (:text |cp/execSync) (:type :leaf)
+                                      |j $ {} (:at 1547722967147) (:by |root) (:id |7Ptb1zX1c) (:text "|\"git ls-remote --get-url origin") (:type :leaf)
                   |r $ {} (:at 1571205304869) (:by |B1y7Rc-Zz) (:id |RZzWEZYXy) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1571205307935) (:by |B1y7Rc-Zz) (:id |RZzWEZYXyleaf) (:text |grab-upstream) (:type :leaf)
@@ -7752,9 +7806,12 @@
                       |T $ {} (:at 1608185844194) (:by |B1y7Rc-Zz) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1608185847116) (:by |B1y7Rc-Zz) (:text |upstream) (:type :leaf)
-                          |j $ {} (:at 1608185847893) (:by |B1y7Rc-Zz) (:type :expr)
+                          |j $ {} (:at 1676535169631) (:by |B1y7Rc-Zz) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1608185849500) (:by |B1y7Rc-Zz) (:text |manager/get-upstream!) (:type :leaf)
+                              |D $ {} (:at 1676535172172) (:by |B1y7Rc-Zz) (:text |w-log) (:type :leaf)
+                              |T $ {} (:at 1608185847893) (:by |B1y7Rc-Zz) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1608185849500) (:by |B1y7Rc-Zz) (:text |manager/get-upstream!) (:type :leaf)
                   |T $ {} (:at 1550031521644) (:by |root) (:id |KFPDtsi7m) (:type :expr)
                     :data $ {}
                       |D $ {} (:at 1550031527816) (:by |root) (:id |7SPVOAFPv) (:text |dispatch!) (:type :leaf)
@@ -9396,6 +9453,18 @@
                         :data $ {}
                           |D $ {} (:at 1595388636666) (:by |B1y7Rc-Zz) (:id |Zf4woLArzO) (:text |:host-kind) (:type :leaf)
                           |T $ {} (:at 1550031554255) (:by |root) (:id |EPFHdKLDv8) (:text |op-data) (:type :leaf)
+                  |n $ {} (:at 1550031554255) (:by |root) (:id |Q9qM4zqwU_) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1550031554255) (:by |root) (:id |HqYeYHtXI0) (:text |assoc-in) (:type :leaf)
+                      |r $ {} (:at 1550031554255) (:by |root) (:id |tUWB0_ACSt) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1550031554255) (:by |root) (:id |oTDVUHvFxE) (:text |[]) (:type :leaf)
+                          |j $ {} (:at 1550031554255) (:by |root) (:id |3-jEAagoLh) (:text |:repo) (:type :leaf)
+                          |r $ {} (:at 1676535816600) (:by |B1y7Rc-Zz) (:id |gwe7cR4jFW) (:text |:address) (:type :leaf)
+                      |v $ {} (:at 1595388633621) (:by |B1y7Rc-Zz) (:id |8c4OVz9ujt) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1676535819140) (:by |B1y7Rc-Zz) (:text |:address) (:type :leaf)
+                          |T $ {} (:at 1550031554255) (:by |root) (:id |EPFHdKLDv8) (:text |op-data) (:type :leaf)
         :ns $ {} (:at 1545192701827) (:by |root) (:id |ul-cOQk-Qc) (:type :expr)
           :data $ {}
             |T $ {} (:at 1545192701827) (:by |root) (:id |4Sau7t1xJ7) (:text |ns) (:type :leaf)
@@ -10043,6 +10112,10 @@
                       |T $ {} (:at 1595388205627) (:by |B1y7Rc-Zz) (:id |NvD7ZgRz7G) (:type :expr)
                         :data $ {}
                           |D $ {} (:at 1595388208340) (:by |B1y7Rc-Zz) (:id |ZUHl8koJTt) (:text |{}) (:type :leaf)
+                          |L $ {} (:at 1676535597244) (:by |B1y7Rc-Zz) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1676535602472) (:by |B1y7Rc-Zz) (:text |:address) (:type :leaf)
+                              |b $ {} (:at 1676535603418) (:by |B1y7Rc-Zz) (:text |url) (:type :leaf)
                           |T $ {} (:at 1595388208998) (:by |B1y7Rc-Zz) (:id |jizKBD5_eg) (:type :expr)
                             :data $ {}
                               |D $ {} (:at 1595388213614) (:by |B1y7Rc-Zz) (:id |y9pvvxgLw) (:text |:upstream) (:type :leaf)
@@ -10066,7 +10139,16 @@
                           |j $ {} (:at 1595388214397) (:by |B1y7Rc-Zz) (:id |kzJKVSH4mU) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1595388217383) (:by |B1y7Rc-Zz) (:id |kzJKVSH4mUleaf) (:text |:host-kind) (:type :leaf)
-                              |j $ {} (:at 1595388219124) (:by |B1y7Rc-Zz) (:id |hH7kfx-2nf) (:text |:github) (:type :leaf)
+                              |j $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text |if) (:type :leaf)
+                                  |b $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text |.includes?) (:type :leaf)
+                                      |b $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text |url) (:type :leaf)
+                                      |h $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text "|\"github.com") (:type :leaf)
+                                  |h $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text |:github) (:type :leaf)
+                                  |l $ {} (:at 1676535925457) (:by |B1y7Rc-Zz) (:text |:unknown) (:type :leaf)
                   |j $ {} (:at 1571205325661) (:by |B1y7Rc-Zz) (:id |DsD0jpfBp) (:type :expr)
                     :data $ {}
                       |L $ {} (:at 1571205326542) (:by |B1y7Rc-Zz) (:id |osjnk5Flg) (:type :expr)
@@ -10077,6 +10159,10 @@
                       |T $ {} (:at 1595388281329) (:by |B1y7Rc-Zz) (:id |N-qppqFmKM) (:type :expr)
                         :data $ {}
                           |D $ {} (:at 1595388282185) (:by |B1y7Rc-Zz) (:id |61IndrN7r3) (:text |{}) (:type :leaf)
+                          |L $ {} (:at 1676535605668) (:by |B1y7Rc-Zz) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1676535605668) (:by |B1y7Rc-Zz) (:text |:address) (:type :leaf)
+                              |b $ {} (:at 1676535605668) (:by |B1y7Rc-Zz) (:text |url) (:type :leaf)
                           |T $ {} (:at 1595388282569) (:by |B1y7Rc-Zz) (:id |s1OaMjNQ2H) (:type :expr)
                             :data $ {}
                               |D $ {} (:at 1595388284651) (:by |B1y7Rc-Zz) (:id |tHVMaoswn3) (:text |:upstream) (:type :leaf)
