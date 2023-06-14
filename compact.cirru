@@ -283,7 +283,7 @@
                     :style $ {} (:width 300)
                     :items remote-branches
                     :on-result $ fn (result d!)
-                      d! :effect/switch-remote-branch $ last (.split result "\"/")
+                      d! :effect/switch-remote-branch $ -> result (:value) (.split "\"/") (rest) (.join-str "\"/")
               div
                 {} $ :style
                   merge ui/row ui/flex $ {} (:padding 16) (:overflow :auto)
@@ -299,13 +299,20 @@
                         -> (:branches repo) (.to-list) (sort &compare)
                           map $ fn (branch)
                             [] branch $ comp-branch branch (:current repo) false
-                      =< nil 16
+                      =< nil 4
+                      div
+                        {}
+                          :style $ {} (:padding-left 4)
+                          :on-click $ fn (e d!) (.show menu-branch d!)
+                        <> "\"Remote branches" css-remote
+                      =< nil 12
                       div $ {} (:class-name css/expand)
                       comp-footprints footprints $ :upstream repo
                     comp-thin-divider
                     comp-operations (>> states :operations) repo
                 comp-thin-divider
                 comp-logs logs status
+                .render menu-branch
         |comp-log-chunk $ quote
           defcomp comp-log-chunk (log)
             let
@@ -511,6 +518,13 @@
               :color $ hsl 0 0 40
               :white-space :pre-line
               :margin-bottom 4
+        |css-remote $ quote
+          defstyle css-remote $ {}
+            "\"&" $ {} (:font-family ui/font-fancy) (:cursor :pointer) (:font-size 12)
+              :color $ hsl 0 0 60 0.4
+              :transition-duration "\"200ms"
+            "\"&:hover" $ {}
+              :color $ hsl 0 0 60 0.8
         |css-section-title $ quote
           defstyle css-section-title $ {}
             "\"$0" $ {} (:font-family ui/font-fancy) (:margin "\"8px 0 4px 0")
