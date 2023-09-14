@@ -430,7 +430,7 @@
                       [] id $ comp-log-chunk log
         |comp-new-branch $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defcomp comp-new-branch (states code)
+            defcomp comp-new-branch (states)
               let
                   branch-plugin $ use-prompt (>> states :new-branch)
                     {} (:initial "\"") (:text "\"Branch name")
@@ -463,7 +463,7 @@
                     comp-title "\"Others"
                     div
                       {} $ :style ui/row
-                      comp-new-branch (>> states :branch) (:code repo)
+                      comp-new-branch $ >> states :branch
                   div ({}) (comp-title "\"Basic")
                     div ({})
                       render-button "\"Push" false $ fn (e d!) (d! :effect/push-current nil)
@@ -472,7 +472,7 @@
                       render-button "\"RmRemote" false $ fn (e d!) (d! :effect/rm-remote nil)
                     comp-title "\"Other"
                     div ({})
-                      comp-new-branch (>> states :branch) (:code repo)
+                      comp-new-branch $ >> states :branch
                       comp-commit (>> states :commit) (:current repo)
                     comp-title "\"Forced"
                     div ({})
@@ -675,11 +675,11 @@
           :code $ quote
             defcomp comp-navigation (states logged-in? count-members repo)
               let
-                  code $ :code repo
-                  code-plugin $ use-prompt (>> states :code)
-                    {} (:text "\"Project issue code:")
-                      :input-style $ {} (:font-family ui/font-code)
-                      :initial code
+                  upstream $ :upstream repo
+                  address $ :address (w-js-log repo)
+                  git-url $ case-default (:host-kind repo)
+                    if (.starts-with? address "\"git@") (replace-git-at-url address) (str "\"https://github.com/" upstream)
+                    :github $ str "\"https://github.com/" upstream
                 div
                   {} $ :class-name css-navigation
                   div ({})
@@ -687,21 +687,13 @@
                       :inner-text $ :title config/site
                       :on-click $ fn (e d!)
                         d! :router/change $ {} (:name :home)
-                    let
-                        upstream $ :upstream repo
-                        address $ :address repo
-                      js/console.log repo
-                      a $ {} (:class-name css-nav-title) (:inner-text upstream)
-                        :href $ case-default (:host-kind repo)
-                          if (.starts-with? address "\"git@") (replace-git-at-url address) (str "\"https://github.com/" upstream)
-                          :github $ str "\"https://github.com/" upstream
-                        :target "\"_blank"
+                    a $ {} (:class-name css-nav-title) (:inner-text upstream) (:href git-url) (:target "\"_blank")
                     =< 16 nil
-                    span $ {} (:class-name css-nav-label)
-                      :inner-text $ or code "\"ISSUE"
-                      :on-click $ fn (e d!)
-                        .show code-plugin d! $ fn (result)
-                          when-not (.blank? result) (d! :repo/set-code result)
+                    a $ {} (:inner-text "\"Fx⤴")
+                      :style $ {} (:font-size 13)
+                      :class-name $ str-spaced css/font-fancy css-nav-title
+                      :target "\"_blank"
+                      :href $ str "\"https://fx.nioint.com/?jumpGitRepo=" git-url
                   ; div
                     {}
                       :style $ {} (:cursor |pointer)
@@ -710,7 +702,6 @@
                     <> $ if logged-in? |Me |Guest
                     =< 8 nil
                     <> count-members
-                  .render code-plugin
         |css-nav-label $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-nav-label $ {}
@@ -1083,7 +1074,6 @@
                 :branches $ #{}
                 :current "\"main"
                 :remote-branches $ #{}
-                :code "\"ISSUE"
               :logs $ do log ({})
               :process-status $ {}
               :footprints $ {}
@@ -1452,7 +1442,6 @@
                 (:repo/set-branches data) (repo/set-repo db data sid op-id op-time)
                 (:repo/set-current data) (repo/set-current db data sid op-id op-time)
                 (:repo/set-upstream data) (repo/set-upstream db data sid op-id op-time)
-                (:repo/set-code data) (repo/set-code db data sid op-id op-time)
                 (:process/start data) (process/start db data sid op-id op-time)
                 (:process/finish data) (process/finish db data sid op-id op-time)
                 (:process/log data) (process/log db data sid op-id op-time)
@@ -1498,10 +1487,6 @@
         :code $ quote (ns app.updater.process)
     |app.updater.repo $ %{} :FileEntry
       :defs $ {}
-        |set-code $ %{} :CodeEntry (:doc |)
-          :code $ quote
-            defn set-code (db op-data sid op-id op-time)
-              assoc-in db ([] :repo :code) op-data
         |set-current $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn set-current (db op-data sid op-id op-time)
