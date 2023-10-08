@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.23)
+  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.24)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -27,7 +27,7 @@
             :data $ {}
               |T $ %{} :Leaf (:at 1630036055034) (:by |B1y7Rc-Zz) (:text |defatom)
               |j $ %{} :Leaf (:at 1500541010211) (:by |root) (:text |*store)
-              |r $ %{} :Leaf (:at 1500541010211) (:by |root) (:text |nil)
+              |r $ %{} :Leaf (:at 1696744716428) (:by |B1y7Rc-Zz) (:text |nil)
         |connect! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1630035911607) (:by |B1y7Rc-Zz)
             :data $ {}
@@ -7315,7 +7315,7 @@
                                               |k $ %{} :Leaf (:at 1630039407189) (:by |B1y7Rc-Zz) (:text |npm-version)
                                               |l $ %{} :Leaf (:at 1630039403415) (:by |B1y7Rc-Zz) (:text "|\" available, current one is ")
                                               |n $ %{} :Leaf (:at 1630039398156) (:by |B1y7Rc-Zz) (:text |version)
-                                              |r $ %{} :Leaf (:at 1630039390793) (:by |B1y7Rc-Zz) (:text "|\" . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n")
+                                              |r $ %{} :Leaf (:at 1696745194034) (:by |B1y7Rc-Zz) (:text "|\" . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n")
                       |l $ %{} :Expr (:at 1670407938431) (:by |B1y7Rc-Zz)
                         :data $ {}
                           |T $ %{} :Leaf (:at 1670407953923) (:by |B1y7Rc-Zz) (:text |.!catch)
@@ -9023,6 +9023,7 @@
                                       |j $ %{} :Leaf (:at 1523120232500) (:by |root) (:text |db)
                           |yT $ %{} :Expr (:at 1524279105545) (:by |root)
                             :data $ {}
+                              |D $ %{} :Leaf (:at 1696745048946) (:by |B1y7Rc-Zz) (:text |;)
                               |T $ %{} :Leaf (:at 1533834715393) (:by |B1y7Rc-Zz) (:text |:color)
                               |j $ %{} :Expr (:at 1524279111422) (:by |root)
                                 :data $ {}

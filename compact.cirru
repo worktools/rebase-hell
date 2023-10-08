@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.23)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.24)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -1133,7 +1133,7 @@
                 latest-version $ .-name pkg
                 .!then $ fn (npm-version)
                   if (= npm-version version) (println "\"Running latest version" version)
-                    println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n")
+                    println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n")
                 .!catch $ fn (err) (js/console.error err)
         |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -1397,7 +1397,7 @@
                         :home $ :pages db
                         :profile $ memof-call twig-members (:sessions db) (:users db)
                   :count $ count (:sessions db)
-                  :color $ color/randomColor
+                  ; :color $ color/randomColor
                   :repo $ :repo db
                   :logs $ :logs db
                   :shell-env shell-env
