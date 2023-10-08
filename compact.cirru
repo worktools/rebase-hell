@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.22)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.23)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -57,7 +57,7 @@
                     set! js/document.title $ if (nil? new-store) "\"(offline)" new-upstream
               on-page-touch $ \ if (nil? @*store) (connect!)
                 dispatch! $ :: :effect/read-branches
-              .addEventListener js/window "\"keydown" $ fn (event) (on-keydown event)
+              js/window.addEventListener "\"keydown" $ fn (event) (on-keydown event)
               println "\"App started!"
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -65,14 +65,13 @@
         |notify-user! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn notify-user! (new-upstream)
-              .requestPermission js/Notification $ fn (perm)
+              js/Notification.requestPermission $ fn (perm)
                 when (= perm "\"granted")
                   let
-                      notify $ js/Notification. (str "\"Switched to " new-upstream)
-                    set! notify.onclick $ fn ()
-                      js/setTimeout
+                      notify $ new js/Notification (str "\"Switched to " new-upstream)
+                    set! (.-onclick notify)
+                      fn () $ flipped js/setTimeout 0
                         fn () $ .close notify
-                        , 0
         |on-keydown $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn on-keydown (event)
@@ -657,7 +656,7 @@
             defn on-submit (username password signup?)
               fn (e dispatch!)
                 dispatch! (if signup? :user/sign-up :user/log-in) ([] username password)
-                .setItem js/localStorage (:storage-key config/site)
+                js/localStorage.setItem (:storage-key config/site)
                   format-cirru-edn $ [] username password
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
@@ -774,7 +773,7 @@
                     {}
                       :style $ merge ui/button
                       :on-click $ fn (e d! m!)
-                        .replace js/location $ str js/location.origin "\"?time=" (.now js/Date)
+                        .replace js/location $ str js/location.origin "\"?time=" (js/Date.now)
                     <> "\"Refresh"
                   =< 8 nil
                   button
@@ -782,7 +781,7 @@
                       :style $ merge ui/button
                         {} (:color :red) (:border-color :red)
                       :on-click $ fn (e dispatch!) (dispatch! :user/log-out nil)
-                        .removeItem js/localStorage $ :storage-key config/site
+                        js/localStorage.removeItem $ :storage-key config/site
                     <> "\"Log out"
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
@@ -1235,7 +1234,7 @@
                 port $ :port config/site
                 previous-port $ ->
                   cp/execSync $ str "\"lsof -ti tcp:" port "\" -sTCP:LISTEN"
-                  , .toString .trim
+                  , .!toString .!trim
                 git-path $ find-git-path (js/process.cwd)
               when (nil? git-path)
                 println $ .!red chalk "\"Missing .git/ folder, not a valid path!"
