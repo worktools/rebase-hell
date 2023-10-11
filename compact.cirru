@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.21)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.24)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -57,22 +57,21 @@
                     set! js/document.title $ if (nil? new-store) "\"(offline)" new-upstream
               on-page-touch $ \ if (nil? @*store) (connect!)
                 dispatch! $ :: :effect/read-branches
-              .addEventListener js/window "\"keydown" $ fn (event) (on-keydown event)
+              js/window.addEventListener "\"keydown" $ fn (event) (on-keydown event)
               println "\"App started!"
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def mount-target $ .querySelector js/document |.app
+            def mount-target $ js/document.querySelector |.app
         |notify-user! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn notify-user! (new-upstream)
-              .requestPermission js/Notification $ fn (perm)
+              js/Notification.requestPermission $ fn (perm)
                 when (= perm "\"granted")
                   let
-                      notify $ js/Notification. (str "\"Switched to " new-upstream)
-                    set! notify.onclick $ fn ()
-                      js/setTimeout
+                      notify $ new js/Notification (str "\"Switched to " new-upstream)
+                    set! (.-onclick notify)
+                      fn () $ flipped js/setTimeout 0
                         fn () $ .close notify
-                        , 0
         |on-keydown $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn on-keydown (event)
@@ -657,7 +656,7 @@
             defn on-submit (username password signup?)
               fn (e dispatch!)
                 dispatch! (if signup? :user/sign-up :user/log-in) ([] username password)
-                .setItem js/localStorage (:storage-key config/site)
+                js/localStorage.setItem (:storage-key config/site)
                   format-cirru-edn $ [] username password
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
@@ -689,11 +688,12 @@
                         d! :router/change $ {} (:name :home)
                     a $ {} (:class-name css-nav-title) (:inner-text upstream) (:href git-url) (:target "\"_blank")
                     =< 16 nil
-                    a $ {} (:inner-text "\"Fx⤴")
-                      :style $ {} (:font-size 13)
-                      :class-name $ str-spaced css/font-fancy css-nav-title
-                      :target "\"_blank"
-                      :href $ str "\"https://fx.nioint.com/?jumpGitRepo=" git-url
+                    if (.includes? git-url "\"nioint")
+                      a $ {} (:inner-text "\"Fx⤴")
+                        :style $ {} (:font-size 13)
+                        :class-name $ str-spaced css/font-fancy css-nav-title
+                        :target "\"_blank"
+                        :href $ str "\"https://fx.nioint.com/?jumpGitRepo=" git-url
                   ; div
                     {}
                       :style $ {} (:cursor |pointer)
@@ -773,7 +773,7 @@
                     {}
                       :style $ merge ui/button
                       :on-click $ fn (e d! m!)
-                        .replace js/location $ str js/location.origin "\"?time=" (.now js/Date)
+                        .replace js/location $ str js/location.origin "\"?time=" (js/Date.now)
                     <> "\"Refresh"
                   =< 8 nil
                   button
@@ -781,7 +781,7 @@
                       :style $ merge ui/button
                         {} (:color :red) (:border-color :red)
                       :on-click $ fn (e dispatch!) (dispatch! :user/log-out nil)
-                        .removeItem js/localStorage $ :storage-key config/site
+                        js/localStorage.removeItem $ :storage-key config/site
                     <> "\"Log out"
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
@@ -894,7 +894,8 @@
           :code $ quote
             defn finish-current! (branch-name main-branch d!)
               run-command! (str "\"git fetch --prune && git checkout " main-branch "\" && git merge origin/" main-branch "\" && git branch -d " branch-name) d! $ {}
-                :on-finish $ fn () (d! :effect/read-branches branch-name)
+                :on-finish $ fn ()
+                  d! $ :: :effect/read-branches branch-name
         |force-push! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn force-push! (branch d!)
@@ -980,15 +981,15 @@
                 .!on (.-stdout proc) "\"data" $ fn (chunk)
                   d! $ :: :process/log
                     {}
-                      :id $ id!
-                      :time $ unix-time!
+                      :id $ nanoid
+                      :time $ js/Date.now
                       :text chunk
                       :kind :log
                 .!on (.-stderr proc) "\"data" $ fn (chunk)
                   d! $ :: :process/log
                     {}
-                      :id $ id!
-                      :time $ unix-time!
+                      :id $ nanoid
+                      :time $ js/Date.now
                       :text chunk
                       :kind :error
                 .!on proc "\"exit" $ fn (event _)
@@ -1043,8 +1044,8 @@
                 println "\"Switching to" new-path
                 dispatch! $ :: :process/log
                   {}
-                    :id $ id!
-                    :time $ unix-time!
+                    :id $ nanoid
+                    :time $ js/Date.now
                     :text $ str "\"Switched to: " new-path
                     :kind :log
         |switch-remote-branch! $ %{} :CodeEntry (:doc |)
@@ -1056,13 +1057,13 @@
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.manager $ :require ("\"child_process" :as cp) ("\"fs" :as fs)
-            cumulo-util.core :refer $ id! unix-time!
             app.util :refer $ read-items
             app.util :refer $ grab-upstream
             "\"chalk" :default chalk
             app.env :refer $ shell-env
             app.util.string :refer $ default-branch?
             app.util :refer $ pos?
+            "\"nanoid" :refer $ nanoid
     |app.schema $ %{} :FileEntry
       :defs $ {}
         |database $ %{} :CodeEntry (:doc |)
@@ -1132,14 +1133,14 @@
                 latest-version $ .-name pkg
                 .!then $ fn (npm-version)
                   if (= npm-version version) (println "\"Running latest version" version)
-                    println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @jimengio/rebase-hell\n\n")
+                    println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n")
                 .!catch $ fn (err) (js/console.error err)
         |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op sid)
               let
-                  op-id $ id!
-                  op-time $ unix-time!
+                  op-id $ nanoid
+                  op-time $ js/Date.now
                   d! $ fn (op' ? sid')
                     dispatch! op' $ either sid' sid
                   db $ :db @*reel
@@ -1233,7 +1234,7 @@
                 port $ :port config/site
                 previous-port $ ->
                   cp/execSync $ str "\"lsof -ti tcp:" port "\" -sTCP:LISTEN"
-                  , .toString .trim
+                  , .!toString .!trim
                 git-path $ find-git-path (js/process.cwd)
               when (nil? git-path)
                 println $ .!red chalk "\"Missing .git/ folder, not a valid path!"
@@ -1271,7 +1272,7 @@
                 not $ identical? @*reader-reel @*reel
                 reset! *reader-reel @*reel
                 sync-clients! @*reader-reel
-              reset! *loop $ delay! 0.2
+              reset! *loop $ flipped js/setTimeout 200
                 fn () $ render-loop! *loop
         |run-server! $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -1328,7 +1329,6 @@
             "\"child_process" :as cp
             app.config :as config
             cumulo-util.file :refer $ write-mildly! get-backup-path! merge-local-edn!
-            cumulo-util.core :refer $ id! repeat! unix-time! delay!
             app.twig.container :refer $ twig-container
             recollect.diff :refer $ diff-twig
             recollect.twig :refer $ new-twig-loop! clear-twig-caches!
@@ -1339,6 +1339,7 @@
             app.util :refer $ pos?
             "\"url" :refer $ fileURLToPath
             "\"path" :refer $ dirname
+            "\"nanoid" :refer $ nanoid
     |app.style $ %{} :FileEntry
       :defs $ {}
         |button $ %{} :CodeEntry (:doc |)
@@ -1396,7 +1397,7 @@
                         :home $ :pages db
                         :profile $ memof-call twig-members (:sessions db) (:users db)
                   :count $ count (:sessions db)
-                  :color $ color/randomColor
+                  ; :color $ color/randomColor
                   :repo $ :repo db
                   :logs $ :logs db
                   :shell-env shell-env
