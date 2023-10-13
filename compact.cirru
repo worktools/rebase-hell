@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.24)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.25)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -926,9 +926,11 @@
             defn push-current! (current d!)
               cond
                   .starts-with? current "\"release-"
-                  d! :session/add-message $ {} (:text "\"Can't push to release branch!")
+                  d! $ :: :session/add-message
+                    {} $ :text "\"Can't push to release branch!"
                 (default-branch? current)
-                  d! :session/add-message $ {} (:text "\"Can't push to main branch!")
+                  d! $ :: :session/add-message
+                    {} $ :text "\"Can't push to main branch!"
                 true $ run-command! (str "\"git push origin " current) d! ({})
         |read-branches! $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -960,13 +962,15 @@
           :code $ quote
             defn remove-branch! (branch d!)
               run-command! (str "\"git branch -d " branch) d! $ {}
-                :on-finish $ fn () (d! :effect/read-branches nil)
+                :on-finish $ fn ()
+                  d! $ :: :effect/read-branches
         |remove-remote! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn remove-remote! (current d!)
               cond
                   default-branch? current
-                  d! :session/add-message $ {} (:text "\"Can't remove a main branch!")
+                  d! $ :: :session/add-message
+                    {} $ :text "\"Can't remove a main branch!"
                 true $ run-command! (str "\"git push origin :" current) d! ({})
         |run-command! $ %{} :CodeEntry (:doc |)
           :code $ quote
