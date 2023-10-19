@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.24)
+  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.2.25)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -5989,14 +5989,17 @@
                       |r $ %{} :Expr (:at 1547004477757) (:by |root)
                         :data $ {}
                           |T $ %{} :Leaf (:at 1547004637810) (:by |root) (:text |d!)
-                          |b $ %{} :Leaf (:at 1547004646647) (:by |root) (:text |:session/add-message)
-                          |j $ %{} :Expr (:at 1547004639037) (:by |root)
+                          |j $ %{} :Expr (:at 1697179355045) (:by |B1y7Rc-Zz)
                             :data $ {}
-                              |D $ %{} :Leaf (:at 1547004639609) (:by |root) (:text |{})
-                              |T $ %{} :Expr (:at 1547004650433) (:by |root)
+                              |D $ %{} :Leaf (:at 1697179355674) (:by |B1y7Rc-Zz) (:text |::)
+                              |L $ %{} :Leaf (:at 1697179356063) (:by |B1y7Rc-Zz) (:text |:session/add-message)
+                              |T $ %{} :Expr (:at 1547004639037) (:by |root)
                                 :data $ {}
-                                  |D $ %{} :Leaf (:at 1547004651545) (:by |root) (:text |:text)
-                                  |T $ %{} :Leaf (:at 1547004670456) (:by |root) (:text "|\"Can't push to release branch!")
+                                  |D $ %{} :Leaf (:at 1547004639609) (:by |root) (:text |{})
+                                  |T $ %{} :Expr (:at 1547004650433) (:by |root)
+                                    :data $ {}
+                                      |D $ %{} :Leaf (:at 1547004651545) (:by |root) (:text |:text)
+                                      |T $ %{} :Leaf (:at 1547004670456) (:by |root) (:text "|\"Can't push to release branch!")
                   |b $ %{} :Expr (:at 1547004456323) (:by |root)
                     :data $ {}
                       |j $ %{} :Expr (:at 1547004463043) (:by |root)
@@ -6006,14 +6009,17 @@
                       |r $ %{} :Expr (:at 1547004477757) (:by |root)
                         :data $ {}
                           |T $ %{} :Leaf (:at 1547004637810) (:by |root) (:text |d!)
-                          |b $ %{} :Leaf (:at 1547004646647) (:by |root) (:text |:session/add-message)
-                          |j $ %{} :Expr (:at 1547004639037) (:by |root)
+                          |j $ %{} :Expr (:at 1697179358205) (:by |B1y7Rc-Zz)
                             :data $ {}
-                              |D $ %{} :Leaf (:at 1547004639609) (:by |root) (:text |{})
-                              |T $ %{} :Expr (:at 1547004650433) (:by |root)
+                              |D $ %{} :Leaf (:at 1697179358785) (:by |B1y7Rc-Zz) (:text |::)
+                              |L $ %{} :Leaf (:at 1697179359219) (:by |B1y7Rc-Zz) (:text |:session/add-message)
+                              |T $ %{} :Expr (:at 1547004639037) (:by |root)
                                 :data $ {}
-                                  |D $ %{} :Leaf (:at 1547004651545) (:by |root) (:text |:text)
-                                  |T $ %{} :Leaf (:at 1643207115419) (:by |B1y7Rc-Zz) (:text "|\"Can't push to main branch!")
+                                  |D $ %{} :Leaf (:at 1547004639609) (:by |root) (:text |{})
+                                  |T $ %{} :Expr (:at 1547004650433) (:by |root)
+                                    :data $ {}
+                                      |D $ %{} :Leaf (:at 1547004651545) (:by |root) (:text |:text)
+                                      |T $ %{} :Leaf (:at 1643207115419) (:by |B1y7Rc-Zz) (:text "|\"Can't push to main branch!")
                   |j $ %{} :Expr (:at 1547004762305) (:by |root)
                     :data $ {}
                       |T $ %{} :Leaf (:at 1630038417246) (:by |B1y7Rc-Zz) (:text |true)
@@ -6249,8 +6255,10 @@
                               |v $ %{} :Expr (:at 1545215618603) (:by |root)
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1545215618603) (:by |root) (:text |d!)
-                                  |j $ %{} :Leaf (:at 1545215618603) (:by |root) (:text |:effect/read-branches)
-                                  |r $ %{} :Leaf (:at 1545215624243) (:by |root) (:text |nil)
+                                  |j $ %{} :Expr (:at 1697179373400) (:by |B1y7Rc-Zz)
+                                    :data $ {}
+                                      |D $ %{} :Leaf (:at 1697179374064) (:by |B1y7Rc-Zz) (:text |::)
+                                      |T $ %{} :Leaf (:at 1545215618603) (:by |root) (:text |:effect/read-branches)
         |remove-remote! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1673455219979) (:by |B1y7Rc-Zz)
             :data $ {}
@@ -6272,14 +6280,17 @@
                       |b $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
                         :data $ {}
                           |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |d!)
-                          |b $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |:session/add-message)
-                          |h $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
+                          |h $ %{} :Expr (:at 1697179403673) (:by |B1y7Rc-Zz)
                             :data $ {}
-                              |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |{})
-                              |b $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
+                              |D $ %{} :Leaf (:at 1697179404253) (:by |B1y7Rc-Zz) (:text |::)
+                              |L $ %{} :Leaf (:at 1697179405008) (:by |B1y7Rc-Zz) (:text |:session/add-message)
+                              |T $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
                                 :data $ {}
-                                  |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |:text)
-                                  |b $ %{} :Leaf (:at 1673455408614) (:by |B1y7Rc-Zz) (:text "|\"Can't remove a main branch!")
+                                  |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |{})
+                                  |b $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
+                                    :data $ {}
+                                      |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |:text)
+                                      |b $ %{} :Leaf (:at 1673455408614) (:by |B1y7Rc-Zz) (:text "|\"Can't remove a main branch!")
                   |l $ %{} :Expr (:at 1673455221813) (:by |B1y7Rc-Zz)
                     :data $ {}
                       |T $ %{} :Leaf (:at 1673455221813) (:by |B1y7Rc-Zz) (:text |true)
