@@ -86,7 +86,7 @@
               case-default (:kind data) (println "\"unknown server data kind:" data)
                 :patch $ let
                     changes $ :data data
-                  when config/dev? $ js/console.log "\"Changes" (to-js-data changes)
+                  when config/dev? $ js/console.log "\"Changes" changes
                   reset! *store $ patch-twig @*store changes
         |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -675,7 +675,7 @@
             defcomp comp-navigation (states logged-in? count-members repo)
               let
                   upstream $ :upstream repo
-                  address $ :address (w-js-log repo)
+                  address $ :address (wo-js-log repo)
                   git-url $ case-default (:host-kind repo)
                     if (.starts-with? address "\"git@") (replace-git-at-url address) (str "\"https://github.com/" upstream)
                     :github $ str "\"https://github.com/" upstream
@@ -688,7 +688,7 @@
                         d! :router/change $ {} (:name :home)
                     a $ {} (:class-name css-nav-title) (:inner-text upstream) (:href git-url) (:target "\"_blank")
                     =< 16 nil
-                    if (.includes? git-url "\"nioint")
+                    if (.includes? git-url "\"nevint")
                       a $ {} (:inner-text "\"Fx⤴")
                         :style $ {} (:font-size 13)
                         :class-name $ str-spaced css/font-fancy css-nav-title

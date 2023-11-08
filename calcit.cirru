@@ -532,10 +532,7 @@
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text |js/console.log)
                                   |j $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text "|\"Changes")
-                                  |r $ %{} :Expr (:at 1630035917147) (:by |B1y7Rc-Zz)
-                                    :data $ {}
-                                      |T $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text |to-js-data)
-                                      |j $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text |changes)
+                                  |r $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text |changes)
                           |v $ %{} :Expr (:at 1630035917147) (:by |B1y7Rc-Zz)
                             :data $ {}
                               |T $ %{} :Leaf (:at 1630035917147) (:by |B1y7Rc-Zz) (:text |reset!)
@@ -4516,7 +4513,7 @@
                               |T $ %{} :Leaf (:at 1694672077709) (:by |B1y7Rc-Zz) (:text |:address)
                               |b $ %{} :Expr (:at 1694672077709) (:by |B1y7Rc-Zz)
                                 :data $ {}
-                                  |T $ %{} :Leaf (:at 1694672077709) (:by |B1y7Rc-Zz) (:text |w-js-log)
+                                  |T $ %{} :Leaf (:at 1699421115444) (:by |B1y7Rc-Zz) (:text |wo-js-log)
                                   |b $ %{} :Leaf (:at 1694672077709) (:by |B1y7Rc-Zz) (:text |repo)
                       |h $ %{} :Expr (:at 1694672078686) (:by |B1y7Rc-Zz)
                         :data $ {}
@@ -4638,7 +4635,7 @@
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1696743637408) (:by |B1y7Rc-Zz) (:text |.includes?)
                                   |b $ %{} :Leaf (:at 1696743639112) (:by |B1y7Rc-Zz) (:text |git-url)
-                                  |h $ %{} :Leaf (:at 1696743640873) (:by |B1y7Rc-Zz) (:text "|\"nioint")
+                                  |h $ %{} :Leaf (:at 1699421012133) (:by |B1y7Rc-Zz) (:text "|\"nevint")
                               |T $ %{} :Expr (:at 1694672116096) (:by |B1y7Rc-Zz)
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1694672116583) (:by |B1y7Rc-Zz) (:text |a)
