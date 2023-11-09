@@ -8506,9 +8506,6 @@
                                       |r $ %{} :Leaf (:at 1544724852267) (:by |B1y7Rc-Zz) (:text |assoc)
                                       |v $ %{} :Leaf (:at 1544724852267) (:by |B1y7Rc-Zz) (:text |sid)
                                       |x $ %{} :Leaf (:at 1544724852267) (:by |B1y7Rc-Zz) (:text |new-store)
-              |x $ %{} :Expr (:at 1593681706524) (:by |B1y7Rc-Zz)
-                :data $ {}
-                  |T $ %{} :Leaf (:at 1593681712217) (:by |B1y7Rc-Zz) (:text |new-twig-loop!)
         |wd-file-path $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1568086331263) (:by |B1y7Rc-Zz)
             :data $ {}
@@ -8959,7 +8956,6 @@
                               |T $ %{} :Leaf (:at 1500541255553) (:by |root) (:text |:user)
                               |j $ %{} :Expr (:at 1500541255553) (:by nil)
                                 :data $ {}
-                                  |D $ %{} :Leaf (:at 1617990762116) (:by |B1y7Rc-Zz) (:text |memof-call)
                                   |T $ %{} :Leaf (:at 1617990759588) (:by |B1y7Rc-Zz) (:text |twig-user)
                                   |j $ %{} :Expr (:at 1500541255553) (:by nil)
                                     :data $ {}
@@ -9009,7 +9005,6 @@
                                           |T $ %{} :Leaf (:at 1524070646898) (:by |root) (:text |:profile)
                                           |j $ %{} :Expr (:at 1524070654495) (:by |root)
                                             :data $ {}
-                                              |D $ %{} :Leaf (:at 1617990766492) (:by |B1y7Rc-Zz) (:text |memof-call)
                                               |T $ %{} :Leaf (:at 1524070662619) (:by |root) (:text |twig-members)
                                               |j $ %{} :Expr (:at 1524070665615) (:by |root)
                                                 :data $ {}
@@ -9134,13 +9129,6 @@
                     |v $ %{} :Expr (:at 1595389506447) (:by |B1y7Rc-Zz)
                       :data $ {}
                         |j $ %{} :Leaf (:at 1595389508207) (:by |B1y7Rc-Zz) (:text |shell-env)
-                |y $ %{} :Expr (:at 1617990733106) (:by |B1y7Rc-Zz)
-                  :data $ {}
-                    |j $ %{} :Leaf (:at 1617990735653) (:by |B1y7Rc-Zz) (:text |memof.alias)
-                    |r $ %{} :Leaf (:at 1617990736478) (:by |B1y7Rc-Zz) (:text |:refer)
-                    |v $ %{} :Expr (:at 1617990736694) (:by |B1y7Rc-Zz)
-                      :data $ {}
-                        |j $ %{} :Leaf (:at 1617990739631) (:by |B1y7Rc-Zz) (:text |memof-call)
     |app.twig.user $ %{} :FileEntry
       :defs $ {}
         |twig-user $ %{} :CodeEntry (:doc |)

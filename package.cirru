@@ -3,7 +3,7 @@
   :dependencies $ {}
     |calcit-lang/lilac |main
     |calcit-lang/memof |main
-    |calcit-lang/recollect |main
+    |calcit-lang/recollect |0.0.16
     |Respo/respo.calcit |0.16.1
     |Respo/respo-ui.calcit |main
     |Respo/respo-message.calcit |main

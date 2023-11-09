@@ -1313,7 +1313,6 @@
                     do
                       wss-send! sid $ {} (:kind :patch) (:data changes)
                       swap! *client-caches assoc sid new-store
-              new-twig-loop!
         |wd-file-path $ %{} :CodeEntry (:doc |)
           :code $ quote
             def wd-file-path $ path/join
@@ -1392,14 +1391,14 @@
                   base-data $ {} (:logged-in? logged-in?) (:session session)
                     :reel-length $ count records
                 merge base-data $ {}
-                  :user $ memof-call twig-user
+                  :user $ twig-user
                     get-in db $ [] :users (:user-id session)
                   :router $ assoc
                     or router $ {}
                     , :data
                       case-default (:name router) ({})
                         :home $ :pages db
-                        :profile $ memof-call twig-members (:sessions db) (:users db)
+                        :profile $ twig-members (:sessions db) (:users db)
                   :count $ count (:sessions db)
                   ; :color $ color/randomColor
                   :repo $ :repo db
@@ -1420,7 +1419,6 @@
             app.twig.user :refer $ twig-user
             "\"randomcolor" :as color
             app.env :refer $ shell-env
-            memof.alias :refer $ memof-call
     |app.twig.user $ %{} :FileEntry
       :defs $ {}
         |twig-user $ %{} :CodeEntry (:doc |)
