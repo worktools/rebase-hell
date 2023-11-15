@@ -3,15 +3,15 @@
 Rebase Hell is a tool to do rebase with clicks
 ------
 
-![rebase-hell on npm](https://img.shields.io/npm/v/@jimengio/rebase-hell.svg)
+![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
 
 ```bash
-yarn global add @jimengio/rebase-hell
+yarn global add @worktools/rebase-hell
 ```
 
-And open http://fe.jimu.io/rebase-hell/
+And open https://r.tiye.me/worktools/rebase-hell/
 
 ### PR 配置
 

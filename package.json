@@ -1,6 +1,6 @@
 {
   "name": "@worktools/rebase-hell",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "description": "git helper tool",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@calcit/procs": "^0.8.9",
-    "axios": "^1.6.0",
+    "axios": "^1.6.2",
     "chalk": "^5.3.0",
     "dayjs": "^1.11.10",
     "latest-version": "^7.0.0",

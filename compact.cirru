@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.25)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.26)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -477,6 +477,11 @@
                     div ({})
                       render-button "\"Rebase main" true $ fn (e d!) (d! :effect/rebase-master nil)
                       render-button "\"Force push" true $ fn (e d!) (d! :effect/force-push nil)
+                =< nil 24
+                comp-title "\"Editor"
+                div ({})
+                  render-button "\"code ./" false $ fn (e d!) (d! :effect/edit-with "\"code")
+                  render-button "\"subl ./" false $ fn (e d!) (d! :effect/edit-with "\"subl")
         |comp-quick-ops $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-quick-ops (states)
@@ -886,6 +891,10 @@
         |dots-pattern $ %{} :CodeEntry (:doc |)
           :code $ quote
             def dots-pattern $ new js/RegExp "\"^\\.{2,}$"
+        |edit-with $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn edit-with (command d!)
+              run-command! (str command "\" ./") d! $ {}
         |fetch-origin! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn fetch-origin! (d!)
@@ -1139,6 +1148,9 @@
                   if (= npm-version version) (println "\"Running latest version" version)
                     println $ .!yellow chalk (str "\"New version " npm-version "\" available, current one is " version "\" . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n")
                 .!catch $ fn (err) (js/console.error err)
+        |command $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def command $
         |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op sid)
@@ -1178,6 +1190,7 @@
                     (:effect/add-tag data) (manager/add-tag! data upstream host-kind main-branch d!)
                     (:effect/show-version data) (manager/show-version data upstream d!)
                     (:effect/kill-process data) (manager/kill-process! data d!)
+                    (:effect/edit-with command) (manager/edit-with command d!)
                     _ $ reset! *reel (reel-reducer @*reel updater op sid op-id op-time config/dev?)
                   fn (error) (js/console.error "\"Dispatch error:" error)
                 , :effect
