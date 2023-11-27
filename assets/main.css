@@ -33,19 +33,6 @@ body * {
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
 
-.clickable:active {
-  transform: scale(1.2);
-}
-
 ::placeholder {
   color: hsl(0,0%,84%);
 }
-
-button:hover {
-  background-color: hsl(0,0%,98%);
-}
-
-button:active {
-  transform: scale(1.03);;
-}
-

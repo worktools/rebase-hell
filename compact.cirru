@@ -359,14 +359,13 @@
                       -> urls $ map
                         fn (url)
                           [] url $ a
-                            {} (:href url) (:inner-text url) (:target "\"_blank")
-                              :style $ merge ui/link
-                                {} (:line-height "\"16px") (:height "\"16px")
+                            {} (:href url) (:inner-text url) (:target "\"_blank") (:class-name css/link)
+                              :style $ {} (:line-height "\"16px") (:height "\"16px")
                   if
                     = :command $ :kind log
                     div
-                      {} (:class-name "\"clickable")
-                        :style $ {} (:position :absolute) (:top 12) (:right 12)
+                      {} $ :style
+                        {} (:position :absolute) (:top 12) (:right 12)
                       comp-icon :copy
                         {} (:font-size 16)
                           :color $ hsl 200 80 64
@@ -540,7 +539,16 @@
               "\"$0" $ {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200) (:font-family ui/font-code)
         |css-button $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defstyle css-button $ {} ("\"$0" style/button)
+            defstyle css-button $ {}
+              "\"&" $ merge ui/button
+                {} (:border-radius "\"4px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px") (:font-family ui/font-fancy)
+                  :border-color $ hsl 200 80 88
+                  :color $ hsl 200 80 60
+                  :background-color $ hsl 200 40 98
+                  :transition-duration "\"200ms"
+              "\"&:hover" $ {}
+                :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.2)
+              "\"&:active" $ {} (:transform "\"scale(1.06)") (:transition-duration "\"0ms")
         |css-command $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-command $ {}
@@ -1373,13 +1381,6 @@
             "\"nanoid" :refer $ nanoid
     |app.style $ %{} :FileEntry
       :defs $ {}
-        |button $ %{} :CodeEntry (:doc |)
-          :code $ quote
-            def button $ merge ui/button
-              {} (:border-radius "\"4px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px") (:font-family ui/font-fancy)
-                :border-color $ hsl 200 80 88
-                :color $ hsl 200 80 60
-                :background-color $ hsl 200 40 98
         |link $ %{} :CodeEntry (:doc |)
           :code $ quote
             def link $ {} (:text-decoration :underline) (:cursor :pointer)
