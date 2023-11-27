@@ -271,16 +271,19 @@
                 -> footprints (.to-list)
                   .filter-pair $ fn (k v)
                     not $ = v current
-                  .sort-by $ fn (pair) (last pair)
+                  .sort-by $ fn (pair)
+                    .!toLowerCase $ last pair
                   .map-pair $ fn (k v)
                     [] k $ div
                       {}
-                        :class-name $ str-spaced "\"hoverable" css-footprint
+                        :class-name $ str-spaced css/row "\"hoverable" css-footprint
+                        :style $ {} (:justify-content :flex-end)
                         :on-click $ fn (e d!) (d! :effect/switch-path k)
                         :title k
-                      <> v ui/expand
+                        :tabIndex 0
+                      <> v
                       span
-                        {} $ :class-name "\"close-icon"
+                        {} $ :class-name style-close-icon
                         comp-icon :x
                           {} (:font-size 14)
                             :color $ hsl 0 90 70
@@ -546,8 +549,12 @@
         |css-footprint $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-footprint $ {}
-              "\"$0" $ merge ui/row-parted
-                {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:overflow :hidden) (:cursor :pointer)
+              "\"&" $ {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:cursor :pointer) (:overflow :hidden) (:cursor :pointer)
+                :color $ hsl 0 0 50
+                :position :relative
+                :overflow :visible
+              "\"&:hover" $ {} (:color :black)
+              "\"&:active" $ {} (:color :black)
         |css-log $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-log $ {}
@@ -592,6 +599,14 @@
                   if danger? $ {} (:color :red) (:border-color :red)
                 :inner-text text
                 :on-click on-click
+        |style-close-icon $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-close-icon $ {}
+              "\"&" $ {} (:opacity 0) (:cursor :pointer) (:position :absolute) (:right -10)
+              (str "\"." css-footprint "\":hover &:hover")
+                {} $ :opacity 1
+              (str "\"." css-footprint "\":hover &")
+                {} $ :opacity 0.5
         |title-seperators $ %{} :CodeEntry (:doc |)
           :code $ quote
             def title-seperators $ new js/RegExp "\"(\\s|\\,)+"
@@ -1563,7 +1578,6 @@
                 let-sugar
                       [] dirpath upstream
                       , op-data
-                  println "\"running" op-data
                   assoc xs dirpath upstream
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
