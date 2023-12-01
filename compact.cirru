@@ -271,16 +271,19 @@
                 -> footprints (.to-list)
                   .filter-pair $ fn (k v)
                     not $ = v current
-                  .sort-by $ fn (pair) (last pair)
+                  .sort-by $ fn (pair)
+                    .!toLowerCase $ last pair
                   .map-pair $ fn (k v)
                     [] k $ div
                       {}
-                        :class-name $ str-spaced "\"hoverable" css-footprint
+                        :class-name $ str-spaced css/row "\"hoverable" css-footprint
+                        :style $ {} (:justify-content :flex-end)
                         :on-click $ fn (e d!) (d! :effect/switch-path k)
                         :title k
-                      <> v ui/expand
+                        :tabIndex 0
+                      <> v
                       span
-                        {} $ :class-name "\"close-icon"
+                        {} $ :class-name style-close-icon
                         comp-icon :x
                           {} (:font-size 14)
                             :color $ hsl 0 90 70
@@ -356,14 +359,13 @@
                       -> urls $ map
                         fn (url)
                           [] url $ a
-                            {} (:href url) (:inner-text url) (:target "\"_blank")
-                              :style $ merge ui/link
-                                {} (:line-height "\"16px") (:height "\"16px")
+                            {} (:href url) (:inner-text url) (:target "\"_blank") (:class-name css/link)
+                              :style $ {} (:line-height "\"16px") (:height "\"16px")
                   if
                     = :command $ :kind log
                     div
-                      {} (:class-name "\"clickable")
-                        :style $ {} (:position :absolute) (:top 12) (:right 12)
+                      {} $ :style
+                        {} (:position :absolute) (:top 12) (:right 12)
                       comp-icon :copy
                         {} (:font-size 16)
                           :color $ hsl 200 80 64
@@ -537,7 +539,16 @@
               "\"$0" $ {} (:cursor :pointer) (:line-height "\"32px") (:padding "\"0 8px") (:min-width 200) (:font-family ui/font-code)
         |css-button $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defstyle css-button $ {} ("\"$0" style/button)
+            defstyle css-button $ {}
+              "\"&" $ merge ui/button
+                {} (:border-radius "\"4px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px") (:font-family ui/font-fancy)
+                  :border-color $ hsl 200 80 88
+                  :color $ hsl 200 80 60
+                  :background-color $ hsl 200 40 98
+                  :transition-duration "\"200ms"
+              "\"&:hover" $ {}
+                :box-shadow $ str "\"1px 1px 4px " (hsl 0 0 0 0.2)
+              "\"&:active" $ {} (:transform "\"scale(1.06)") (:transition-duration "\"0ms")
         |css-command $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-command $ {}
@@ -546,8 +557,12 @@
         |css-footprint $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-footprint $ {}
-              "\"$0" $ merge ui/row-parted
-                {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:overflow :hidden) (:cursor :pointer)
+              "\"&" $ {} (:line-height "\"1.4em") (:padding "\"6px 6px") (:font-size 13) (:cursor :pointer) (:overflow :hidden) (:cursor :pointer)
+                :color $ hsl 0 0 50
+                :position :relative
+                :overflow :visible
+              "\"&:hover" $ {} (:color :black)
+              "\"&:active" $ {} (:color :black)
         |css-log $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle css-log $ {}
@@ -592,6 +607,14 @@
                   if danger? $ {} (:color :red) (:border-color :red)
                 :inner-text text
                 :on-click on-click
+        |style-close-icon $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-close-icon $ {}
+              "\"&" $ {} (:opacity 0) (:cursor :pointer) (:position :absolute) (:right -10)
+              (str "\"." css-footprint "\":hover &:hover")
+                {} $ :opacity 1
+              (str "\"." css-footprint "\":hover &")
+                {} $ :opacity 0.5
         |title-seperators $ %{} :CodeEntry (:doc |)
           :code $ quote
             def title-seperators $ new js/RegExp "\"(\\s|\\,)+"
@@ -1358,13 +1381,6 @@
             "\"nanoid" :refer $ nanoid
     |app.style $ %{} :FileEntry
       :defs $ {}
-        |button $ %{} :CodeEntry (:doc |)
-          :code $ quote
-            def button $ merge ui/button
-              {} (:border-radius "\"4px") (:min-width "\"48px") (:font-size 14) (:line-height "\"28px") (:font-family ui/font-fancy)
-                :border-color $ hsl 200 80 88
-                :color $ hsl 200 80 60
-                :background-color $ hsl 200 40 98
         |link $ %{} :CodeEntry (:doc |)
           :code $ quote
             def link $ {} (:text-decoration :underline) (:cursor :pointer)
@@ -1563,7 +1579,6 @@
                 let-sugar
                       [] dirpath upstream
                       , op-data
-                  println "\"running" op-data
                   assoc xs dirpath upstream
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
