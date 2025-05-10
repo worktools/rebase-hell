@@ -7,7 +7,7 @@
     "rebase-hell": "./bin.js"
   },
   "scripts": {
-    "compile-server": "cr js -1 --entry server",
+    "compile-server": "cr -1 --entry server js",
     "compile-page": "cr -1 --emit-path out-page js",
     "release-page": "vite build --base=./",
     "watch-page": "cr --emit-path out-page/ js",
