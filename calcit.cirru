@@ -8049,7 +8049,7 @@
               |v $ %{} :Expr (:at 1568086717587) (:by |B1y7Rc-Zz)
                 :data $ {}
                   |D $ %{} :Leaf (:at 1568086742496) (:by |B1y7Rc-Zz) (:text |js/process.on)
-                  |L $ %{} :Leaf (:at 1568086857962) (:by |B1y7Rc-Zz) (:text "|\"SIGPIPE")
+                  |L $ %{} :Leaf (:at 1746886978257) (:by |B1y7Rc-Zz) (:text "|\"SIGHUP")
                   |T $ %{} :Expr (:at 1568086745652) (:by |B1y7Rc-Zz)
                     :data $ {}
                       |D $ %{} :Leaf (:at 1568086746126) (:by |B1y7Rc-Zz) (:text |fn)
@@ -8800,17 +8800,11 @@
             :data $ {}
               |T $ %{} :Leaf (:at 1568086331263) (:by |B1y7Rc-Zz) (:text |def)
               |j $ %{} :Leaf (:at 1568086331263) (:by |B1y7Rc-Zz) (:text |wd-file-path)
-              |r $ %{} :Expr (:at 1568086338790) (:by |B1y7Rc-Zz)
+              |t $ %{} :Expr (:at 1746886692329) (:by |B1y7Rc-Zz)
                 :data $ {}
-                  |T $ %{} :Leaf (:at 1568086338790) (:by |B1y7Rc-Zz) (:text |path/join)
-                  |j $ %{} :Expr (:at 1651224736171) (:by |B1y7Rc-Zz)
-                    :data $ {}
-                      |T $ %{} :Leaf (:at 1651224736171) (:by |B1y7Rc-Zz) (:text |dirname)
-                      |b $ %{} :Expr (:at 1651224736171) (:by |B1y7Rc-Zz)
-                        :data $ {}
-                          |T $ %{} :Leaf (:at 1651224736171) (:by |B1y7Rc-Zz) (:text |fileURLToPath)
-                          |b $ %{} :Leaf (:at 1651224736171) (:by |B1y7Rc-Zz) (:text |js/import.meta.url)
-                  |r $ %{} :Leaf (:at 1568086345577) (:by |B1y7Rc-Zz) (:text "|\"working-directory.text")
+                  |D $ %{} :Leaf (:at 1746887021104) (:by |B1y7Rc-Zz) (:text |str)
+                  |L $ %{} :Leaf (:at 1746887037618) (:by |B1y7Rc-Zz) (:text |js/process.env.HOME)
+                  |T $ %{} :Leaf (:at 1746887004058) (:by |B1y7Rc-Zz) (:text "|\"/.config/rebase-hell-working-directory.text")
       :ns $ %{} :CodeEntry (:doc |)
         :code $ %{} :Expr (:at 1500541255553) (:by nil)
           :data $ {}

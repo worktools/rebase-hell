@@ -1228,7 +1228,7 @@
                   , nil
         |listen-to-switching! $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defn listen-to-switching! () $ js/process.on "\"SIGPIPE"
+            defn listen-to-switching! () $ js/process.on "\"SIGHUP"
               fn (e _)
                 let
                     new-path $ fs/readFileSync wd-file-path "\"utf8"
@@ -1351,9 +1351,7 @@
                       swap! *client-caches assoc sid new-store
         |wd-file-path $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def wd-file-path $ path/join
-              dirname $ fileURLToPath js/import.meta.url
-              , "\"working-directory.text"
+            def wd-file-path $ str js/process.env.HOME "\"/.config/rebase-hell-working-directory.text"
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.server $ :require (app.schema :as schema)

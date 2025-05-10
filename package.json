@@ -7,11 +7,11 @@
     "rebase-hell": "./bin.js"
   },
   "scripts": {
-    "compile-server": "cr --emit-js --once --entry server",
-    "compile-page": "cr --emit-js --once --emit-path out-page",
+    "compile-server": "cr js -1 --entry server",
+    "compile-page": "cr -1 --emit-path out-page js",
     "release-page": "vite build --base=./",
-    "watch-page": "cr --emit-js --emit-path out-page/",
-    "watch-server": "cr --emit-js --entry server"
+    "watch-page": "cr --emit-path out-page/ js",
+    "watch-server": "cr --entry server js"
   },
   "repository": {
     "type": "git",
@@ -20,21 +20,21 @@
   "author": "jiyinyiyong",
   "license": "MIT",
   "dependencies": {
-    "@calcit/procs": "^0.8.12",
-    "axios": "^1.6.2",
-    "chalk": "^5.3.0",
-    "dayjs": "^1.11.10",
-    "latest-version": "^7.0.0",
+    "@calcit/procs": "^0.9.11",
+    "axios": "^1.9.0",
+    "chalk": "^5.4.1",
+    "dayjs": "^1.11.13",
+    "latest-version": "^9.0.0",
     "md5": "^2.3.0",
-    "nanoid": "^5.0.3",
+    "nanoid": "^5.1.5",
     "randomcolor": "^0.6.2",
     "url-parse": "^1.5.10",
-    "ws": "^8.14.2"
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "bottom-tip": "^0.1.5",
     "copy-text-to-clipboard": "^3.2.0",
-    "feather-icons": "^4.29.1",
-    "vite": "^5.0.2"
+    "feather-icons": "^4.29.2",
+    "vite": "^6.3.5"
   }
 }
