@@ -8,6 +8,8 @@ use std::{
   process::{Command, ExitCode},
 };
 
+use nix::sys::signal::Signal;
+
 /// the port used in nodejs server
 const APP_PORT: u16 = 8009;
 
@@ -15,7 +17,7 @@ fn main() -> ExitCode {
   let pid = match get_service_pid(APP_PORT) {
     Some(pid) => pid,
     None => {
-      eprintln!("no pid found for service.");
+      eprintln!("No pid found for service.");
       return ExitCode::FAILURE;
     }
   };
@@ -39,18 +41,13 @@ fn main() -> ExitCode {
   let new_git = git_path.to_string_lossy().into_owned();
   fs::write(&wd_file_path, new_git).expect("Unable to write file");
 
-  let kill_command = format!("kill -HUP {}", pid);
-  let output = Command::new("sh")
-    .arg("-c")
-    .arg(kill_command)
-    .output()
-    .expect("Failed to execute kill command");
-
-  if output.status.success() {
-    println!("Sent signal to service({})", pid);
-  } else {
-    eprintln!("Failed to kill process on port {}", pid);
-    return ExitCode::FAILURE;
+  let pid = nix::unistd::Pid::from_raw(pid as i32);
+  match nix::sys::signal::kill(pid, Signal::SIGHUP) {
+    Ok(_) => println!("Sent signal to service({})", pid),
+    Err(e) => {
+      eprintln!("Failed to send signal to service({}): {}", pid, e);
+      return ExitCode::FAILURE;
+    }
   }
 
   let remote = get_remote_repo();
