@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.3.0-a1)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.3.0-a2)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -460,17 +460,22 @@
                   div ({}) (comp-title "\"Basic")
                     div
                       {} $ :style ui/row
-                      render-button "\"Pull" false $ fn (e d!) (d! :effect/pull-current nil)
+                      render-button "\"Pull" false $ fn (e d!)
+                        d! $ :: :effect/pull-current
                     comp-title "\"Others"
                     div
                       {} $ :style ui/row
                       comp-new-branch $ >> states :branch
                   div ({}) (comp-title "\"Basic")
                     div ({})
-                      render-button "\"Push" false $ fn (e d!) (d! :effect/push-current nil)
-                      render-button "\"Pull" false $ fn (e d!) (d! :effect/pull-current nil)
-                      render-button "\"Finish" false $ fn (e d!) (d! :effect/finish-branch nil)
-                      render-button "\"RmRemote" false $ fn (e d!) (d! :effect/rm-remote nil)
+                      render-button "\"Push" false $ fn (e d!)
+                        d! $ :: :effect/push-current
+                      render-button "\"Pull" false $ fn (e d!)
+                        d! $ :: :effect/pull-current
+                      render-button "\"Finish" false $ fn (e d!)
+                        d! $ :: :effect/finish-branch
+                      render-button "\"RmRemote" false $ fn (e d!)
+                        d! $ :: :effect/rm-remote
                     comp-title "\"Other"
                     div ({})
                       comp-new-branch $ >> states :branch
@@ -506,13 +511,16 @@
                     :on-click $ fn (e d!) (d! :effect/read-branches nil)
                   =< 24 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Fetch")
-                    :on-click $ fn (e d!) (d! :effect/fetch-origin nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/fetch-origin
                   =< 16 nil
                   button $ {} (:inner-text "\"Stash") (:class-name css-button)
-                    :on-click $ fn (e d!) (d! :effect/stash nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/stash
                   =< 16 nil
                   button $ {} (:inner-text "\"Stash Apply") (:class-name css-button)
-                    :on-click $ fn (e d!) (d! :effect/stash-apply nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/stash-apply
                   =< 16 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Tag")
                     :on-click $ fn (e d!) (d! :effect/show-version nil)

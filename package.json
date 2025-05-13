@@ -1,6 +1,6 @@
 {
   "name": "@worktools/rebase-hell",
-  "version": "0.3.0-a1",
+  "version": "0.3.0-a2",
   "description": "git helper tool",
   "main": "index.js",
   "bin": {
@@ -36,5 +36,6 @@
     "copy-text-to-clipboard": "^3.2.0",
     "feather-icons": "^4.29.2",
     "vite": "^6.3.5"
-  }
+  },
+  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }
