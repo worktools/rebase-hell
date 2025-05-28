@@ -384,12 +384,14 @@
                   <> "\"Logs"
                   =< 16 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Status")
-                    :on-click $ fn (e d!) (d! :effect/status nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/status
                   =< 16 nil
                   if
                     not $ empty? logs
                     button $ {} (:class-name css-button) (:inner-text "\"Clear")
-                      :on-click $ fn (e d!) (d! :process/clear-logs nil)
+                      :on-click $ fn (e d!)
+                        d! $ :: :process/clear-logs
                 if
                   not $ empty? status
                   div
