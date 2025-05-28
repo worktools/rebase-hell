@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.2.26)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.3.0-a2)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -313,8 +313,9 @@
                       :on-result $ fn (result d!)
                         d! :effect/switch-remote-branch $ -> result (:value) (.split "\"/") (rest) (.join-str "\"/")
                 div
-                  {} $ :style
-                    merge ui/row ui/flex $ {} (:padding 16) (:overflow :auto)
+                  {}
+                    :class-name $ str-spaced css/row css/flex
+                    :style $ {} (:padding 16) (:overflow :auto)
                   div
                     {} $ :class-name (str-spaced css/flex css/column)
                     comp-quick-ops $ >> states :quick-ops
@@ -419,7 +420,7 @@
                               fn (e d!) (d! :effect/kill-process pid)
                             =< 12 nil
                             div
-                              {} $ :style ui/expand
+                              {} $ :class-name css/expand
                               <> command
                 list->
                   {} (:class-name css/flex)
@@ -454,23 +455,28 @@
           :code $ quote
             defcomp comp-operations (states repo)
               div
-                {} $ :style (merge ui/flex ui/column)
+                {} $ :class-name (str-spaced css/flex css/column)
                 if
                   default-branch? $ :current repo
                   div ({}) (comp-title "\"Basic")
                     div
-                      {} $ :style ui/row
-                      render-button "\"Pull" false $ fn (e d!) (d! :effect/pull-current nil)
+                      {} $ :class-name css/row
+                      render-button "\"Pull" false $ fn (e d!)
+                        d! $ :: :effect/pull-current
                     comp-title "\"Others"
                     div
-                      {} $ :style ui/row
+                      {} $ :class-name css/row
                       comp-new-branch $ >> states :branch
                   div ({}) (comp-title "\"Basic")
                     div ({})
-                      render-button "\"Push" false $ fn (e d!) (d! :effect/push-current nil)
-                      render-button "\"Pull" false $ fn (e d!) (d! :effect/pull-current nil)
-                      render-button "\"Finish" false $ fn (e d!) (d! :effect/finish-branch nil)
-                      render-button "\"RmRemote" false $ fn (e d!) (d! :effect/rm-remote nil)
+                      render-button "\"Push" false $ fn (e d!)
+                        d! $ :: :effect/push-current
+                      render-button "\"Pull" false $ fn (e d!)
+                        d! $ :: :effect/pull-current
+                      render-button "\"Finish" false $ fn (e d!)
+                        d! $ :: :effect/finish-branch
+                      render-button "\"RmRemote" false $ fn (e d!)
+                        d! $ :: :effect/rm-remote
                     comp-title "\"Other"
                     div ({})
                       comp-new-branch $ >> states :branch
@@ -506,13 +512,16 @@
                     :on-click $ fn (e d!) (d! :effect/read-branches nil)
                   =< 24 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Fetch")
-                    :on-click $ fn (e d!) (d! :effect/fetch-origin nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/fetch-origin
                   =< 16 nil
                   button $ {} (:inner-text "\"Stash") (:class-name css-button)
-                    :on-click $ fn (e d!) (d! :effect/stash nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/stash
                   =< 16 nil
                   button $ {} (:inner-text "\"Stash Apply") (:class-name css-button)
-                    :on-click $ fn (e d!) (d! :effect/stash-apply nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/stash-apply
                   =< 16 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Tag")
                     :on-click $ fn (e d!) (d! :effect/show-version nil)
@@ -626,6 +635,7 @@
           ns app.comp.home $ :require
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.comp.space :refer $ =<
             respo.core :refer $ defcomp <> >> list-> >> span div button pre a
             app.config :as config
@@ -645,31 +655,29 @@
                   cursor $ :cursor states
                   state $ or (:data states) initial-state
                 div
-                  {} $ :style (merge ui/flex ui/center)
+                  {} $ :class-name (str-spaced css/flex css/center)
                   div ({})
                     div
                       {} $ :style ({})
                       div ({})
                         input $ {} (:placeholder |Username)
                           :value $ :username state
-                          :style ui/input
+                          :class-name css/input
                           :on-input $ on-input state cursor :username
                       =< nil 8
                       div ({})
                         input $ {} (:placeholder |Password)
                           :value $ :password state
-                          :style ui/input
+                          :class-name css/input
                           :on-input $ on-input state cursor :password
                     =< nil 8
                     div
                       {} $ :style
                         {} $ :text-align :right
-                      span $ {} (:inner-text "|Sign up")
-                        :style $ merge style/link
+                      span $ {} (:inner-text "|Sign up") (:class-name css/link)
                         :on-click $ on-submit (:username state) (:password state) true
                       =< 8 nil
-                      span $ {} (:inner-text "|Log in")
-                        :style $ merge style/link
+                      span $ {} (:inner-text "|Log in") (:class-name css/link)
                         :on-click $ on-submit (:username state) (:password state) false
         |initial-state $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -773,19 +781,19 @@
           :code $ quote
             defcomp comp-profile (user members)
               div
-                {} $ :style
-                  merge ui/flex $ {} (:padding 16)
+                {} (:class-name css/flex)
+                  :style $ {} (:padding 16)
                 div
                   {} $ :style
                     {} (:font-family ui/font-fancy) (:font-size 32) (:font-weight 100)
                   <> $ str "|Hello! " (:name user)
                 =< nil 16
                 div
-                  {} $ :style ui/row
+                  {} $ :class-name css/row
                   <> "\"Members:"
                   =< 8 nil
                   list->
-                    {} $ :style ui/row
+                    {} $ :class-name css/row
                     -> members (.to-list)
                       .map-pair $ fn (k username)
                         [] k $ div
@@ -798,16 +806,14 @@
                 =< nil 48
                 div ({})
                   button
-                    {}
-                      :style $ merge ui/button
+                    {} (:class-name css/button)
                       :on-click $ fn (e d! m!)
                         .replace js/location $ str js/location.origin "\"?time=" (js/Date.now)
                     <> "\"Refresh"
                   =< 8 nil
                   button
-                    {}
-                      :style $ merge ui/button
-                        {} (:color :red) (:border-color :red)
+                    {} (:class-name css/button)
+                      :style $ {} (:color :red) (:border-color :red)
                       :on-click $ fn (e dispatch!) (dispatch! :user/log-out nil)
                         js/localStorage.removeItem $ :storage-key config/site
                     <> "\"Log out"
@@ -817,6 +823,7 @@
             respo-ui.core :refer $ hsl
             app.schema :as schema
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.core :refer $ defcomp list-> <> span div button
             respo.comp.space :refer $ =<
             app.config :as config
@@ -1228,7 +1235,7 @@
                   , nil
         |listen-to-switching! $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defn listen-to-switching! () $ js/process.on "\"SIGPIPE"
+            defn listen-to-switching! () $ js/process.on "\"SIGHUP"
               fn (e _)
                 let
                     new-path $ fs/readFileSync wd-file-path "\"utf8"
@@ -1351,9 +1358,7 @@
                       swap! *client-caches assoc sid new-store
         |wd-file-path $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def wd-file-path $ path/join
-              dirname $ fileURLToPath js/import.meta.url
-              , "\"working-directory.text"
+            def wd-file-path $ str js/process.env.HOME "\"/.config/rebase-hell-working-directory.text"
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.server $ :require (app.schema :as schema)
