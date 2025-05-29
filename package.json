@@ -1,6 +1,6 @@
 {
   "name": "@worktools/rebase-hell",
-  "version": "0.3.0-a2",
+  "version": "0.3.0",
   "description": "git helper tool",
   "main": "index.js",
   "bin": {

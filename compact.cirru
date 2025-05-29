@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.3.0-a2)
+  :configs $ {} (:init-fn |app.client/main!) (:reload-fn |app.client/reload!) (:version |0.3.0)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -400,7 +400,7 @@
                     span
                       {}
                         :class-name $ str-spaced "\"rotating" css/center
-                        :style $ {} (:width 24) (:height 24) (:line-height "\"24px")
+                        :style $ {} (:width 24) (:height 24) (:line-height "\"0px")
                       comp-icon :loader
                         &{} :font-size 24 :color (hsl 0 0 0 0.5) :height 24
                         , nil
@@ -511,7 +511,8 @@
                   a $ {}
                     :style $ {} (:cursor :pointer) (:font-family ui/font-fancy)
                     :inner-text "\"Branches"
-                    :on-click $ fn (e d!) (d! :effect/read-branches nil)
+                    :on-click $ fn (e d!)
+                      d! $ :: :effect/read-branches
                   =< 24 nil
                   button $ {} (:class-name css-button) (:inner-text "\"Fetch")
                     :on-click $ fn (e d!)
@@ -936,7 +937,7 @@
             defn finish-current! (branch-name main-branch d!)
               run-command! (str "\"git fetch --prune && git checkout " main-branch "\" && git merge origin/" main-branch "\" && git branch -d " branch-name) d! $ {}
                 :on-finish $ fn ()
-                  d! $ :: :effect/read-branches branch-name
+                  d! $ :: :effect/read-branches
         |force-push! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn force-push! (branch d!)
@@ -957,7 +958,7 @@
             defn new-branch! (branch-name d!)
               run-command! (str "\"git checkout -b " branch-name) d! $ {}
                 :on-finish $ fn ()
-                  d! $ :: :effect/read-branches branch-name
+                  d! $ :: :effect/read-branches
         |pull-current! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn pull-current! (d!)
@@ -1098,7 +1099,7 @@
             defn switch-remote-branch! (branch-name d!)
               run-command! (str "\"git checkout " branch-name) d! $ {}
                 :on-finish $ fn ()
-                  d! $ :: :effect/read-branches branch-name
+                  d! $ :: :effect/read-branches
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.manager $ :require ("\"child_process" :as cp) ("\"fs" :as fs)

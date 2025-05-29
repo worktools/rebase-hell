@@ -1,6 +1,6 @@
 
 {} (:package |app)
-  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.3.0-a2)
+  :configs $ {} (:init-fn |app.client/main!) (:port 6001) (:reload-fn |app.client/reload!) (:storage-key |calcit.cirru) (:version |0.3.0)
     :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
   :entries $ {}
     :server $ {} (:init-fn |app.server/main!) (:reload-fn |app.server/reload!) (:version |0.2.14-a5)
@@ -2606,10 +2606,10 @@
                   |t $ %{} :Expr (:at 1545624439544) (:by |root)
                     :data $ {}
                       |D $ %{} :Leaf (:at 1545624449693) (:by |root) (:text |if)
-                      |L $ %{} :Expr (:at 1545624444645) (:by |root)
+                      |L $ %{} :Expr (:at 1748541543467) (:by |B1y7Rc-Zz)
                         :data $ {}
-                          |T $ %{} :Leaf (:at 1545624444645) (:by |root) (:text |not)
-                          |j $ %{} :Expr (:at 1545624444645) (:by |root)
+                          |D $ %{} :Leaf (:at 1748541544194) (:by |B1y7Rc-Zz) (:text |not)
+                          |T $ %{} :Expr (:at 1545624444645) (:by |root)
                             :data $ {}
                               |T $ %{} :Leaf (:at 1545624444645) (:by |root) (:text |empty?)
                               |j $ %{} :Leaf (:at 1545624444645) (:by |root) (:text |status)
@@ -2664,7 +2664,7 @@
                                           |v $ %{} :Expr (:at 1630085724346) (:by |B1y7Rc-Zz)
                                             :data $ {}
                                               |T $ %{} :Leaf (:at 1630085724346) (:by |B1y7Rc-Zz) (:text |:line-height)
-                                              |j $ %{} :Leaf (:at 1630085724346) (:by |B1y7Rc-Zz) (:text "|\"24px")
+                                              |j $ %{} :Leaf (:at 1748541650027) (:by |B1y7Rc-Zz) (:text "|\"0px")
                               |r $ %{} :Expr (:at 1630085724346) (:by |B1y7Rc-Zz)
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1630085724346) (:by |B1y7Rc-Zz) (:text |comp-icon)
@@ -3465,8 +3465,10 @@
                                       |r $ %{} :Expr (:at 1608183909074) (:by |B1y7Rc-Zz)
                                         :data $ {}
                                           |T $ %{} :Leaf (:at 1608183909074) (:by |B1y7Rc-Zz) (:text |d!)
-                                          |j $ %{} :Leaf (:at 1608183909074) (:by |B1y7Rc-Zz) (:text |:effect/read-branches)
-                                          |r $ %{} :Leaf (:at 1608183909074) (:by |B1y7Rc-Zz) (:text |nil)
+                                          |j $ %{} :Expr (:at 1748541349637) (:by |B1y7Rc-Zz)
+                                            :data $ {}
+                                              |D $ %{} :Leaf (:at 1748541350988) (:by |B1y7Rc-Zz) (:text |::)
+                                              |T $ %{} :Leaf (:at 1608183909074) (:by |B1y7Rc-Zz) (:text |:effect/read-branches)
                       |v $ %{} :Expr (:at 1608183909074) (:by |B1y7Rc-Zz)
                         :data $ {}
                           |T $ %{} :Leaf (:at 1608183909074) (:by |B1y7Rc-Zz) (:text |=<)
@@ -6132,7 +6134,6 @@
                                     :data $ {}
                                       |D $ %{} :Leaf (:at 1696743762229) (:by |B1y7Rc-Zz) (:text |::)
                                       |L $ %{} :Leaf (:at 1696743762664) (:by |B1y7Rc-Zz) (:text |:effect/read-branches)
-                                      |T $ %{} :Leaf (:at 1566905945245) (:by |B1y7Rc-Zz) (:text |branch-name)
         |force-push! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1545211326062) (:by |root)
             :data $ {}
@@ -6242,7 +6243,6 @@
                                     :data $ {}
                                       |D $ %{} :Leaf (:at 1693978255802) (:by |B1y7Rc-Zz) (:text |::)
                                       |L $ %{} :Leaf (:at 1693978256435) (:by |B1y7Rc-Zz) (:text |:effect/read-branches)
-                                      |T $ %{} :Leaf (:at 1545825603187) (:by |root) (:text |branch-name)
         |pull-current! $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1545211247969) (:by |root)
             :data $ {}
@@ -7149,7 +7149,6 @@
                                     :data $ {}
                                       |D $ %{} :Leaf (:at 1693978008453) (:by |B1y7Rc-Zz) (:text |::)
                                       |L $ %{} :Leaf (:at 1693978008903) (:by |B1y7Rc-Zz) (:text |:effect/read-branches)
-                                      |T $ %{} :Leaf (:at 1545825066025) (:by |root) (:text |branch-name)
       :ns $ %{} :CodeEntry (:doc |)
         :code $ %{} :Expr (:at 1545189299257) (:by |root)
           :data $ {}
