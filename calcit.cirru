@@ -1,10 +1,12 @@
 
-{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |app) (:version |0.3.0)
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |app)
   :entries $ {}
     :default $ {} (:description |) (:init-fn 'app.client/main!) (:mode :native) (:reload-fn 'app.client/reload!)
-      :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/
+      :feature-policy $ {}
+      :modules $ [] |respo.calcit/ |lilac/ |recollect/ |memof/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/ |js-ffi/
       :type-slots $ {}
     :server $ {} (:description |) (:init-fn 'app.server/main!) (:mode :native) (:reload-fn 'app.server/reload!)
+      :feature-policy $ {}
       :modules $ [] |lilac/ |recollect/ |memof/ |ws-edn.calcit/ |cumulo-util.calcit/ |cumulo-reel.calcit/
       :type-slots $ {}
   :files $ {}
@@ -23,9 +25,14 @@
         |connect! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn connect! () $ let
-                url-obj $ url-parse js/location.href true
-                port $ either (-> url-obj .-query .-port) (:port config/site)
-                host $ either (-> url-obj .-query .-host) (:ws-host config/site)
+                url-obj $ unsafe-coerce (url-parse js/location.href true) JsObject
+                query $ unsafe-coerce (.-query url-obj) JsObject
+                port-value $ .?-port query
+                host-value $ .-host query
+                port $ if (js-present? port-value) (unsafe-coerce port-value String)
+                  option:unwrap-or (&map:get config/site :port) 0
+                host $ if (js-present? host-value) (unsafe-coerce host-value String)
+                  option:unwrap-or (&map:get config/site :ws-host) |
               ws-connect! (str |ws:// host |: port)
                 {}
                   :on-open $ fn (event) (simulate-login!)
@@ -70,7 +77,10 @@
               js/window.addEventListener |keydown $ fn (event) (on-keydown event)
               println "|App started!"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ []
+              :features $ #{} :js-ffi
         |mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
@@ -95,15 +105,17 @@
                   and (.-metaKey event)
                     = |k $ .-key event
                   dispatch! $ :: :process/clear-logs
-                :else nil
+                true nil
           :examples $ []
           :schema $ :: 'Dynamic
         |on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn on-server-data (data)
-              case-default (:kind data) (println "|unknown server data kind:" data)
+              case-default
+                option:unwrap-or (&map:get data :kind) nil
+                (println "|unknown server data kind:" data)
                 :patch $ let
-                    changes $ :data data
+                    changes $ option:unwrap-or (&map:get data :data) {}
                   when config/dev? $ js/console.log |Changes changes
                   reset! *store $ patch-twig @*store changes
           :examples $ []
@@ -122,17 +134,22 @@
         |render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target
-              comp-container (:states @*states) @*store
+              comp-container
+                option:unwrap-or (&map:get @*states :states) {}
+                , @*store
               , dispatch!
           :examples $ []
           :schema $ :: 'Dynamic
         |simulate-login! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn simulate-login! () $ let
-                raw $ .!getItem js/localStorage (:storage-key config/site)
-              if (some? raw)
+                storage $ unsafe-coerce js/localStorage JsObject
+                raw $ .!getItem storage
+                  option:unwrap-or (&map:get config/site :storage-key) |
+              if (js-present? raw)
                 do (println "|Found storage.")
-                  dispatch! $ :: :user/log-in (parse-cirru-edn raw)
+                  dispatch! $ :: :user/log-in
+                    parse-cirru-edn $ unsafe-coerce raw String
                 do $ println "|Found no storage."
           :examples $ []
           :schema $ :: 'Dynamic
@@ -157,26 +174,37 @@
           :code $ quote
             defcomp comp-container (states store)
               let
-                  state $ :data states
-                  session $ :session store
-                  router $ :router store
-                  router-data $ :data router
-                  repo $ :repo store
+                  state $ option:unwrap-or (&map:get states :data) {}
+                  session $ option:unwrap-or (&map:get store :session) {}
+                  router $ option:unwrap-or (&map:get store :router) {}
+                  router-data $ option:unwrap-or (&map:get router :data) {}
+                  repo $ option:unwrap-or (&map:get store :repo) {}
+                  logged-in? $ option:unwrap-or (&map:get store :logged-in?) false
+                  member-count $ option:unwrap-or (&map:get store :count) 0
                 if (nil? store) (comp-offline)
                   div
                     {} $ :class-name (str-spaced css/global css/fullscreen css/column)
-                    comp-navigation (>> states :nav) (:logged-in? store) (:count store) repo
-                    case-default (:name router) (<> router)
-                      :home $ comp-home (>> states :home) repo (:logs store) (:process-status store) (:footprints store)
-                      :profile $ comp-profile (:user store) (:data router)
-                    comp-status-color $ :color store
+                    comp-navigation (>> states :nav) logged-in? member-count repo
+                    case-default
+                      option:unwrap-or (&map:get router :name) nil
+                      <> router
+                      :home $ comp-home (>> states :home) repo
+                        (option:unwrap-or (&map:get store :logs) {})
+                        (option:unwrap-or (&map:get store :process-status) {})
+                        (option:unwrap-or (&map:get store :footprints) {})
+                      :profile $ comp-profile
+                        option:unwrap-or (&map:get store :user) {}
+                        , router-data
+                    comp-status-color $ option:unwrap-or (&map:get store :color) nil
                     when dev? $ comp-inspect |Store store
                       {} (:bottom 0) (:left 0) (:max-width |100%)
                     comp-messages
                       get-in store $ [] :session :messages
                       {}
                       fn (info d! m!) (d! :session/remove-message info)
-                    if dev? $ comp-reel (:reel-length store) ({})
+                    if dev? $ comp-reel
+                      option:unwrap-or (&map:get store :reel-length) 0
+                      {}
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-offline $ %{} 'CodeEntry (:doc |)
@@ -283,8 +311,10 @@
                     {}
                       :initial $ let
                           prefix $ .!match current issue-id-pattern
-                        if (some? prefix)
-                          str (.-0 prefix) "| "
+                        if (js-present? prefix)
+                          str
+                            .-0 $ unsafe-coerce prefix JsObject
+                            , "| "
                           , |
                       :text "|Commit message"
                       :style-trigger $ {} (:margin "|0 8px") (:display :inline-block)
@@ -296,7 +326,7 @@
                       fn (e d!)
                         .show commit-plugin d! $ fn (result)
                           if
-                            not $ .blank? result
+                            not $ .blank? (unsafe-coerce result String)
                             d! :effect/commit result
                     render-button |Commit false nil
                   .render commit-plugin
@@ -320,7 +350,7 @@
                         :style $ {} (:justify-content :flex-end)
                         :on-click $ fn (e d!) (d! :effect/switch-path k)
                         :title k
-                        :tabIndex 0
+                        :tab-index 0
                       <> v
                       span
                         {} $ :class-name style-close-icon
@@ -334,15 +364,19 @@
           :code $ quote
             defcomp comp-home (states repo logs status footprints)
               let
-                  cursor $ :cursor states
-                  state $ either (:data states)
+                  cursor $ option:unwrap-or (&map:get states :cursor) []
+                  state $ option:unwrap-or (&map:get states :data)
                     {} $ :pop? false
-                  remote-branches $ -> (:remote-branches repo)
+                  current-branch $ option:unwrap-or (&map:get repo :current) |
+                  remote-branches $ ->
+                    option:unwrap-or (&map:get repo :remote-branches) #{}
                     filter $ fn (branch-path)
                       let
                           short-name $ last (.split branch-path |/)
                         and
-                          not $ contains? (:branches repo) short-name
+                          not $ contains?
+                            option:unwrap-or (&map:get repo :branches) #{}
+                            short-name
                           not= short-name |HEAD
                     .to-list
                     sort &compare
@@ -353,7 +387,12 @@
                       :style $ {} (:width 300)
                       :items remote-branches
                       :on-result $ fn (result d!)
-                        d! :effect/switch-remote-branch $ -> result (:value) (.split |/) (rest) (.join-str |/)
+                        let
+                            value $ option:unwrap-or (&map:get result :value) |
+                          d! :effect/switch-remote-branch $
+                            .join-str
+                              rest $ .split value |/
+                              , |/
                 div
                   {}
                     :class-name $ str-spaced css/row css/flex
@@ -367,9 +406,11 @@
                       div
                         {} $ :class-name css/column
                         list-> ({})
-                          -> (:branches repo) (.to-list) (sort &compare)
-                            map $ fn (branch)
-                              [] branch $ comp-branch branch (:current repo) false
+                          ->
+                            option:unwrap-or (&map:get repo :branches) #{}
+                            , .to-list (sort &compare)
+                              map $ fn (branch)
+                                [] branch $ comp-branch branch current-branch false
                         =< nil 4
                         div
                           {}
@@ -378,7 +419,7 @@
                           <> "|Remote branches" css-remote
                         =< nil 12
                         div $ {} (:class-name css/expand)
-                        comp-footprints footprints $ :upstream repo
+                        comp-footprints footprints $ option:unwrap-or (&map:get repo :upstream) |
                       comp-thin-divider
                       comp-operations (>> states :operations) repo
                   comp-thin-divider
@@ -390,15 +431,13 @@
           :code $ quote
             defcomp comp-log-chunk (log)
               let
-                  urls $ ->
-                    .!match (:text log) url-pattern
-                    to-calcit-data
-                    .to-list
+                  text $ option:unwrap-or (&map:get log :text) |
+                  kind $ option:unwrap-or (&map:get log :kind) nil
+                  urls $ -> (.!match text url-pattern) (to-calcit-data) (.to-list)
                 div
                   {} $ :style
                     {} $ :position :relative
-                  pre $ {} (:class-name css-log)
-                    :inner-text $ :text log
+                  pre $ {} (:class-name css-log) (:inner-text text)
                   if-not (empty? urls)
                     list-> ({})
                       -> urls $ map
@@ -406,8 +445,7 @@
                           [] url $ a
                             {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
                               :style $ {} (:line-height |16px) (:height |16px)
-                  if
-                    = :command $ :kind log
+                  if (= :command kind)
                     div
                       {} $ :style
                         {} (:position :absolute) (:top 12) (:right 12)
@@ -415,10 +453,12 @@
                         {} (:font-size 16)
                           :color $ hsl 200 80 64
                           :cursor :pointer
-                        fn (e d! m!)
-                          copy! $ :text log
+                        fn (e d! m!) (copy! text)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'respo.schema/Component)
+              :args $ [] 'Dynamic
+              :features $ #{} :js-ffi
         |comp-logs $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-logs (logs status)
@@ -475,7 +515,10 @@
                     :style $ {} (:overflow :auto)
                   -> logs (.to-list)
                     .sort-by $ fn (pair)
-                      negate $ :time (last pair)
+                      let
+                          item $ option:unwrap-or (last pair) {}
+                          time $ option:unwrap-or (&map:get item :time) 0
+                        negate time
                     .map-pair $ fn (id log)
                       [] id $ comp-log-chunk log
           :examples $ []
@@ -497,7 +540,7 @@
                       fn (e d!)
                         .show branch-plugin d! $ fn (result)
                           if
-                            not $ .blank? result
+                            not $ .blank? (unsafe-coerce result String)
                             d! :effect/new-branch result
                     render-button "|New Branch" false nil
                     .render branch-plugin
@@ -506,42 +549,43 @@
         |comp-operations $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-operations (states repo)
-              div
-                {} $ :class-name (str-spaced css/flex css/column)
-                if
-                  default-branch? $ :current repo
-                  div ({}) (comp-title |Basic)
-                    div
-                      {} $ :class-name css/row
-                      render-button |Pull false $ fn (e d!)
-                        d! $ :: :effect/pull-current
-                    comp-title |Others
-                    div
-                      {} $ :class-name css/row
-                      comp-new-branch $ >> states :branch
-                  div ({}) (comp-title |Basic)
-                    div ({})
-                      render-button |Push false $ fn (e d!)
-                        d! $ :: :effect/push-current
-                      render-button |Pull false $ fn (e d!)
-                        d! $ :: :effect/pull-current
-                      render-button |Finish false $ fn (e d!)
-                        d! $ :: :effect/finish-branch
-                      render-button |RmRemote false $ fn (e d!)
-                        d! $ :: :effect/rm-remote
-                    comp-title |Other
-                    div ({})
-                      comp-new-branch $ >> states :branch
-                      comp-commit (>> states :commit) (:current repo)
-                    comp-title |Forced
-                    div ({})
-                      render-button "|Rebase main" true $ fn (e d!) (d! :effect/rebase-master nil)
-                      render-button "|Force push" true $ fn (e d!) (d! :effect/force-push nil)
-                =< nil 24
-                comp-title |Editor
-                div ({})
-                  render-button "|code ./" false $ fn (e d!) (d! :effect/edit-with |code)
-                  render-button "|subl ./" false $ fn (e d!) (d! :effect/edit-with |subl)
+              let
+                  current $ option:unwrap-or (&map:get repo :current) |
+                div
+                  {} $ :class-name (str-spaced css/flex css/column)
+                  if (default-branch? current)
+                    div ({}) (comp-title |Basic)
+                      div
+                        {} $ :class-name css/row
+                        render-button |Pull false $ fn (e d!)
+                          d! $ :: :effect/pull-current
+                      comp-title |Others
+                      div
+                        {} $ :class-name css/row
+                        comp-new-branch $ >> states :branch
+                    div ({}) (comp-title |Basic)
+                      div ({})
+                        render-button |Push false $ fn (e d!)
+                          d! $ :: :effect/push-current
+                        render-button |Pull false $ fn (e d!)
+                          d! $ :: :effect/pull-current
+                        render-button |Finish false $ fn (e d!)
+                          d! $ :: :effect/finish-branch
+                        render-button |RmRemote false $ fn (e d!)
+                          d! $ :: :effect/rm-remote
+                      comp-title |Other
+                      div ({})
+                        comp-new-branch $ >> states :branch
+                        comp-commit (>> states :commit) current
+                      comp-title |Forced
+                      div ({})
+                        render-button "|Rebase main" true $ fn (e d!) (d! :effect/rebase-master nil)
+                        render-button "|Force push" true $ fn (e d!) (d! :effect/force-push nil)
+                  =< nil 24
+                  comp-title |Editor
+                  div ({})
+                    render-button "|code ./" false $ fn (e d!) (d! :effect/edit-with |code)
+                    render-button "|subl ./" false $ fn (e d!) (d! :effect/edit-with |subl)
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-quick-ops $ %{} 'CodeEntry (:doc |)
@@ -581,10 +625,13 @@
                   button $ {} (:class-name css-button) (:inner-text |Tag)
                     :on-click $ fn (e d!) (d! :effect/show-version nil)
                       .show tag-plugin d! $ fn (result)
-                        if-not (.blank? result)
+                        if-not
+                          .blank? $ unsafe-coerce result String
                           let
-                              tag $ .trim result
-                            when-not (.blank? tag) (d! :effect/add-tag tag)
+                              tag $ .trim (unsafe-coerce result String)
+                            when-not
+                              .blank? $ unsafe-coerce tag String
+                              d! :effect/add-tag tag
                   .render tag-plugin
                   .render branch-plugin
           :examples $ []
@@ -682,7 +729,10 @@
           :code $ quote
             def issue-id-pattern $ new js/RegExp "|\\w+-\\d+(?=-)"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'JsObject)
+              :args $ []
+              :features $ #{} :js-ffi
         |numbers-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def numbers-pattern $ new js/RegExp |^\d+$
@@ -718,7 +768,10 @@
           :code $ quote
             def url-pattern $ new js/RegExp |https?://\S+
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'JsObject)
+              :args $ []
+              :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.home $ :require
@@ -807,9 +860,12 @@
           :code $ quote
             defcomp comp-navigation (states logged-in? count-members repo)
               let
-                  upstream $ :upstream repo
-                  address $ :address (wo-js-log repo)
-                  git-url $ case-default (:host-kind repo)
+                  upstream $ option:unwrap-or (&map:get repo :upstream) |
+                  address $ option:unwrap-or
+                    &map:get (wo-js-log repo) :address
+                    , |
+                  git-url $ case-default
+                    option:unwrap-or (&map:get repo :host-kind) :unknown
                     if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
                     :github $ str |https://github.com/ upstream
                 div
@@ -868,7 +924,7 @@
         |replace-git-at-url $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn replace-git-at-url (address)
-              -> address (.!replace |git@ |https://) (.replace |.com: |.com/)
+              -> (unsafe-coerce address String) (.replace |git@ |https://) (.replace |.com: |.com/)
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -893,7 +949,8 @@
                 div
                   {} $ :style
                     {} (:font-family ui/font-fancy) (:font-size 32) (:font-weight 100)
-                  <> $ str "|Hello! " (:name user)
+                  <> $ str "|Hello! "
+                    option:unwrap-or (&map:get user :name) |
                 =< nil 16
                 div
                   {} $ :class-name css/row
@@ -949,7 +1006,8 @@
           :schema $ :: 'Dynamic
         |dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |relese)
+            def dev? $ = |dev
+              option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Dynamic
         |site $ %{} 'CodeEntry (:doc |)
@@ -964,7 +1022,11 @@
         |run-mode $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def run-mode $ if
-              = (aget js/process.argv 2) |switch
+              =
+                unsafe-coerce
+                  aget (unsafe-coerce js/process.argv JsObject) 2
+                  , String
+                , |switch
               , :switch :server
           :examples $ []
           :schema $ :: 'Dynamic
@@ -973,8 +1035,10 @@
             def shell-env $ if (= run-mode :switch) nil
               {} $ :github-token
                 let
-                    token $ aget js/process.env |GITHUB_TOKEN
-                  when (nil? token)
+                    token $ unsafe-coerce
+                      aget (unsafe-coerce js/process.env JsObject) |GITHUB_TOKEN
+                      , String
+                  when (js-nullish? token)
                     println $ .!red chalk "|GITHUB_TOKEN not found in shell"
                   , token
           :examples $ []
@@ -995,8 +1059,11 @@
               let
                   has-npm-config? $ fs/existsSync |package.json
                   current $ cond
-                    has-npm-config? $ .-version
-                      js/JSON.parse $ fs/readFileSync |package.json |utf8
+                    has-npm-config? $ unsafe-coerce
+                      .-version $ unsafe-coerce
+                        js/JSON.parse $ fs/readFileSync |package.json |utf8
+                        , JsObject
+                      , String
                     true |0.0.0
                   use-current? $ or (= current tag-version) (.!test dots-pattern tag-version)
                   target-version $ if use-current? current tag-version
@@ -1122,7 +1189,8 @@
           :schema $ :: 'Dynamic
         |read-branches! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn read-branches! (d!) (hint-fn async)
+            defn read-branches! (d!)
+              hint-fn $ {} (:async true)
               let
                   ch-branches $ new js/Promise
                     fn (resolve reject)
@@ -1178,24 +1246,28 @@
                   {}
                     :pid $ .-pid proc
                     :command command
-                .!on (.-stdout proc) |data $ fn (chunk)
-                  d! $ :: :process/log
-                    {}
-                      :id $ nanoid
-                      :time $ js/Date.now
-                      :text chunk
-                      :kind :log
-                .!on (.-stderr proc) |data $ fn (chunk)
-                  d! $ :: :process/log
-                    {}
-                      :id $ nanoid
-                      :time $ js/Date.now
-                      :text chunk
-                      :kind :error
-                .!on proc |exit $ fn (event _)
+                .!on
+                  unsafe-coerce (.-stdout proc) JsObject
+                  , |data $ fn (chunk)
+                    d! $ :: :process/log
+                      {}
+                        :id $ nanoid
+                        :time $ js/Date.now
+                        :text chunk
+                        :kind :log
+                .!on
+                  unsafe-coerce (.-stderr proc) JsObject
+                  , |data $ fn (chunk)
+                    d! $ :: :process/log
+                      {}
+                        :id $ nanoid
+                        :time $ js/Date.now
+                        :text chunk
+                        :kind :error
+                .!on (unsafe-coerce proc JsObject) |exit $ fn (event _)
                   d! $ :: :process/finish (.-pid proc)
                   let
-                      on-finish $ :on-finish options
+                      on-finish $ option:unwrap-or (get options :on-finish) nil
                     if (fn? on-finish) (on-finish)
                 .!on proc |error $ fn (error) (js/console.error error)
           :examples $ []
@@ -1247,7 +1319,7 @@
                 dispatch! (:: :repo/set-upstream upstream) |system
                 dispatch! (:: :effect/read-branches) |system
                 dispatch!
-                  :: :session/track-footprint $ [] new-path (:upstream upstream)
+                  :: :session/track-footprint new-path $ option:unwrap-or (get upstream :upstream) nil
                   , |system
                 println "|Switching to" new-path
                 dispatch! $ :: :process/log
@@ -1360,17 +1432,19 @@
         |check-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn check-version! () $ let
-                pkg $ js/JSON.parse
-                  fs/readFileSync $ path/join
-                    dirname $ fileURLToPath js/import.meta.url
-                    , |../package.json
-                version $ .-version pkg
+                pkg $ unsafe-coerce
+                  js/JSON.parse $ fs/readFileSync
+                    path/join
+                      dirname $ fileURLToPath js/import.meta.url
+                      , |../package.json
+                  JsObject
+                version $ unsafe-coerce (.-version pkg) String
               ->
-                latest-version $ .-name pkg
+                unsafe-coerce (.-name pkg) JsObject
                 .!then $ fn (npm-version)
                   if (= npm-version version) (println "|Running latest version" version)
                     println $ .!yellow chalk (str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n")
-                .!catch $ fn (err) (js/console.error err)
+                .catch $ fn (err) (js/console.error err)
           :examples $ []
           :schema $ :: 'Dynamic
         |command $ %{} 'CodeEntry (:doc |)
@@ -1387,11 +1461,18 @@
                   d! $ fn (op' ? sid')
                     dispatch! op' $ either sid' sid
                   db $ :db @*reel
-                  current $ get-in db ([] :repo :current)
-                  upstream $ get-in db ([] :repo :upstream)
-                  host-kind $ get-in db ([] :repo :host-kind)
+                  current $ option:unwrap-or
+                    get-in db $ [] :repo :current
+                    , nil
+                  upstream $ option:unwrap-or
+                    get-in db $ [] :repo :upstream
+                    , nil
+                  host-kind $ option:unwrap-or
+                    get-in db $ [] :repo :host-kind
+                    , nil
                   main-branch $ detects-main
-                    :branches $ :repo db
+                    {} $ :branches
+                      option:unwrap-or (get db :repo) {}
                 if config/dev? $ println |Dispatch! sid op
                 try
                   tag-match op
@@ -1438,14 +1519,14 @@
             defn listen-to-switching! () $ js/process.on |SIGHUP
               fn (e _)
                 let
-                    new-path $ fs/readFileSync wd-file-path |utf8
+                    new-path $ unsafe-coerce (fs/readFileSync wd-file-path |utf8) String
                   js/process.chdir new-path
                   let
                       upstream $ manager/get-upstream!
                     dispatch! (:: :repo/set-upstream upstream) |system
                     dispatch! (:: :effect/read-branches) |system
                     dispatch!
-                      :: :session/track-footprint $ [] new-path (:upstream upstream)
+                      :: :session/track-footprint new-path $ option:unwrap-or (get upstream :upstream) nil
                       , |system
                     println "|Switching to" new-path
           :examples $ []
@@ -1460,11 +1541,15 @@
             defn main-server! ()
               println "|Running mode:" $ if config/dev? |dev |release
               let
-                  port $ js/parseInt
-                    or js/process.env.port $ :port config/site
-                  url-obj $ url-parse |https://r.tiye.me/worktools/rebase-hell/ true
+                  port $ let
+                      port-value $ .?-port js/process.env
+                    js/parseInt $ if (js-present? port-value) (unsafe-coerce port-value String)
+                      unsafe-coerce (:port config/site) String
+                  url-obj $ unsafe-coerce (url-parse |https://r.tiye.me/worktools/rebase-hell/ true) JsObject
                 run-server! port
-                set! (-> url-obj .-query .-port) port
+                js-set
+                  unsafe-coerce (.-query url-obj) JsObject
+                  , :port port
                 let
                     address $ .!blue chalk (.!toString url-obj)
                   println $ str "|Server started. Open editor on " address
@@ -1472,10 +1557,11 @@
               ; js/process.on |SIGINT on-exit!
               ; repeat! 600 $ "#()" persist-db!
               let
-                  upstream $ w-log (manager/get-upstream!)
+                  upstream manager/get-upstream!
                 dispatch! (:: :repo/set-upstream upstream) |system
                 dispatch!
-                  :: :session/track-footprint $ [] (js/process.cwd) (:upstream upstream)
+                  :: :session/track-footprint (js/process.cwd)
+                    option:unwrap-or (get upstream :upstream) nil
                   , |system
               listen-to-switching!
               check-version!
@@ -1485,11 +1571,11 @@
           :code $ quote
             defn main-switch! () $ let
                 port $ :port config/site
-                previous-port $ ->
-                  cp/execSync $ str "|lsof -ti tcp:" port "| -sTCP:LISTEN"
-                  , .!toString .!trim
+                previous-port $ let
+                    raw-port $ cp/execSync (str "|lsof -ti tcp:" port "| -sTCP:LISTEN")
+                  .trim $ unsafe-coerce (.!toString raw-port) String
                 git-path $ find-git-path (js/process.cwd)
-              when (nil? git-path)
+              when (js-nullish? git-path)
                 println $ .!red chalk "|Missing .git/ folder, not a valid path!"
                 js/process.exit 1
               fs/writeFileSync wd-file-path git-path
@@ -1561,8 +1647,8 @@
             defn sync-clients! (reel)
               wss-each! $ fn (sid socket)
                 let
-                    db $ :db reel
-                    records $ :records reel
+                    db $ option:unwrap-or (get reel :db) {}
+                    records $ option:unwrap-or (get reel :records) []
                     session $ get-in db ([] :sessions sid)
                     old-store $ or (get @*client-caches sid) nil
                     new-store $ twig-container db session records
@@ -1647,26 +1733,34 @@
           :code $ quote
             defn twig-container (db session records)
               let
-                  logged-in? $ some? (:user-id session)
-                  router $ :router session
+                  logged-in? $ option:some? (get session :user-id)
+                  router $ option:unwrap-or (get session :router) {}
                   base-data $ {} (:logged-in? logged-in?) (:session session)
                     :reel-length $ count records
                 merge base-data $ {}
                   :user $ twig-user
-                    get-in db $ [] :users (:user-id session)
+                    option:unwrap-or
+                      get-in db $ [] :users
+                        option:unwrap-or (get session :user-id) nil
+                      , nil
                   :router $ assoc
                     or router $ {}
                     , :data
-                      case-default (:name router) ({})
-                        :home $ :pages db
-                        :profile $ twig-members (:sessions db) (:users db)
-                  :count $ count (:sessions db)
+                      case-default
+                        option:unwrap-or (get router :name) nil
+                        {}
+                        :home $ option:unwrap-or (get db :pages) {}
+                        :profile $ twig-members
+                          option:unwrap-or (get db :sessions) {}
+                          option:unwrap-or (get db :users) {}
+                  :count $ count
+                    option:unwrap-or (get db :sessions) {}
                   ; :color $ color/randomColor
-                  :repo $ :repo db
-                  :logs $ :logs db
+                  :repo $ option:unwrap-or (get db :repo) {}
+                  :logs $ option:unwrap-or (get db :logs) {}
                   :shell-env shell-env
-                  :process-status $ :process-status db
-                  :footprints $ :footprints db
+                  :process-status $ option:unwrap-or (get db :process-status) {}
+                  :footprints $ option:unwrap-or (get db :footprints) {}
           :examples $ []
           :schema $ :: 'Dynamic
         |twig-members $ %{} 'CodeEntry (:doc |)
@@ -1674,8 +1768,11 @@
             defn twig-members (sessions users)
               -> sessions $ .map-kv
                 fn (k session)
-                  [] k $ get-in users
-                    [] (:user-id session) :name
+                  [] k $ option:unwrap-or
+                    get-in users $ []
+                      option:unwrap-or (get session :user-id) nil
+                      , :name
+                    , |
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -1733,7 +1830,9 @@
                 -> logs $ .map-kv
                   fn (k log)
                     if
-                      > (:time log) (- op-time 600)
+                      >
+                        option:unwrap-or (get log :time) 0
+                        - op-time 600
                       [] k log
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1747,9 +1846,13 @@
           :code $ quote
             defn log (db op-data sid op-id op-time)
               if
-                .blank? $ :text op-data
+                .blank? $ unsafe-coerce
+                  unsafe-coerce
+                    option:unwrap-or (get op-data :text) |
+                    , String
+                  , String
                 , db $ assoc-in db
-                  [] :logs $ :id op-data
+                  [] :logs $ option:unwrap-or (get op-data :id) nil
                   , op-data
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1757,8 +1860,8 @@
           :code $ quote
             defn start (db op-data sid op-id op-time)
               let
-                  pid $ :pid op-data
-                  command $ :command op-data
+                  pid $ option:unwrap-or (get op-data :pid) nil
+                  command $ option:unwrap-or (get op-data :command) |
                 assoc-in db ([] :process-status pid) command
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1782,9 +1885,12 @@
           :code $ quote
             defn set-upstream (db op-data sid op-id op-time)
               -> db
-                assoc-in ([] :repo :upstream) (:upstream op-data)
-                assoc-in ([] :repo :host-kind) (:host-kind op-data)
-                assoc-in ([] :repo :address) (:address op-data)
+                assoc-in ([] :repo :upstream)
+                  option:unwrap-or (get op-data :upstream) nil
+                assoc-in ([] :repo :host-kind)
+                  option:unwrap-or (get op-data :host-kind) nil
+                assoc-in ([] :repo :address)
+                  option:unwrap-or (get op-data :address) nil
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -1806,7 +1912,7 @@
             defn add-message (db op-data sid op-id op-time)
               update-in db ([] :sessions sid :messages)
                 fn (messages)
-                  assoc messages op-id $ merge op-data
+                  assoc (option:unwrap-or messages {}) op-id $ merge op-data
                     {} $ :id op-id
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1834,7 +1940,8 @@
             defn remove-message (db op-data sid op-id op-time)
               update-in db ([] :sessions sid :messages)
                 fn (messages)
-                  dissoc messages $ :id op-data
+                  dissoc (option:unwrap-or messages {})
+                    option:unwrap-or (get op-data :id) nil
           :examples $ []
           :schema $ :: 'Dynamic
         |track-footprint $ %{} 'CodeEntry (:doc |)
@@ -1858,21 +1965,44 @@
               let-sugar
                     [] username password
                     , op-data
-                  maybe-user $ -> (:users db) (vals) (.to-list)
+                  maybe-user $ ->
+                    option:unwrap-or (get db :users) {}
+                    vals
+                    .to-list
                     find $ fn (user)
-                      and $ = username (:name user)
+                      and $ = username
+                        option:unwrap-or (get user :name) |
                 update-in db ([] :sessions sid)
                   fn (session)
-                    if (some? maybe-user)
+                    if (option:some? maybe-user)
                       if
-                        = (md5 password) (:password maybe-user)
-                        assoc session :user-id $ :id maybe-user
-                        update session :messages $ fn (messages)
-                          assoc messages op-id $ {} (:id op-id)
-                            :text $ str "|Wrong password for " username
-                      update session :messages $ fn (messages)
-                        assoc messages op-id $ {} (:id op-id)
-                          :text $ str "|No user named: " username
+                        = (md5 password)
+                          option:unwrap-or
+                            get (option:unwrap-or maybe-user nil) :password
+                            , |
+                        assoc
+                          option:unwrap-or session $ {} (:user-id nil)
+                          , :user-id $ option:unwrap-or
+                            get (option:unwrap-or maybe-user nil) :id
+                            , nil
+                        update
+                          option:unwrap-or session $ {} (:user-id nil)
+                          , :messages $ fn (messages)
+                            assoc
+                              option:unwrap-or messages $ unsafe-coerce
+                                {} $ :id nil
+                                , Dynamic
+                              , op-id $ {} (:id op-id)
+                                :text $ str "|Wrong password for " username
+                      update
+                        option:unwrap-or session $ {} (:user-id nil)
+                        , :messages $ fn (messages)
+                          assoc
+                            option:unwrap-or messages $ unsafe-coerce
+                              {} $ :id nil
+                              , Dynamic
+                            , op-id $ {} (:id op-id)
+                              :text $ str "|No user named: " username
           :examples $ []
           :schema $ :: 'Dynamic
         |log-out $ %{} 'CodeEntry (:doc |)
@@ -1888,13 +2018,13 @@
                     [] username password
                     , op-data
                   maybe-user $ find
-                    vals $ :users db
+                    vals $ option:unwrap-or (get db :users) {}
                     fn (user)
-                      = username $ :name user
-                if (some? maybe-user)
+                      = username $ option:unwrap-or (get user :name) |
+                if (option:some? maybe-user)
                   update-in db ([] :sessions sid :messages)
                     fn (messages)
-                      assoc messages op-id $ {} (:id op-id)
+                      assoc (option:unwrap-or messages {}) op-id $ {} (:id op-id)
                         :text $ str "|Name is taken: " username
                   -> db
                     assoc-in ([] :sessions sid :user-id) op-id
@@ -1921,7 +2051,7 @@
                     :host-kind $ if (.includes? url |github.com) :github :unknown
                 (.starts-with? url |https://)
                   {} (:address url)
-                    :upstream $ -> url .trim (.split |:) last (.!replace |//github.com/ |) (.!replace |.git |)
+                    :upstream $ -> url .trim (.split |:) last (.replace |//github.com/ |) (.replace |.git |)
                     :host-kind $ if (.includes? url |github.com) :github :unknown
                 true $ raise (str "|Invalid url:" url)
           :examples $ []
@@ -1939,7 +2069,10 @@
         |read-items $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn read-items (x)
-              -> (or x |) (.trim) (.split &newline)
+              ->
+                unsafe-coerce (or x |) String
+                .trim
+                .split &newline
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)

@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@calcit/procs@^0.13.19":
-  version "0.13.19"
-  resolved "https://registry.npmmirror.com/@calcit/procs/-/procs-0.13.19.tgz#056981746c11f7d15fec54e94242cf9c8d208fff"
-  integrity sha512-RXB9EdhXnFd90zim3+ZGlrzjxHP2Y7oWnGRUvSLXXyLNul+ZMqFaD/h1sM8cuieDY4IJZ96Gm9weugwANpsNYw==
+"@calcit/procs@^0.13.27":
+  version "0.13.27"
+  resolved "https://registry.npmmirror.com/@calcit/procs/-/procs-0.13.27.tgz#bb41d505afcd3f3b91f277353768373f5fbb7454"
+  integrity sha512-aw5xwZBYL1ndpoiqaFmRw88xVyonnSIvZC6O3k1vuPZBul4R5qNicm/U3vgBFrMiNciWCDT0hklxu9IcGWoMBw==
   dependencies:
     "@calcit/ternary-tree" "0.0.26"
     "@cirru/parser.ts" "^0.0.9"
@@ -326,6 +326,11 @@ charenc@0.0.2:
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
   integrity sha512-yrLQ/yVUFXkzg7EDQsPieE/53+0RlaWTs+wBrvW36cyilJ2SaDWfl4Yj7MtLTXleV9uEKefbAGUPv2/iWSooRA==
+
+cirru-color@^0.2.4:
+  version "0.2.4"
+  resolved "https://registry.npmmirror.com/cirru-color/-/cirru-color-0.2.4.tgz#19c5cb33cbf45d5bcccf8ecf1e45ef5673962a7a"
+  integrity sha512-2ruNYgSyzrXirizCk2r9LNeu9+BXxEHNQVS1/RE2P7b1xoMjfYRiOpRaX2ecyCu4oF4HJGwYWi8vamiXI8ADEQ==
 
 classnames@^2.2.5:
   version "2.5.1"
