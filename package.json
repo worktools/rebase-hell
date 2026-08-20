@@ -7,8 +7,8 @@
     "rebase-hell": "./bin.js"
   },
   "scripts": {
-    "compile-server": "cr -1 --entry server js",
-    "compile-page": "cr -1 --emit-path out-page js",
+    "compile-server": "cr --entry server js",
+    "compile-page": "cr --emit-path out-page js",
     "release-page": "vite build --base=./",
     "watch-page": "cr --emit-path out-page/ js",
     "watch-server": "cr --entry server js"
@@ -20,7 +20,7 @@
   "author": "jiyinyiyong",
   "license": "MIT",
   "dependencies": {
-    "@calcit/procs": "^0.9.11",
+    "@calcit/procs": "^0.13.27",
     "axios": "^1.9.0",
     "chalk": "^5.4.1",
     "dayjs": "^1.11.13",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "bottom-tip": "^0.1.5",
+    "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.0",
     "feather-icons": "^4.29.2",
     "vite": "^6.3.5"
