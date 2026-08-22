@@ -1294,7 +1294,7 @@
                     run-command! "|cat release.edn | grep :version" d! $ {}
                       :on-finish $ fn ()
                   (pos? (.!indexOf files |calcit.cirru))
-                    run-command! "|cat calcit.cirru | grep version\\n" d! $ {}
+                    run-command! "|cat calcit.cirru | grep version" d! $ {}
                       :on-finish $ fn ()
                   (some? maybe-nimble)
                     run-command! (str "|cat " maybe-nimble "| | grep version") d! $ {}
@@ -1437,7 +1437,7 @@
                     path/join
                       dirname $ fileURLToPath js/import.meta.url
                       , |../package.json
-                  :: JsObject
+                  , JsObject
                 version $ unsafe-coerce (.-version pkg) String
               ->
                 unsafe-coerce (.-name pkg) JsObject
