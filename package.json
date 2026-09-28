@@ -9,7 +9,7 @@
   "scripts": {
     "compile-server": "calcit calcit.cirru --entry server js",
     "compile-page": "calcit calcit.cirru --emit-path out-page js",
-    "release-page": "vite build --base=./",
+    "release-page": "vite build",
     "watch-page": "calcit calcit.cirru --emit-path out-page/ js",
     "watch-server": "calcit calcit.cirru --entry server js"
   },

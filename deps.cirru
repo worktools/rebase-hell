@@ -8,7 +8,8 @@
     |Respo/respo-markdown.calcit |0.4.22
     |Respo/respo-message.calcit |0.0.13
     |Respo/respo-ui.calcit |0.7.9
-    |Respo/respo.calcit |0.16.78
+    |Respo/respo-value.calcit |0.5.0
+    |Respo/respo.calcit |0.16.80
     |calcit-lang/js-ffi |0.1.9
     |calcit-lang/lilac |0.5.2
     |calcit-lang/memof |0.0.26
