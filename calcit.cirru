@@ -2051,9 +2051,15 @@
               (:session/disconnect) (session/disconnect db sid)
               (:session/remove-message data) (session/remove-message db data sid)
               (:session/add-message data) (session/add-message db data sid op-id)
-              (:user/log-in data) (user/log-in db data sid op-id op-time)
-              (:user/sign-up data) (user/sign-up db data sid op-id op-time)
-              (:user/log-out) (user/log-out db sid op-id op-time)
+              (:user/log-in data)
+                user/log-in db
+                  decode-map-as data $ :: 'List 'String
+                  , sid op-id
+              (:user/sign-up data)
+                user/sign-up db
+                  decode-map-as data $ :: 'List 'String
+                  , sid op-id
+              (:user/log-out) (user/log-out db sid)
               (:router/change data) (router/change db data sid op-id op-time)
               (:repo/set-branches data) (repo/set-repo db data sid op-id op-time)
               (:repo/set-current data) (repo/set-current db data)
@@ -2243,82 +2249,100 @@
           :require $ [] app.schema :as schema
     'app.updater.user $ %{} 'FileEntry
       :defs $ {}
-        'log-in $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn log-in (db op-data sid op-id op-time)
-            let-sugar
-                  [] username password
-                  , op-data
-                maybe-user $ ->
-                  option:unwrap-or (get db :users) {}
-                  vals
-                  .to-list
-                  find $ fn (user)
-                    and $ = username $ option:unwrap-or (get user :name) |
-              update-in db ([] :sessions sid)
-                fn (session)
-                  if (option:some? maybe-user)
-                    if
-                      = (md5 password)
-                        option:unwrap-or
-                          get (option:unwrap-or maybe-user nil) :password
-                          , |
-                      assoc
-                        option:unwrap-or session $ {} $ :user-id nil
-                        , :user-id $ option:unwrap-or
-                          get (option:unwrap-or maybe-user nil) :id
-                          , nil
-                      update
-                        option:unwrap-or session $ {} $ :user-id nil
-                        , :messages $ fn (messages)
-                          assoc
-                            option:unwrap-or messages $ unsafe-coerce
-                              {} $ :id nil
-                              , Dynamic
-                            , op-id $ {} (:id op-id)
-                              :text $ str "|Wrong password for " username
-                    update
-                      option:unwrap-or session $ {} $ :user-id nil
-                      , :messages $ fn (messages)
-                        assoc
-                          option:unwrap-or messages $ unsafe-coerce
-                            {} $ :id nil
-                            , Dynamic
-                          , op-id $ {} (:id op-id)
-                            :text $ str "|No user named: " username
+        'find-user $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn find-user (db username)
+            let
+                users $ decode-map-as
+                  option:unwrap-or (get db :users) ({})
+                  :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              find
+                .to-list $ vals users
+                fn (user)
+                  hint-fn $ {}
+                    :args $ [] $ :: 'Map 'Tag 'Dynamic
+                    :return 'Bool
+                  = username $ decode-map-as
+                    option:unwrap-or (get user :name) |
+                    , 'String
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Option $ :: 'Map 'Tag 'Dynamic
+        'log-in $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn log-in (db credentials sid op-id)
+            let[] (username password) credentials $ let
+                maybe-user $ find-user db username
+                session $ decode-map-as
+                  option:unwrap-or
+                    get-in db $ [] :sessions sid
+                    {} $ :user-id nil
+                  :: 'Map 'Tag 'Dynamic
+              match maybe-user
+                (:some user)
+                  if
+                    = (password-digest password)
+                      decode-map-as
+                        option:unwrap-or (get user :password) |
+                        , 'String
+                    assoc-in db ([] :sessions sid)
+                      assoc session :user-id $ decode-map-as
+                        option:unwrap-or (get user :id) nil
+                        , 'String
+                    session/add-message
+                      assoc-in db ([] :sessions sid) session
+                      {} $ :text $ str "|Wrong password for " username
+                      , sid op-id
+                (:none)
+                  session/add-message
+                    assoc-in db ([] :sessions sid) session
+                    {} $ :text $ str "|No user named: " username
+                    , sid op-id
+          :examples $ []
+          :ffi $ {} $ :backend :js
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String) 'String 'String
+            :features $ #{} :js-ffi
+            :return $ :: 'Map 'Tag 'Dynamic
         'log-out $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn log-out (db sid op-id op-time)
+          :code $ quote $ defn log-out (db sid)
             assoc-in db ([] :sessions sid :user-id) nil
           :examples $ []
-          :schema $ :: 'Dynamic
-        'sign-up $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn sign-up (db op-data sid op-id op-time)
-            let-sugar
-                  [] username password
-                  , op-data
-                maybe-user $ find
-                  vals $ option:unwrap-or (get db :users) {}
-                  fn (user)
-                    = username $ option:unwrap-or (get user :name) |
-              if (option:some? maybe-user)
-                update-in db ([] :sessions sid :messages)
-                  fn (messages)
-                    assoc (option:unwrap-or messages {}) op-id $ {} (:id op-id)
-                      :text $ str "|Name is taken: " username
-                -> db
-                  assoc-in ([] :sessions sid :user-id) op-id
-                  assoc-in ([] :users op-id)
-                    {} (:id op-id) (:name username) (:nickname username)
-                      :password $ md5 password
-                      :avatar nil
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
+        'password-digest $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn password-digest (password)
+            decode-map-as (md5 password) 'String
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} $ :backend :js
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
+        'sign-up $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn sign-up (db credentials sid op-id)
+            let[] (username password) credentials $ let
+                maybe-user $ find-user db username
+              match maybe-user
+                (:some _user)
+                  session/add-message db
+                    {} $ :text $ str "|Name is taken: " username
+                    , sid op-id
+                (:none)
+                  -> db
+                    assoc-in ([] :sessions sid :user-id) op-id
+                    assoc-in ([] :users op-id)
+                      {} (:id op-id) (:name username) (:nickname username)
+                        :password $ password-digest password
+                        :avatar nil
+          :examples $ []
+          :ffi $ {} $ :backend :js
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String) 'String 'String
+            :features $ #{} :js-ffi
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.user
-          :require
-            [] cumulo-util.core :refer $ [] find-first
-            [] |md5 :default md5
+          :require ([] |md5 :default md5) (app.updater.session :as session)
     'app.util $ %{} 'FileEntry
       :defs $ {}
         'grab-upstream $ %{} 'CodeEntry (:doc |)

@@ -127,7 +127,9 @@ updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,D
 
 六个 session / footprint updater 补齐具体 String 参数并删除未用参数。开放状态槽在使用处解码为 String 键的 session / message Map 或 Map<String,String> 路径表，消息叶值仍保留异构 Map。原 session 模板、消息未知字段与 ID 覆盖、缺失消息路径创建及缺失顶层槽不更新的行为保持；非法删除 ID 或使用中的容器明确拒绝。三个宿主入口实际发送两个 footprint payload，旧单 payload 匹配会漏掉它们；现在按 dirpath / upstream 两字段匹配和传参，这是路由修复。六个定向根严格检查及 JS 生成、实际生成 Node 的纯数据验证通过；当前 AST 的定向 native 验证确认旧路由漏匹配、新路由更新，不作为整个 updater 验收。没有新增 unsafe、编译器规则或持久验证脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.user/log-in` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+登录 / 注册入口按 List<String> 解码凭据，具体 String session / operation ID，移除未用时间参数；退出仅接收状态和 session ID。共享 `find-user` 在使用处解码用户表并把 vals 的 Set 转成 List，修正注册直接向 `find` 传 Set 的旧写法。失败提示复用 session 消息 updater，修正原 `update` callback 把普通 Map 当 Option 解包的问题；缺失消息容器现在也能创建提示。String → String 的 JS 哈希适配器保留原 md5 输出和存储格式，不新增 unsafe；MD5 仍是旧认证设计，本轮不是密码安全升级。五个定向根严格检查和 JS 生成通过，实际生成 Node 在虚构数据中验证注册、登录、退出、错误密码、未知用户、重复用户名、缺失 session 和记录保留通过；查找 helper 的当前 AST native 验证通过，不接触真实账号、服务或存储。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.router/change` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
