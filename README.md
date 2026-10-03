@@ -123,7 +123,7 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 `show-version` 删除两个无用参数，目录读取边界解码 List<String>，按 Option 处理首个 nimble 文件，保留 package.json / release.edn / calcit.cirru / nimble 的优先级及原命令文本。`kill-process!` 明确 Number → Unit，删除无用回调参数，复用 `colorize` 保留原双参数着色的空格连接效果、先日志后 kill、默认 signal 和错误传播；没有新增 PID 安全策略。两根严格检查及实际生成 JS 的隔离 mock 验证通过，无真实目录读取、shell 命令或进程终止。
 
-updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,Dynamic> 状态边界；该异构 Map 是现有持久化及客户端协议，不冒称闭合模型，也不改成名义 Struct 直接发送。`set-current` 收紧分支为 String，`process/log` 在使用处解码文本和 ID 为 String，删除两层裸转换；缺失文本仍为空，空白日志仍忽略，非空日志缺失或非法 ID 现在明确拒绝。两函数删除未用参数，原日志 payload（含未知字段）保持，不重建投影。两定向根严格检查、当前 AST 的纯 native 求值及实际生成 Node 函数验证通过；updater 整体和其他分支尚未通过。
+updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,Dynamic> 状态边界；该异构 Map 是现有持久化及客户端协议，不冒称闭合模型，也不改成名义 Struct 直接发送。`set-current` 收紧分支为 String，`process/log` 在使用处解码文本和 ID 为 String，删除两层裸转换；缺失文本仍为空，空白日志仍忽略，非空日志缺失或非法 ID 现在明确拒绝。两函数删除未用参数，原日志 payload（含未知字段）保持，不重建投影。两定向根严格检查、当前 AST 的纯 native 求值及实际生成 Node 函数验证通过。
 
 六个 session / footprint updater 补齐具体 String 参数并删除未用参数。开放状态槽在使用处解码为 String 键的 session / message Map 或 Map<String,String> 路径表，消息叶值仍保留异构 Map。原 session 模板、消息未知字段与 ID 覆盖、缺失消息路径创建及缺失顶层槽不更新的行为保持；非法删除 ID 或使用中的容器明确拒绝。三个宿主入口实际发送两个 footprint payload，旧单 payload 匹配会漏掉它们；现在按 dirpath / upstream 两字段匹配和传参，这是路由修复。六个定向根严格检查及 JS 生成、实际生成 Node 的纯数据验证通过；当前 AST 的定向 native 验证确认旧路由漏匹配、新路由更新，不作为整个 updater 验收。没有新增 unsafe、编译器规则或持久验证脚本。
 
@@ -131,7 +131,9 @@ updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,D
 
 router / repo updater 删除未用参数。路由 name 按 Tag 解码，保留完整原 payload；分支消息的 branches / current / remote-branches 分别按 Set<String> / String / List<String> 解码，仍合并完整消息保留未知字段；upstream 三个字段按 String / Tag / String 解码，仍只写入原三个状态字段。使用中的 repo 状态槽按 Map 解码，不把边界当完整数据库闭合模型；非法或缺失必需字段现在拒绝。三根严格检查、实际 JS 生成、当前 AST 的 native 求值与生成 Node 的纯数据验证通过，无 Git、文件或服务操作，也没有新增 unsafe 或持久脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.process/start` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+process updater 删除未用参数；当前新增 / 移除的 PID 在使用处接受 nil 或解码 Number，命令为 String，原缺失 PID / 命令默认值保留。状态表的历史 key 槽仍是明确 Dynamic，value 为 String，不声称完整 key 域、PID 范围或进程权限已验证。日志表为 String 键、Map 消息值，time 使用 Number 或原缺失默认 0；旧 `map-kv` 改为具体 `filter-kv` Bool predicate，保持严格 `time > op-time - 600`，不改变阈值单位。三个 process 根和整个 updater 根严格检查通过，updater 实际 JS 生成及纯虚构数据的全部 17 路由验证通过；process 当前 AST 的 native 验证通过，无进程 / Git / 服务 / 存储操作。没有新增 unsafe、迁移规则或持久脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `main-server!` 的未类型化 JS `query` 字段；仍需逐个补齐真实函数、数据和 FFI 合同。updater 的严格检查与纯路由验证不等于 dispatcher、服务启动或完整服务端 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

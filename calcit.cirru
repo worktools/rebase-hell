@@ -2064,10 +2064,10 @@
               (:repo/set-branches data) (repo/set-repo db data)
               (:repo/set-current data) (repo/set-current db data)
               (:repo/set-upstream data) (repo/set-upstream db data)
-              (:process/start data) (process/start db data sid op-id op-time)
-              (:process/finish data) (process/finish db data sid op-id op-time)
+              (:process/start data) (process/start db data)
+              (:process/finish data) (process/finish db data)
               (:process/log data) (process/log db data)
-              (:process/clear-logs) (process/clear-logs db sid op-id op-time)
+              (:process/clear-logs) (process/clear-logs db op-time)
               (:session/track-footprint dirpath upstream) (session/track-footprint db dirpath upstream)
               (:session/drop-footprint data) (session/drop-footprint db data)
               _ $ do (println "|Unknown op:" op) db
@@ -2082,21 +2082,41 @@
     'app.updater.process $ %{} 'FileEntry
       :defs $ {}
         'clear-logs $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn clear-logs (db sid op-id op-time)
+          :code $ quote $ defn clear-logs (db op-time)
             update db :logs $ fn (logs)
-              -> logs $ .map-kv $ fn (k log)
-                if
+              hint-fn $ {}
+                :args $ [] 'Dynamic
+                :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              .filter-kv
+                decode-map-as logs $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                fn (id log)
+                  hint-fn $ {}
+                    :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
+                    :return 'Bool
                   >
-                    option:unwrap-or (get log :time) 0
+                    decode-map-as
+                      option:unwrap-or (get log :time) 0
+                      , 'Number
                     - op-time 600
-                  [] k log
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Number
+            :return $ :: 'Map 'Tag 'Dynamic
         'finish $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn finish (db pid sid op-id op-time)
-            update db :process-status $ fn (status) (dissoc status pid)
+          :code $ quote $ defn finish (db raw-pid)
+            let
+                pid $ if (nil? raw-pid) nil $ decode-map-as raw-pid 'Number
+              update db :process-status $ fn (status)
+                hint-fn $ {}
+                  :args $ [] 'Dynamic
+                  :return $ :: 'Map 'Dynamic 'String
+                dissoc
+                  decode-map-as status $ :: 'Map 'Dynamic 'String
+                  , pid
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic
+            :return $ :: 'Map 'Tag 'Dynamic
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn log (db op-data)
             let
@@ -2113,13 +2133,18 @@
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
             :return $ :: 'Map 'Tag 'Dynamic
         'start $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn start (db op-data sid op-id op-time)
+          :code $ quote $ defn start (db op-data)
             let
-                pid $ option:unwrap-or (get op-data :pid) nil
-                command $ option:unwrap-or (get op-data :command) |
+                raw-pid $ option:unwrap-or (get op-data :pid) nil
+                pid $ if (nil? raw-pid) nil $ decode-map-as raw-pid 'Number
+                command $ decode-map-as
+                  option:unwrap-or (get op-data :command) |
+                  , 'String
               assoc-in db ([] :process-status pid) command
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.process
     'app.updater.repo $ %{} 'FileEntry
