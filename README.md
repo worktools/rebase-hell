@@ -103,7 +103,11 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 `run-server!` 声明 Number → Unit，四个回调按已发布 WS-EDN 的实际参数和 Unit 返回合同声明。修正 `on-data` 把 action 误当 session ID 传入 dispatcher 的问题；从当前 AST 提取的该回调在隔离 native fixture 中验证了操作与 session ID 的正确传递，不启动 WebSocket。网络 action 保持已发布接口的 Dynamic 输入边界，尚未声称闭合操作模型已完成。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/dispatch!` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。回调定向验证不等于服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 `match`；内部 effect 回调只接收 Enum 并捕获当前 session。`switch-path` 原来以另一参数名使用可选 session 覆盖，不能直接删除其语义：现在显式接收 dispatcher 和当前 session，前三条操作仍使用 `system`，最后日志仍使用当前 session。函数明确返回 Unit，这是旧内部 effect 返回值的迁移，不改变消息 payload。WebSocket 的 Dynamic 输入只在入口检查 Enum，非 Enum 明确失败；这不是完整操作变体及字段的闭合模型，也不新增 unsafe。
+
+从当前 AST 提取的内部 / 网络回调在隔离 native fixture 中检查捕获 session、转发与拒绝分支通过；`switch-path` 定向严格检查和 JS 生成通过。实际生成的函数在隔离 Node mock 中核对四条消息的身份、payload、一次目录切换请求与一次 upstream 读取请求通过，所有宿主副作用都用本地 mock 替代，没有执行真实 Git、切换目录或启动服务。没有新增编译器改写规则或持久验证脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.util.string/detects-main` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。回调定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

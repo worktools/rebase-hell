@@ -1248,7 +1248,7 @@
           :examples $ []
           :schema $ :: 'Dynamic
         'switch-path $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn switch-path (new-path dispatch!) (js/process.chdir new-path)
+          :code $ quote $ defn switch-path (new-path dispatch! sid) (js/process.chdir new-path)
             let
                 upstream $ get-upstream!
               dispatch! (:: :repo/set-upstream upstream) |system
@@ -1257,13 +1257,22 @@
                 :: :session/track-footprint new-path $ option:unwrap-or (get upstream :upstream) nil
                 , |system
               println "|Switching to" new-path
-              dispatch! $ :: :process/log $ {}
-                :id $ nanoid
-                :time $ js/Date.now
-                :text $ str "|Switched to: " new-path
-                :kind :log
+              dispatch!
+                :: :process/log $ {}
+                  :id $ nanoid
+                  :time $ js/Date.now
+                  :text $ str "|Switched to: " new-path
+                  :kind :log
+                , sid
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String
+              :: 'Fn $ {} (:return 'Unit)
+                :args $ [] 'Enum 'String
+              , 'String
+            :features $ #{} :js-ffi
         'switch-remote-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-remote-branch! (branch-name d!)
             run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
@@ -1387,7 +1396,9 @@
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *proxied-dispatch! dispatch!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ [] 'Enum 'String
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *reader-reel @*reel
           :examples $ []
@@ -1423,8 +1434,12 @@
             let
                 op-id $ nanoid
                 op-time $ js/Date.now
-                d! $ fn (op' ? sid')
-                  dispatch! op' $ either sid' sid
+                d! $ fn (op')
+                  hint-fn $ {}
+                    :args $ [] 'Enum
+                    :return 'Unit
+                  dispatch! op' sid
+                  , &unit
                 db $ :db @*reel
                 current $ option:unwrap-or
                   get-in db $ [] :repo :current
@@ -1439,12 +1454,12 @@
                   :branches $ option:unwrap-or (get db :repo) {}
               if config/dev? $ println |Dispatch! sid op
               try
-                tag-match op
+                match op
                   (:effect/persist) (;nil persist-db!)
                   (:effect/read-branches) (manager/read-branches! d!)
                   (:effect/switch-branch data) (manager/switch-branch! current data d!)
                   (:effect/switch-remote-branch data) (manager/switch-remote-branch! data d!)
-                  (:effect/switch-path data) (manager/switch-path data d!)
+                  (:effect/switch-path data) (manager/switch-path data dispatch! sid)
                   (:effect/new-branch data) (manager/new-branch! data d!)
                   (:effect/fetch-origin) (manager/fetch-origin! d!)
                   (:effect/pull-current) (manager/pull-current! d!)
@@ -1464,9 +1479,12 @@
                   (:effect/edit-with command) (manager/edit-with command d!)
                   _ $ reset! *reel $ reel-reducer @*reel updater op sid op-id op-time config/dev?
                 fn (error) (js/console.error "|Dispatch error:" error)
-              , :effect
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Enum 'String
+            :features $ #{} :js-ffi
         'find-git-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-git-path (dir) (; println "|searching dir:" dir)
             if
@@ -1623,7 +1641,7 @@
                 hint-fn $ {}
                   :args $ [] 'String 'Dynamic
                   :return 'Unit
-                @*proxied-dispatch! action sid
+                if (enum? action) (@*proxied-dispatch! action sid) (raise "|Expected an Enum WebSocket action")
                 , &unit
               :on-close $ fn (sid event)
                 hint-fn $ {}
