@@ -97,7 +97,7 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 固定站点配置改为 `Site`，端口为 Number，其余九个字段为 String；原端口、标题、CDN、UI、存储键和文件路径保持不变。三个旧 Map/Option 读取改为直接字段读取，服务端默认端口不再强制转换为 String。未使用的旧 `cdn?` 环境探测已删除，旧定义可从 Git 历史恢复；部署仍由原工作流的前端路径配置决定。配置公开类型检查和实际 Node 十字段核对通过，路径查找函数补齐 String → JsNullish<String> 的 Node 宿主合同并通过定向静态检查；没有执行文件系统查找或 Git 操作。
 
-服务端四处 chalk 单字符串着色调用集中到 Node 专用 `colorize`，按已安装 chalk 5.4.1 的四个方法合同返回 String；实际 Node 输出与原方法对照通过。manager 中原有的双参数着色调用暂保留，未改变其参数语义。工作目录文件路径复用已发布 JS-FFI `env-get` 的 Option<String>，HOME 存在时仍使用原后缀，缺失时明确失败，不再拼出错误路径；空字符串仍按原值处理。未新增持久验证脚本或编译器规则。
+服务端 chalk 着色集中到 Node 专用 `colorize`，按已安装 chalk 5.4.1 的四个方法合同返回 String；实际 Node 输出与原方法对照通过。工作目录文件路径复用已发布 JS-FFI `env-get` 的 Option<String>，HOME 存在时仍使用原后缀，缺失时明确失败，不再拼出错误路径；空字符串仍按原值处理。未新增持久验证脚本或编译器规则。
 
 `grab-upstream` 的内部返回值改为 `Origin`，明确 address / upstream 为 String、host-kind 为 Tag，并处理序列末项的 Option。Git / HTTPS URL 的原分支和字段算法保持，未扩展 SSH URL scheme 支持。`get-upstream!` 明确以 UTF-8 获取同一 Git 命令的输出，仍向原操作协议返回三字段 Map，不发送 Origin 名义值；Map 的 Dynamic 值槽仅用于原有异构消息边界。两函数通过定向严格检查和 JS 生成，实际 Node 解析及模拟命令输出的 Map 投影通过，没有执行 Git。旧 `app.test` 仍有期待字符串返回值和 SSH scheme 的过期断言，本轮未修改预期，也未将其算作通过。
 
@@ -117,11 +117,13 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 公共命令执行器与十六个简单分支操作明确 String 参数、单 Enum 回调和 Unit 返回；options 明确 Map<Tag, Fn()→Unit>，完成回调按 Option 处理。八处空完成回调删除，五处真实更新 / 刷新回调保留。两项纯分支判断补齐类型。子进程和输出流采用最小 Node 外部合同，保留可空 PID 和 exit code / signal；仅可信 exec 构造处保留一次 host 转换，替换原三处裸 JsObject 转换，不宣称宿主字段已深层验证。输出流的可空读取在共享监听函数中处理，缺失时明确失败，不额外复制检查逻辑。
 
-合同按实际 Node 24 exec 的默认 UTF-8 行为核对。命令、cwd、日志字段和分支保护保持；exit 无论成功与否都执行完成回调的旧策略暂保留，error 仍仅输出原 error，不冒称错误处理完善。二十个定向根严格检查通过，实际生成 JS 在隔离 EventEmitter / exec mock 中验证公共执行器和十六个操作的命令字符串、同分支不执行、日志 / 完成字段、主分支保护、完成回调 Unit 与刷新消息通过。没有执行 Git、编辑器或服务。`add-tag!` / `show-version` 只删除其空回调，剩余函数体尚未验收；没有新增编译器规则、依赖或持久验证脚本。
+合同按实际 Node 24 exec 的默认 UTF-8 行为核对。命令、cwd、日志字段和分支保护保持；exit 无论成功与否都执行完成回调的旧策略暂保留，error 仍仅输出原 error，不冒称错误处理完善。二十个定向根严格检查通过，实际生成 JS 在隔离 EventEmitter / exec mock 中验证公共执行器和十六个操作的命令字符串、同分支不执行、日志 / 完成字段、主分支保护、完成回调 Unit 与刷新消息通过。没有执行 Git、编辑器或服务，也没有新增编译器规则、依赖或持久验证脚本。
 
 `add-tag!` 现已补齐 String / Tag 参数、Enum 回调与 Unit 返回。版本读取用已发布的 JS 边界检查，写回仍保留原 JSON 对象的未知字段、两空格缩进及末尾换行；dots 标记保留原正则语义。RegExp 与可写包对象仅声明最小 Node 宿主合同，各保留一次显式宿主转换，不声称完整对象形状已深层验证。四个定向根严格检查通过，实际生成 Node 函数在隔离文件 / 命令 mock 中验证标记、三种命令分支、原主分支参数、未知字段保留和非法版本拒绝通过；没有真实文件写入、Git 执行、发版或新增持久验证脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/show-version` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+`show-version` 删除两个无用参数，目录读取边界解码 List<String>，按 Option 处理首个 nimble 文件，保留 package.json / release.edn / calcit.cirru / nimble 的优先级及原命令文本。`kill-process!` 明确 Number → Unit，删除无用回调参数，复用 `colorize` 保留原双参数着色的空格连接效果、先日志后 kill、默认 signal 和错误传播；没有新增 PID 安全策略。两根严格检查及实际生成 JS 的隔离 mock 验证通过，无真实目录读取、shell 命令或进程终止。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater/updater` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

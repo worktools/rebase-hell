@@ -1226,11 +1226,15 @@
             :features $ #{} :js-ffi
             :return $ :: 'Map 'Tag 'Dynamic
         'kill-process! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn kill-process! (pid d!)
-            println $ .!red chalk |kill pid
+          :code $ quote $ defn kill-process! (pid)
+            println $ colorize :red $ str "|kill " pid
             js/process.kill pid
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Number
+            :features $ #{} :js-ffi
         'listen-command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-command-output! (stream callback)
             if (js-present? stream) (stream .on-data! |data callback) (raise "|Command output stream is unavailable")
@@ -1411,24 +1415,36 @@
               {} (:return 'Unit)
                 :args $ [] 'Enum
         'show-version $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn show-version (op-data upstream d!)
+          :code $ quote $ defn show-version (d!)
             let
-                files $ fs/readdirSync |.
-                maybe-nimble $ -> files to-calcit-data
-                  filter $ fn (x) (.ends-with? x |.nimble)
-                  first
+                files $ decode-map-as
+                  to-calcit-data $ fs/readdirSync |.
+                  :: 'List 'String
+                maybe-nimble $ first $ filter files
+                  fn (x)
+                    hint-fn $ {}
+                      :args $ [] 'String
+                      :return 'Bool
+                    .ends-with? x |.nimble
               cond
-                  pos? $ .!indexOf files |package.json
+                  includes? files |package.json
                   run-command! "|cat package.json | grep \"\\\"version\"" d! $ {}
-                (pos? (.!indexOf files |release.edn))
+                (includes? files |release.edn)
                   run-command! "|cat release.edn | grep :version" d! $ {}
-                (pos? (.!indexOf files |calcit.cirru))
+                (includes? files |calcit.cirru)
                   run-command! "|cat calcit.cirru | grep version" d! $ {}
-                (some? maybe-nimble)
-                  run-command! (str "|cat " maybe-nimble "| | grep version") d! $ {}
-                true nil
+                true $ match maybe-nimble
+                  (:some file)
+                    run-command! (str "|cat " file "| | grep version") d! $ {}
+                  (:none) &unit
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
+            :features $ #{} :js-ffi
         'switch-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-branch! (current branch-name d!)
             when (not= current branch-name)
@@ -1503,12 +1519,12 @@
           :require (|child_process :as cp) (|fs :as fs)
             app.util :refer $ read-items
             app.util :refer $ grab-upstream
-            |chalk :default chalk
             app.util.string :refer $ default-branch?
             app.util :refer $ pos?
             |nanoid :refer $ nanoid
             js-ffi.shared :as shared
             js-ffi.contract :as contract
+            app.node.chalk :refer $ colorize
     'app.node.chalk $ %{} 'FileEntry
       :defs $ {}
         'ChalkHost $ %{} 'CodeEntry (:doc |)
@@ -1698,8 +1714,8 @@
                   (:effect/remove-branch data) (manager/remove-branch! data d!)
                   (:effect/commit data) (manager/commit! current data d!)
                   (:effect/add-tag data) (manager/add-tag! data upstream host-kind main-branch d!)
-                  (:effect/show-version data) (manager/show-version data upstream d!)
-                  (:effect/kill-process data) (manager/kill-process! data d!)
+                  (:effect/show-version data) (manager/show-version d!)
+                  (:effect/kill-process data) (manager/kill-process! data)
                   (:effect/edit-with command) (manager/edit-with command d!)
                   _ $ reset! *reel $ reel-reducer @*reel updater op sid op-id op-time config/dev?
                 fn (error) (js/console.error "|Dispatch error:" error)
