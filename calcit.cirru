@@ -176,8 +176,11 @@
           :code $ quote $ defn render-app! ()
             render! mount-target
               comp-container
-                option:unwrap-or (&map:get @*states :states) {}
-                , @*store
+                decode-map-as
+                  option:unwrap-or (get @*states :states) ({})
+                  :: 'Map 'Tag 'Dynamic
+                if (nil? @*store) (%none)
+                  %some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
               , dispatch!
             , &unit
           :examples $ []
@@ -215,40 +218,65 @@
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (states store)
-            let
-                state $ option:unwrap-or (&map:get states :data) {}
-                session $ option:unwrap-or (&map:get store :session) {}
-                router $ option:unwrap-or (&map:get store :router) {}
-                router-data $ option:unwrap-or (&map:get router :data) {}
-                repo $ option:unwrap-or (&map:get store :repo) {}
-                logged-in? $ option:unwrap-or (&map:get store :logged-in?) false
-                member-count $ option:unwrap-or (&map:get store :count) 0
-              if (nil? store) (comp-offline)
-                div
-                  {} $ :class-name $ str-spaced css/global css/fullscreen css/column
-                  comp-navigation (>> states :nav) logged-in? member-count repo
-                  case-default
-                    option:unwrap-or (&map:get router :name) nil
-                    <> router
-                    :home $ comp-home (>> states :home) repo
-                      (option:unwrap-or (&map:get store :logs) {})
-                      (option:unwrap-or (&map:get store :process-status) {})
-                      (option:unwrap-or (&map:get store :footprints) {})
-                    :profile $ comp-profile
-                      option:unwrap-or (&map:get store :user) {}
-                      , router-data
-                  comp-status-color $ option:unwrap-or (&map:get store :color) nil
-                  when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
-                  comp-messages
-                    get-in store $ [] :session :messages
-                    {}
-                    fn (info d! m!) (d! :session/remove-message info)
-                  if dev? $ comp-reel
-                    option:unwrap-or (&map:get store :reel-length) 0
-                    {}
+          :code $ quote $ defcomp comp-container (states maybe-store)
+            match maybe-store
+              (:none) (comp-offline)
+              (:some store)
+                let
+                    router $ decode-map-as
+                      option:unwrap-or (get store :router) {}
+                      :: 'Map 'Tag 'Dynamic
+                    router-data $ option:unwrap-or (get router :data) {}
+                    repo $ decode-map-as
+                      option:unwrap-or (get store :repo) {}
+                      :: 'Map 'Tag 'Dynamic
+                    logged-in? $ decode-map-as
+                      option:unwrap-or (get store :logged-in?) false
+                      , 'Bool
+                    member-count $ decode-map-as
+                      option:unwrap-or (get store :count) 0
+                      , 'Number
+                  div
+                    {} $ :class-name $ str-spaced css/global css/fullscreen css/column
+                    comp-navigation (>> states :nav) logged-in? member-count repo
+                    case-default
+                      option:unwrap-or (get router :name) nil
+                      <> $ str router
+                      :home $ comp-home (>> states :home) repo
+                        option:unwrap-or (get store :logs) {}
+                        option:unwrap-or (get store :process-status) {}
+                        option:unwrap-or (get store :footprints) {}
+                      :profile $ comp-profile
+                        option:unwrap-or (get store :user) {}
+                        , router-data
+                    comp-status-color $ let
+                        raw $ option:unwrap-or (get store :color) nil
+                      if (nil? raw) (%none)
+                        %some $ decode-map-as raw 'String
+                    when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
+                    comp-messages
+                      decode-map-as
+                        option:unwrap-or
+                          get-in store $ [] :session :messages
+                          {}
+                        :: 'Map 'String 'Dynamic
+                      {}
+                      fn (info d!)
+                        hint-fn $ {}
+                          :args $ [] (:: 'Map 'Tag 'Dynamic)
+                            :: 'Fn $ {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
+                        d! $ :: :session/remove-message info
+                    if dev? $ comp-reel
+                      option:unwrap-or (get store :reel-length) 0
+                      {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic)
+              :: 'Option $ :: 'Map 'Tag 'Dynamic
+            :features $ #{} :js-ffi
         'comp-offline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-offline ()
             div
@@ -266,24 +294,35 @@
               div
                 {} (:class-name css/center)
                   :style $ {} (:cursor :pointer) (:line-height |32px)
-                  :on-click $ fn (e d!) (d! :effect/connect nil)
+                  :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    d! $ :: :effect/connect
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
                 comp-md "|A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ []
+            :features $ #{} :js-ffi
         'comp-status-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-status-color (color)
             div $ {} (:class-name css-status-color)
               :style $ let
                   size 24
-                {} (:width size) (:height size) (:background-color color)
+                {} (:width size) (:height size)
+                  :background-color $ option:unwrap-or color nil
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'Option 'String
         'css-status-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-status-color
             {} $ |$0 $ {} (:position :absolute) (:bottom 60) (:left 8) (:border-radius |50%) (:opacity 0.6) (:pointer-events :none)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-body $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-body
             {} $ :padding "|8px 16px"
