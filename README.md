@@ -109,7 +109,13 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 `detects-main` 明确接收 Set<String>、返回 String，保留 main / develop / master 的原优先级。dispatcher 原来把包着整个 repo 的 Map 传给它，导致一直回退 master；现在读取 repo.branches，并在现有开放状态边界用核心 decoder 检查 Set<String>，缺失字段仍使用空 Set，非法元素或非 Set 明确失败，不强制转换。修正后 finish / rebase / add-tag 的主分支参数会正确遵循已有分支，这是业务错误修复，不是纯类型标注。定向严格检查、当前 AST 的 native 边界检查及实际生成 JS 的优先级验证通过，没有执行对应 Git 命令。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/read-branches!` 的旧 JS-FFI 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+三份分支读取 Promise 包装集中为同步 Node `command-output!`，明确 PromiseHost、executor、exec 回调合同；`read-branches!` 明确异步 Unit 和单 Enum 回调，await 后以核心 decoder 验证 String。原三条命令和先并行启动的顺序保留；exec callback 原忽略 err / stderr 的策略暂保留，未宣称 Git 错误处理已经完善。`read-items` 为纯 String → List<String>，删除旧强制转换，并明确空白输出返回空 List，避免 JS 生成空名假分支；这是空输出行为修复。
+
+正式 0.28.0 的局部 async 继承问题（calcit #1713）使显式 false 仍不能保证同步生成，所以同步 Promise 构造与异步消费者分离。已发布 `promise-create` 的 DynFn 参数又拒绝精确 executor，实际最小复现已补充到 JS-FFI #154；没有放宽 callback 或修改缓存。适配器复用已发布 PromiseHost 类型，在可信 new Promise 构造处保留一处显式 host 转换，payload 仍在 await 后解码，不把 host 类型当作 payload 证明。解析删除一处 unsafe、构造增加一处，不声称所有 unsafe 已清零。
+
+定向严格检查和 JS 生成通过，实际生成 Node 函数在隔离 mock 中验证三命令并行启动、同步回调、原消息字段、同步启动失败 reject、非法输出拒绝与空分支集合通过；纯解析的 native 验证通过。没有执行 Git、切换目录或访问真实服务。空字符串 split 的 native / JS 差异已报告为 Calcit #1741，消费者明确处理空值不等于核心已经修复。没有新增持久检查脚本或编译器迁移规则。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/switch-branch!` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

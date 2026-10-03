@@ -1055,6 +1055,33 @@
             run-command! "|git stash apply" d! $ {}
           :examples $ []
           :schema $ :: 'Dynamic
+        'command-output! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn command-output! (command)
+            unsafe-coerce
+              new js/Promise $ fn (resolve _reject)
+                hint-fn $ {}
+                  :args $ []
+                    :: 'Fn $ {}
+                      :args $ [] 'String
+                      :return 'Unit
+                    , 'DynFn
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+                  :async false
+                cp/exec command $ fn (err stdout stderr)
+                  hint-fn $ {}
+                    :args $ [] (:: 'JsNullish 'JsObject) 'String 'String
+                    :return 'Unit
+                    :async false
+                  resolve stdout
+                  , &unit
+                , &unit
+              , 'js-ffi.shared/PromiseHost
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'js-ffi.shared/PromiseHost)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'commit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn commit! (current message d!)
             cond
@@ -1144,24 +1171,24 @@
           :schema $ :: 'Dynamic
         'read-branches! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-branches! (d!)
-            hint-fn $ {} $ :async true
             let
-                ch-branches $ new js/Promise $ fn (resolve reject)
-                  cp/exec "|git branch --format \"%(refname:short)\"" $ fn (err branches-raw stderr)
-                    resolve $ .to-set $ read-items branches-raw
-                ch-current $ new js/Promise $ fn (resolve reject)
-                  cp/exec "|git rev-parse --abbrev-ref HEAD" $ fn (err current-raw stderr)
-                    resolve $ .trim current-raw
-                <remote-branches $ new js/Promise $ fn (resolve reject)
-                  cp/exec "|git branch --remote --format \"%(refname:short)\"" $ fn (err branches-raw stderr)
-                    resolve $ read-items branches-raw
+                ch-branches $ command-output! "|git branch --format \"%(refname:short)\""
+                ch-current $ command-output! "|git rev-parse --abbrev-ref HEAD"
+                ch-remote $ command-output! "|git branch --remote --format \"%(refname:short)\""
               let
-                  branches $ js-await ch-branches
-                  current $ js-await ch-current
-                  remote-branches $ js-await <remote-branches
+                  branches $ .to-set $ read-items
+                    decode-map-as (js-await ch-branches) 'String
+                  current $ .trim $ decode-map-as (js-await ch-current) 'String
+                  remote-branches $ read-items $ decode-map-as (js-await ch-remote) 'String
                 d! $ :: :repo/set-branches $ {} (:branches branches) (:current current) (:remote-branches remote-branches)
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
+            :features $ #{} :js-ffi
         'rebase-master! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rebase-master! (main-branch d!)
             run-command! (str "|git rebase origin/" main-branch) d! $ {}
@@ -1288,6 +1315,7 @@
             app.util.string :refer $ default-branch?
             app.util :refer $ pos?
             |nanoid :refer $ nanoid
+            js-ffi.shared :as shared
     'app.node.chalk $ %{} 'FileEntry
       :defs $ {}
         'ChalkHost $ %{} 'CodeEntry (:doc |)
@@ -2058,13 +2086,14 @@
           :examples $ []
           :schema $ :: 'Dynamic
         'read-items $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn read-items (x)
-            ->
-              unsafe-coerce (or x |) String
-              .trim
-              .split &newline
+          :code $ quote $ defn read-items (text)
+            let
+                trimmed $ .trim text
+              if (= | trimmed) ([]) (.split trimmed &newline)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] 'String
+            :return $ :: 'List 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util
           :require $ app.schema :refer $ Origin
