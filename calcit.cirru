@@ -243,9 +243,15 @@
                       option:unwrap-or (get router :name) nil
                       <> $ str router
                       :home $ comp-home (>> states :home) repo
-                        option:unwrap-or (get store :logs) {}
-                        option:unwrap-or (get store :process-status) {}
-                        option:unwrap-or (get store :footprints) {}
+                        decode-map-as
+                          option:unwrap-or (get store :logs) ({})
+                          :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                        decode-map-as
+                          option:unwrap-or (get store :process-status) ({})
+                          :: 'Map 'Dynamic 'String
+                        decode-map-as
+                          option:unwrap-or (get store :footprints) ({})
+                          :: 'Map 'String 'String
                       :profile $ comp-profile
                         decode-map-as
                           option:unwrap-or (get store :user) ({})
@@ -483,35 +489,54 @@
         'comp-home $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-home (states repo logs status footprints)
             let
-                cursor $ option:unwrap-or (&map:get states :cursor) []
-                state $ option:unwrap-or (&map:get states :data)
-                  {} $ :pop? false
-                current-branch $ option:unwrap-or (&map:get repo :current) |
+                current-branch $ decode-map-as
+                  option:unwrap-or (get repo :current) |
+                  , 'String
+                branches $ decode-map-as
+                  option:unwrap-or (get repo :branches) (#{})
+                  :: 'Set 'String
                 remote-branches $ ->
-                  option:unwrap-or (&map:get repo :remote-branches) #{}
+                  decode-map-as
+                    option:unwrap-or (get repo :remote-branches) (#{})
+                    :: 'Set 'String
                   filter $ fn (branch-path)
+                    hint-fn $ {}
+                      :args $ [] 'String
+                      :return 'Bool
                     let
-                        short-name $ last $ .split branch-path |/
+                        short-name $ option:unwrap-or
+                          last $ .split branch-path |/
+                          , |
                       and
-                        not $ contains?
-                          option:unwrap-or (&map:get repo :branches) #{}
-                          short-name
+                        not $ contains? branches short-name
                         not= short-name |HEAD
                   .to-list
                   sort &compare
                   map $ fn (branch)
-                    {} (:value branch) (:display branch)
+                    hint-fn $ {}
+                      :args $ [] 'String
+                      :return 'Enum
+                    :: :item branch branch
                 menu-branch $ use-modal-menu (>> states :remote-branches)
                   {} (:title |Demo)
                     :style $ {} $ :width 300
                     :items remote-branches
                     :on-result $ fn (result d!)
-                      let
-                          value $ option:unwrap-or (&map:get result :value) |
-                        d! :effect/switch-remote-branch $
-                          .join-string
-                            rest $ .split value |/
-                            , |/
+                      hint-fn $ {}
+                        :args $ [] 'Dynamic $ :: 'Fn
+                          {}
+                            :args $ [] 'Enum
+                            :return 'Unit
+                        :return 'Unit
+                      when-not (nil? result)
+                        match result $
+                          :item raw-value _label
+                          let
+                              value $ decode-map-as raw-value 'String
+                            d! $ :: :effect/switch-remote-branch $ .join-string
+                              rest $ .split value |/
+                              , |/
+                      , &unit
               div
                 {}
                   :class-name $ str-spaced css/row css/flex
@@ -525,27 +550,43 @@
                     div
                       {} $ :class-name css/column
                       list-> ({})
-                        ->
-                          option:unwrap-or (&map:get repo :branches) #{}
-                          , .to-list (sort &compare)
-                            map $ fn (branch)
-                              [] branch $ comp-branch branch current-branch false
+                        -> branches .to-list (sort &compare)
+                          map $ fn (branch)
+                            hint-fn $ {}
+                              :args $ [] 'String
+                              :return $ :: 'List 'Dynamic
+                            [] branch $ comp-branch branch current-branch false
                       =< nil 4
                       div
                         {}
                           :style $ {} $ :padding-left 4
-                          :on-click $ fn (e d!) (.show menu-branch d!)
+                          :on-click $ fn (e d!)
+                            hint-fn $ {}
+                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                                {}
+                                  :args $ [] 'Enum
+                                  :return 'Unit
+                              :return 'Unit
+                            .show menu-branch d!
+                            , &unit
                         <> "|Remote branches" css-remote
                       =< nil 12
                       div $ {} $ :class-name css/expand
-                      comp-footprints footprints $ option:unwrap-or (&map:get repo :upstream) |
+                      comp-footprints footprints $ decode-map-as
+                        option:unwrap-or (get repo :upstream) |
+                        , 'String
                     comp-thin-divider
                     comp-operations (>> states :operations) repo
                 comp-thin-divider
                 comp-logs logs status
                 .render menu-branch
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              :: 'Map 'Dynamic 'String
+              :: 'Map 'String 'String
+            :features $ #{} :js-ffi
         'comp-log-chunk $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-log-chunk (log)
             let
