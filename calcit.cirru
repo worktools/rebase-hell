@@ -1450,8 +1450,11 @@
                 host-kind $ option:unwrap-or
                   get-in db $ [] :repo :host-kind
                   , nil
-                main-branch $ detects-main $ {}
-                  :branches $ option:unwrap-or (get db :repo) {}
+                main-branch $ detects-main $ decode-map-as
+                  option:unwrap-or
+                    get-in db $ [] :repo :branches
+                    #{}
+                  :: 'Set 'String
               if config/dev? $ println |Dispatch! sid op
               try
                 match op
@@ -2074,10 +2077,9 @@
           :schema $ :: 'Dynamic
         'detects-main $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn detects-main (branches)
-            if (set? branches)
-              if (contains? branches |main) |main $ if (contains? branches |develop) |develop |master
-              , |master
+            if (contains? branches |main) |main $ if (contains? branches |develop) |develop |master
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] $ :: 'Set 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util.string

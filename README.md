@@ -107,7 +107,9 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 从当前 AST 提取的内部 / 网络回调在隔离 native fixture 中检查捕获 session、转发与拒绝分支通过；`switch-path` 定向严格检查和 JS 生成通过。实际生成的函数在隔离 Node mock 中核对四条消息的身份、payload、一次目录切换请求与一次 upstream 读取请求通过，所有宿主副作用都用本地 mock 替代，没有执行真实 Git、切换目录或启动服务。没有新增编译器改写规则或持久验证脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.util.string/detects-main` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。回调定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+`detects-main` 明确接收 Set<String>、返回 String，保留 main / develop / master 的原优先级。dispatcher 原来把包着整个 repo 的 Map 传给它，导致一直回退 master；现在读取 repo.branches，并在现有开放状态边界用核心 decoder 检查 Set<String>，缺失字段仍使用空 Set，非法元素或非 Set 明确失败，不强制转换。修正后 finish / rebase / add-tag 的主分支参数会正确遵循已有分支，这是业务错误修复，不是纯类型标注。定向严格检查、当前 AST 的 native 边界检查及实际生成 JS 的优先级验证通过，没有执行对应 Git 命令。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/read-branches!` 的旧 JS-FFI 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
