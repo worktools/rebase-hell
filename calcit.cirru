@@ -1725,6 +1725,16 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Enum 'String
             :features $ #{} :js-ffi
+        'editor-url $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn editor-url (port)
+            str |https://r.tiye.me/worktools/rebase-hell/?port= $ if
+              decode-map-as (js/isNaN port) 'Bool
+              , | $ encode-uri-component (str port)
+          :examples $ []
+          :ffi $ {} $ :backend :js
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'Number
+            :features $ #{} :js-ffi
         'find-git-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-git-path (dir) (; println "|searching dir:" dir)
             if
@@ -1768,19 +1778,9 @@
           :code $ quote $ defn main-server! ()
             println "|Running mode:" $ if config/dev? |dev |release
             let
-                port $ let
-                    port-value $ .?-port js/process.env
-                  if (js-present? port-value)
-                    js/parseInt $ unsafe-coerce port-value String
-                    :port config/site
-                url-obj $ unsafe-coerce (url-parse |https://r.tiye.me/worktools/rebase-hell/ true) JsObject
+                port $ server-port
               run-server! port
-              js-set
-                unsafe-coerce (.-query url-obj) JsObject
-                , :port port
-              let
-                  address $ colorize :blue $ .!toString url-obj
-                println $ str "|Server started. Open editor on " address
+              println $ str "|Server started. Open editor on " $ colorize :blue (editor-url port)
             render-loop! *loop-trigger
             ; js/process.on |SIGINT on-exit!
             ; repeat! 600 $ "#()" persist-db!
@@ -1902,6 +1902,17 @@
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number
+        'server-port $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn server-port ()
+            match (node/env-get |port)
+              (:some value)
+                decode-map-as (js/parseInt value) 'Number
+              (:none) (:port config/site)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Number)
+            :args $ []
+            :features $ #{} :js-ffi
         'storage-file $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def storage-file
             path/join
@@ -1942,7 +1953,6 @@
             |path :as path
             |util :as util
             |latest-version :default latest-version
-            |url-parse :default url-parse
             |child_process :as cp
             app.config :as config
             cumulo-util.file :refer $ write-mildly! get-backup-path! merge-local-edn!
@@ -1959,6 +1969,7 @@
             |nanoid :refer $ nanoid
             app.node.chalk :refer $ colorize
             js-ffi.node :as node
+            js-ffi.shared :refer $ encode-uri-component
     'app.style $ %{} 'FileEntry
       :defs $ {} $ 'link
         %{} 'CodeEntry (:doc |)

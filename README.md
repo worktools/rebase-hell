@@ -133,7 +133,9 @@ router / repo updater 删除未用参数。路由 name 按 Tag 解码，保留�
 
 process updater 删除未用参数；当前新增 / 移除的 PID 在使用处接受 nil 或解码 Number，命令为 String，原缺失 PID / 命令默认值保留。状态表的历史 key 槽仍是明确 Dynamic，value 为 String，不声称完整 key 域、PID 范围或进程权限已验证。日志表为 String 键、Map 消息值，time 使用 Number 或原缺失默认 0；旧 `map-kv` 改为具体 `filter-kv` Bool predicate，保持严格 `time > op-time - 600`，不改变阈值单位。三个 process 根和整个 updater 根严格检查通过，updater 实际 JS 生成及纯虚构数据的全部 17 路由验证通过；process 当前 AST 的 native 验证通过，无进程 / Git / 服务 / 存储操作。没有新增 unsafe、迁移规则或持久脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `main-server!` 的未类型化 JS `query` 字段；仍需逐个补齐真实函数、数据和 FFI 合同。updater 的严格检查与纯路由验证不等于 dispatcher、服务启动或完整服务端 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+启动端口读取复用已安装 JS-FFI 的 `env-get`，按 Option<String> 区分缺失变量与已存在的空字符串，保留 `parseInt` 和默认端口 8009。固定编辑器地址直接构造 query 字符串，不再使用通用 URL/query 对象或三处裸转换；保留原路径与 `?port=`，包括 NaN 的空值输出和数字的 URI 编码。两个 helper 的严格检查及实际 JS 生成通过，隔离运行实际生成函数的 12 组 URL 对照、11 组环境变量 / parseInt 对照通过；模拟非 String 环境变量明确拒绝。不读取真实环境、启动服务、执行 Git 或访问存储，不新增依赖、编译器规则或仓库校验脚本。前端仍使用 `url-parse`，其依赖未删除。模块文档查询的 frontmatter 缺陷已附最小复现报告到 JS-FFI #161，未修改模块缓存。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `render-loop!` 的旧 whole-Dynamic 函数契约；仍需逐个补齐真实函数、数据和 FFI 合同。updater 的严格检查与纯路由验证不等于 dispatcher、服务启动或完整服务端 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
