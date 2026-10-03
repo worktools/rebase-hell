@@ -1613,14 +1613,37 @@
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
               :on-open $ fn (sid socket)
+                hint-fn $ {}
+                  :args $ [] 'String 'ws-edn.server/NodeWebSocketHost
+                  :return 'Unit
                 @*proxied-dispatch! (:: :session/connect) sid
                 println "|New client."
-              :on-data $ fn (sid action) (@*proxied-dispatch! action action)
-              :on-close $ fn (sid event) (println "|Client closed!")
+                , &unit
+              :on-data $ fn (sid action)
+                hint-fn $ {}
+                  :args $ [] 'String 'Dynamic
+                  :return 'Unit
+                @*proxied-dispatch! action sid
+                , &unit
+              :on-close $ fn (sid event)
+                hint-fn $ {}
+                  :args $ [] 'String 'JsObject
+                  :return 'Unit
+                println "|Client closed!"
                 @*proxied-dispatch! (:: :session/disconnect) sid
-              :on-error $ fn (error) (js/console.error error)
+                , &unit
+              :on-error $ fn (error)
+                hint-fn $ {}
+                  :args $ [] 'JsObject
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+                js/console.error error
+                , &unit
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Number
         'storage-file $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def storage-file
             path/join
