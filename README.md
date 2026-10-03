@@ -91,7 +91,11 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 本轮删除实际被调用的 `<<` 占位宏，把五处模板改为普通字符串拼接；原宏只返回 `TODO`，这是一项行为修复，而非纯格式迁移。五个模板已完成纯求值检查，未执行对应 Git、npm 或 shell 命令。CLI 发布操作仍具有副作用，不将该定向检查当作发布流程验收。
 
-当前迁移尚未完成：完整默认检查在 `app.client/render-app!` 的旧 whole-Dynamic 函数契约失败，服务端在 `app.server/main!` 的同类契约失败；仍需逐个补齐真实函数、数据和 FFI 合同。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+五个入口/渲染函数明确返回 Unit。命令行模式读取复用已发布 JS-FFI 的 `argv-at`，不再强制转换 `process.argv`；DOM 挂载读取复用 `query-selector`，按 Option 分支处理缺失的 `.app`，不新增 unsafe。旧 `shell-env` 及三处无用导入已删除，客户端投影不再包含 `GITHUB_TOKEN`：这是明确的隐私修复，改变该废弃字段的 wire 投影，而非宣称协议完全不变。Git 命令原有继承环境变量的机制不变，旧定义可从 Git 历史恢复。
+
+`app.env` 的公开类型检查与定向 JS 生成通过；实际 Node 默认 / switch / other 参数检查通过，子进程未继承凭据，未执行 Git 或启动服务。DOM 边界通过静态检查，未做浏览器运行验收。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/main-switch!` 的 Option 被隐式字符串化错误；仍需逐个补齐真实函数、数据和 FFI 合同。格式诊断中的未解决契约从 132 降至 124，这只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

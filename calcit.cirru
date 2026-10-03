@@ -102,9 +102,10 @@
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target (js/document.querySelector |.app)
+          :code $ quote $ def mount-target (read-mount-target!)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'js-ffi.browser/DomElementHost
         'notify-user! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn notify-user! (new-upstream)
             js/Notification.requestPermission $ fn (perm)
@@ -135,6 +136,15 @@
                 reset! *store $ patch-twig @*store changes
           :examples $ []
           :schema $ :: 'Dynamic
+        'read-mount-target! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-mount-target! ()
+            match (browser/query-selector |.app)
+              (:some element) element
+              (:none) (raise "|Missing .app mount element")
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
+            :args $ []
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if
@@ -171,8 +181,12 @@
                 option:unwrap-or (&map:get @*states :states) {}
                 , @*store
               , dispatch!
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'simulate-login! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn simulate-login! ()
             let
@@ -199,6 +213,7 @@
             |bottom-tip :default hud!
             |./calcit.build-errors :default client-errors
             |../js-out/calcit.build-errors :default server-errors
+            js-ffi.browser :as browser
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)
@@ -993,33 +1008,20 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.env $ %{} 'FileEntry
-      :defs $ {}
-        'run-mode $ %{} 'CodeEntry (:doc |)
+      :defs $ {} $ 'run-mode
+        %{} 'CodeEntry (:doc |)
           :code $ quote $ def run-mode
             if
               =
-                unsafe-coerce
-                  aget (unsafe-coerce js/process.argv JsObject) 2
-                  , String
+                option:unwrap-or (node/argv-at 2) |
                 , |switch
               , :switch :server
           :examples $ []
-          :schema $ :: 'Dynamic
-        'shell-env $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def shell-env
-            if (= run-mode :switch) nil $ {} $ :github-token
-              let
-                  token $ unsafe-coerce
-                    aget (unsafe-coerce js/process.env JsObject) |GITHUB_TOKEN
-                    , String
-                when (js-nullish? token)
-                  println $ .!red chalk "|GITHUB_TOKEN not found in shell"
-                , token
-          :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Tag
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.env
-          :require $ |chalk :default chalk
+          :require $ js-ffi.node :as node
     'app.manager $ %{} 'FileEntry
       :defs $ {}
         'add-tag! $ %{} 'CodeEntry (:doc |)
@@ -1271,7 +1273,6 @@
             app.util :refer $ read-items
             app.util :refer $ grab-upstream
             |chalk :default chalk
-            app.env :refer $ shell-env
             app.util.string :refer $ default-branch?
             app.util :refer $ pos?
             |nanoid :refer $ nanoid
@@ -1452,8 +1453,12 @@
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if (= run-mode :switch) (main-switch!) (main-server!)
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'main-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-server! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -1482,8 +1487,12 @@
                 , |system
             listen-to-switching!
             check-version!
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'main-switch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-switch! ()
             let
@@ -1500,8 +1509,12 @@
               let
                   upstream $ manager/get-upstream!
                 println "|Switching to" upstream |at git-path
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'on-exit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-exit! (code _) (persist-db!)
             ; println "|exit code is:" $ pr-str code
@@ -1524,8 +1537,12 @@
             js/clearTimeout @*loop-trigger
             render-loop! *loop-trigger
             sync-clients! @*reader-reel
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'render-loop! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-loop! (*loop)
             when
@@ -1658,7 +1675,6 @@
                 ; :color $ color/randomColor
                 :repo $ option:unwrap-or (get db :repo) {}
                 :logs $ option:unwrap-or (get db :logs) {}
-                :shell-env shell-env
                 :process-status $ option:unwrap-or (get db :process-status) {}
                 :footprints $ option:unwrap-or (get db :footprints) {}
           :examples $ []
@@ -1678,7 +1694,6 @@
           :require
             app.twig.user :refer $ twig-user
             |randomcolor :as color
-            app.env :refer $ shell-env
     'app.twig.user $ %{} 'FileEntry
       :defs $ {} $ 'twig-user
         %{} 'CodeEntry (:doc |)
@@ -1948,7 +1963,6 @@
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util
-          :require $ app.env :refer $ shell-env
     'app.util.string $ %{} 'FileEntry
       :defs $ {}
         'default-branch? $ %{} 'CodeEntry (:doc |)
