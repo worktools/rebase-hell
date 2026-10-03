@@ -99,7 +99,9 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 服务端四处 chalk 单字符串着色调用集中到 Node 专用 `colorize`，按已安装 chalk 5.4.1 的四个方法合同返回 String；实际 Node 输出与原方法对照通过。manager 中原有的双参数着色调用暂保留，未改变其参数语义。工作目录文件路径复用已发布 JS-FFI `env-get` 的 Option<String>，HOME 存在时仍使用原后缀，缺失时明确失败，不再拼出错误路径；空字符串仍按原值处理。未新增持久验证脚本或编译器规则。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/get-upstream!` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+`grab-upstream` 的内部返回值改为 `Origin`，明确 address / upstream 为 String、host-kind 为 Tag，并处理序列末项的 Option。Git / HTTPS URL 的原分支和字段算法保持，未扩展 SSH URL scheme 支持。`get-upstream!` 明确以 UTF-8 获取同一 Git 命令的输出，仍向原操作协议返回三字段 Map，不发送 Origin 名义值；Map 的 Dynamic 值槽仅用于原有异构消息边界。两函数通过定向严格检查和 JS 生成，实际 Node 解析及模拟命令输出的 Map 投影通过，没有执行 Git。旧 `app.test` 仍有期待字符串返回值和 SSH scheme 的过期断言，本轮未修改预期，也未将其算作通过。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/run-server!` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

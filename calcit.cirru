@@ -1101,10 +1101,20 @@
         'get-upstream! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-upstream! ()
             let
-                remote-url $ .trim $ .!toString (cp/execSync "|git ls-remote --get-url origin")
-              grab-upstream remote-url
+                remote-url $ .trim $ unsafe-coerce
+                  cp/execSync "|git ls-remote --get-url origin" $ js-object $ :encoding |utf8
+                  , String
+                origin $ grab-upstream remote-url
+              {}
+                :address $ :address origin
+                :upstream $ :upstream origin
+                :host-kind $ :host-kind origin
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {}
+            :args $ []
+            :features $ #{} :js-ffi
+            :return $ :: 'Map 'Tag 'Dynamic
         'kill-process! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn kill-process! (pid d!)
             println $ .!red chalk |kill pid
@@ -1307,6 +1317,10 @@
           :require $ |chalk :default chalk
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'Origin $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Origin (:address 'String) (:upstream 'String) (:host-kind 'Tag)
+          :examples $ []
+          :schema $ :: 'StructDef
         'database $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def database
             {}
@@ -1980,16 +1994,17 @@
           :code $ quote $ defn grab-upstream (url)
             cond
                 .starts-with? url |git@
-                {} (:address url)
-                  :upstream $ -> url (.trim) (.split |:) last $ .replace |.git |
-                  :host-kind $ if (.includes? url |github.com) :github :unknown
+                Origin :address url :upstream
+                  -> url (.trim) (.split |:) (.last) (.unwrap) (.replace |.git |)
+                  , :host-kind $ if (.includes? url |github.com) :github :unknown
               (.starts-with? url |https://)
-                {} (:address url)
-                  :upstream $ -> url .trim (.split |:) last (.replace |//github.com/ |) (.replace |.git |)
-                  :host-kind $ if (.includes? url |github.com) :github :unknown
+                Origin :address url :upstream
+                  -> url .trim (.split |:) (.last) (.unwrap) (.replace |//github.com/ |) (.replace |.git |)
+                  , :host-kind $ if (.includes? url |github.com) :github :unknown
               true $ raise $ str "|Invalid url:" url
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Origin)
+            :args $ [] 'String
         'host-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def host-pattern (new js/RegExp |^[\w\d\@\:\.]+)
           :examples $ []
@@ -2008,6 +2023,7 @@
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util
+          :require $ app.schema :refer $ Origin
     'app.util.string $ %{} 'FileEntry
       :defs $ {}
         'default-branch? $ %{} 'CodeEntry (:doc |)
