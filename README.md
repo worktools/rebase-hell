@@ -97,7 +97,9 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 固定站点配置改为 `Site`，端口为 Number，其余九个字段为 String；原端口、标题、CDN、UI、存储键和文件路径保持不变。三个旧 Map/Option 读取改为直接字段读取，服务端默认端口不再强制转换为 String。未使用的旧 `cdn?` 环境探测已删除，旧定义可从 Git 历史恢复；部署仍由原工作流的前端路径配置决定。配置公开类型检查和实际 Node 十字段核对通过，路径查找函数补齐 String → JsNullish<String> 的 Node 宿主合同并通过定向静态检查；没有执行文件系统查找或 Git 操作。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/main-switch!` 的 chalk 未类型化 JS 方法；仍需逐个补齐真实函数、数据和 FFI 合同。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+服务端四处 chalk 单字符串着色调用集中到 Node 专用 `colorize`，按已安装 chalk 5.4.1 的四个方法合同返回 String；实际 Node 输出与原方法对照通过。manager 中原有的双参数着色调用暂保留，未改变其参数语义。工作目录文件路径复用已发布 JS-FFI `env-get` 的 Option<String>，HOME 存在时仍使用原后缀，缺失时明确失败，不再拼出错误路径；空字符串仍按原值处理。未新增持久验证脚本或编译器规则。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/get-upstream!` 的旧 whole-Dynamic 契约；仍需逐个补齐真实函数、数据和 FFI 合同。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

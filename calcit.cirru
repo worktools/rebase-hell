@@ -1269,6 +1269,42 @@
             app.util.string :refer $ default-branch?
             app.util :refer $ pos?
             |nanoid :refer $ nanoid
+    'app.node.chalk $ %{} 'FileEntry
+      :defs $ {}
+        'ChalkHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait ChalkHost
+            .red $ :: 'Fn $ {}
+              :args $ [] 'ChalkHost 'String
+              :return 'String
+            .blue $ :: 'Fn $ {}
+              :args $ [] 'ChalkHost 'String
+              :return 'String
+            .yellow $ :: 'Fn $ {}
+              :args $ [] 'ChalkHost 'String
+              :return 'String
+            .gray $ :: 'Fn $ {}
+              :args $ [] 'ChalkHost 'String
+              :return 'String
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+          :schema $ :: 'Trait
+        'colorize $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn colorize (color text)
+            let
+                host $ unsafe-coerce chalk ChalkHost
+              case-default color (raise "|Unsupported terminal color")
+                :red $ host .red text
+                :blue $ host .blue text
+                :yellow $ host .yellow text
+                :gray $ host .gray text
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'Tag 'String
+            :features $ #{} :js-ffi
+      :ns $ %{} 'NsEntry (:doc |)
+        :code $ quote $ ns app.node.chalk
+          :require $ |chalk :default chalk
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'database $ %{} 'CodeEntry (:doc |)
@@ -1360,7 +1396,7 @@
                 unsafe-coerce (.-name pkg) JsObject
                 .!then $ fn (npm-version)
                   if (= npm-version version) (println "|Running latest version" version)
-                    println $ .!yellow chalk $ str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n"
+                    println $ colorize :yellow $ str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n"
                 .catch $ fn (err) (js/console.error err)
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1471,7 +1507,7 @@
                 unsafe-coerce (.-query url-obj) JsObject
                 , :port port
               let
-                  address $ .!blue chalk $ .!toString url-obj
+                  address $ colorize :blue $ .!toString url-obj
                 println $ str "|Server started. Open editor on " address
             render-loop! *loop-trigger
             ; js/process.on |SIGINT on-exit!
@@ -1500,7 +1536,7 @@
                   .trim $ unsafe-coerce (.!toString raw-port) String
                 git-path $ find-git-path $ js/process.cwd
               when (js-nullish? git-path)
-                println $ .!red chalk "|Missing .git/ folder, not a valid path!"
+                println $ colorize :red "|Missing .git/ folder, not a valid path!"
                 js/process.exit 1
               fs/writeFileSync wd-file-path git-path
               cp/execSync $ str "|kill -13 " previous-port
@@ -1529,6 +1565,15 @@
               write-mildly! backup-path file-content
           :examples $ []
           :schema $ :: 'Dynamic
+        'read-wd-file-path $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-wd-file-path ()
+            match (node/env-get |HOME)
+              (:some home) (str home |/.config/rebase-hell-working-directory.text)
+              (:none) (raise "|HOME is required for the working-directory file")
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ []
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (println "|Code updated.") (clear-twig-caches!) (reset! *proxied-dispatch! dispatch!)
             reset! *reel $ refresh-reel @*reel @*initial-db updater
@@ -1579,7 +1624,7 @@
                   old-store $ or (get @*client-caches sid) nil
                   new-store $ twig-container db session records
                   changes $ diff-twig old-store new-store $ {} (:key :id)
-                when config/dev? $ println $ .!gray chalk
+                when config/dev? $ println $ colorize :gray
                   str "|Changes for " sid "|: " $ count records
                 if
                   not= changes $ []
@@ -1589,9 +1634,10 @@
           :examples $ []
           :schema $ :: 'Dynamic
         'wd-file-path $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def wd-file-path (str js/process.env.HOME |/.config/rebase-hell-working-directory.text)
+          :code $ quote $ def wd-file-path (read-wd-file-path)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.server
           :require (app.schema :as schema)
@@ -1600,7 +1646,6 @@
             |fs :as fs
             |path :as path
             |util :as util
-            |chalk :default chalk
             |latest-version :default latest-version
             |url-parse :default url-parse
             |child_process :as cp
@@ -1617,6 +1662,8 @@
             |url :refer $ fileURLToPath
             |path :refer $ dirname
             |nanoid :refer $ nanoid
+            app.node.chalk :refer $ colorize
+            js-ffi.node :as node
     'app.style $ %{} 'FileEntry
       :defs $ {} $ 'link
         %{} 'CodeEntry (:doc |)
