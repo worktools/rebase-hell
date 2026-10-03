@@ -2060,10 +2060,10 @@
                   decode-map-as data $ :: 'List 'String
                   , sid op-id
               (:user/log-out) (user/log-out db sid)
-              (:router/change data) (router/change db data sid op-id op-time)
-              (:repo/set-branches data) (repo/set-repo db data sid op-id op-time)
+              (:router/change data) (router/change db data sid)
+              (:repo/set-branches data) (repo/set-repo db data)
               (:repo/set-current data) (repo/set-current db data)
-              (:repo/set-upstream data) (repo/set-upstream db data sid op-id op-time)
+              (:repo/set-upstream data) (repo/set-upstream db data)
               (:process/start data) (process/start db data sid op-id op-time)
               (:process/finish data) (process/finish db data sid op-id op-time)
               (:process/log data) (process/log db data)
@@ -2132,30 +2132,64 @@
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
             :return $ :: 'Map 'Tag 'Dynamic
         'set-repo $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn set-repo (db op-data sid op-id op-time)
-            update db :repo $ fn (repo) (merge repo op-data)
+          :code $ quote $ defn set-repo (db op-data)
+            let
+                branches $ decode-map-as
+                  option:unwrap-or (get op-data :branches) nil
+                  :: 'Set 'String
+                current $ decode-map-as
+                  option:unwrap-or (get op-data :current) nil
+                  , 'String
+                remote-branches $ decode-map-as
+                  option:unwrap-or (get op-data :remote-branches) nil
+                  :: 'List 'String
+                payload $ -> op-data (assoc :branches branches) (assoc :current current) (assoc :remote-branches remote-branches)
+              update db :repo $ fn (repo)
+                hint-fn $ {}
+                  :args $ [] 'Dynamic
+                  :return $ :: 'Map 'Tag 'Dynamic
+                merge
+                  decode-map-as repo $ :: 'Map 'Tag 'Dynamic
+                  , payload
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
         'set-upstream $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn set-upstream (db op-data sid op-id op-time)
-            -> db
-              assoc-in ([] :repo :upstream)
-                option:unwrap-or (get op-data :upstream) nil
-              assoc-in ([] :repo :host-kind)
-                option:unwrap-or (get op-data :host-kind) nil
-              assoc-in ([] :repo :address)
-                option:unwrap-or (get op-data :address) nil
+          :code $ quote $ defn set-upstream (db op-data)
+            let
+                upstream $ decode-map-as
+                  option:unwrap-or (get op-data :upstream) nil
+                  , 'String
+                host-kind $ decode-map-as
+                  option:unwrap-or (get op-data :host-kind) nil
+                  , 'Tag
+                address $ decode-map-as
+                  option:unwrap-or (get op-data :address) nil
+                  , 'String
+              -> db
+                assoc-in ([] :repo :upstream) upstream
+                assoc-in ([] :repo :host-kind) host-kind
+                assoc-in ([] :repo :address) address
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.repo
     'app.updater.router $ %{} 'FileEntry
       :defs $ {} $ 'change
         %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn change (db op-data sid op-id op-time)
-            assoc-in db ([] :sessions sid :router) op-data
+          :code $ quote $ defn change (db op-data sid)
+            let
+                name $ decode-map-as
+                  option:unwrap-or (get op-data :name) nil
+                  , 'Tag
+              assoc-in db ([] :sessions sid :router) (assoc op-data :name name)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.router
     'app.updater.session $ %{} 'FileEntry

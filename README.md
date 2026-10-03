@@ -129,7 +129,9 @@ updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,D
 
 登录 / 注册入口按 List<String> 解码凭据，具体 String session / operation ID，移除未用时间参数；退出仅接收状态和 session ID。共享 `find-user` 在使用处解码用户表并把 vals 的 Set 转成 List，修正注册直接向 `find` 传 Set 的旧写法。失败提示复用 session 消息 updater，修正原 `update` callback 把普通 Map 当 Option 解包的问题；缺失消息容器现在也能创建提示。String → String 的 JS 哈希适配器保留原 md5 输出和存储格式，不新增 unsafe；MD5 仍是旧认证设计，本轮不是密码安全升级。五个定向根严格检查和 JS 生成通过，实际生成 Node 在虚构数据中验证注册、登录、退出、错误密码、未知用户、重复用户名、缺失 session 和记录保留通过；查找 helper 的当前 AST native 验证通过，不接触真实账号、服务或存储。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.router/change` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+router / repo updater 删除未用参数。路由 name 按 Tag 解码，保留完整原 payload；分支消息的 branches / current / remote-branches 分别按 Set<String> / String / List<String> 解码，仍合并完整消息保留未知字段；upstream 三个字段按 String / Tag / String 解码，仍只写入原三个状态字段。使用中的 repo 状态槽按 Map 解码，不把边界当完整数据库闭合模型；非法或缺失必需字段现在拒绝。三根严格检查、实际 JS 生成、当前 AST 的 native 求值与生成 Node 的纯数据验证通过，无 Git、文件或服务操作，也没有新增 unsafe 或持久脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.process/start` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
