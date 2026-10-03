@@ -115,7 +115,11 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 定向严格检查和 JS 生成通过，实际生成 Node 函数在隔离 mock 中验证三命令并行启动、同步回调、原消息字段、同步启动失败 reject、非法输出拒绝与空分支集合通过；纯解析的 native 验证通过。没有执行 Git、切换目录或访问真实服务。空字符串 split 的 native / JS 差异已报告为 Calcit #1741，消费者明确处理空值不等于核心已经修复。没有新增持久检查脚本或编译器迁移规则。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/switch-branch!` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+公共命令执行器与十六个简单分支操作明确 String 参数、单 Enum 回调和 Unit 返回；options 明确 Map<Tag, Fn()→Unit>，完成回调按 Option 处理。八处空完成回调删除，五处真实更新 / 刷新回调保留。两项纯分支判断补齐类型。子进程和输出流采用最小 Node 外部合同，保留可空 PID 和 exit code / signal；仅可信 exec 构造处保留一次 host 转换，替换原三处裸 JsObject 转换，不宣称宿主字段已深层验证。输出流的可空读取在共享监听函数中处理，缺失时明确失败，不额外复制检查逻辑。
+
+合同按实际 Node 24 exec 的默认 UTF-8 行为核对。命令、cwd、日志字段和分支保护保持；exit 无论成功与否都执行完成回调的旧策略暂保留，error 仍仅输出原 error，不冒称错误处理完善。二十个定向根严格检查通过，实际生成 JS 在隔离 EventEmitter / exec mock 中验证公共执行器和十六个操作的命令字符串、同分支不执行、日志 / 完成字段、主分支保护、完成回调 Unit 与刷新消息通过。没有执行 Git、编辑器或服务。`add-tag!` / `show-version` 只删除其空回调，剩余函数体尚未验收；没有新增编译器规则、依赖或持久验证脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/add-tag!` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

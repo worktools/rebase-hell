@@ -1017,6 +1017,39 @@
           :require $ js-ffi.node :as node
     'app.manager $ %{} 'FileEntry
       :defs $ {}
+        'CommandProcessHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait CommandProcessHost
+            :pid $ :: 'JsNullish 'Number
+            :stdout 'app.manager/CommandStreamHost
+            :stderr 'app.manager/CommandStreamHost
+            .on-exit! $ :: 'Fn $ {}
+              :args $ [] 'app.manager/CommandProcessHost 'String $ :: 'Fn
+                {}
+                  :args $ [] (:: 'JsNullish 'Number) (:: 'JsNullish 'String)
+                  :return 'Unit
+              :return 'app.manager/CommandProcessHost
+            .on-error! $ :: 'Fn $ {}
+              :args $ [] 'app.manager/CommandProcessHost 'String $ :: 'Fn
+                {}
+                  :args $ [] 'JsObject
+                  :return 'Unit
+              :return 'app.manager/CommandProcessHost
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+            :names $ {} (:on-error! |on) (:on-exit! |on)
+          :schema $ :: 'Trait
+        'CommandStreamHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait CommandStreamHost
+            .on-data! $ :: 'Fn $ {}
+              :args $ [] 'app.manager/CommandStreamHost 'String $ :: 'Fn
+                {}
+                  :args $ [] 'String
+                  :return 'Unit
+              :return 'app.manager/CommandStreamHost
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+            :names $ {} $ :on-data! |on
+          :schema $ :: 'Trait
         'add-tag! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn add-tag! (tag-version upstream host-kind main-branch d!)
             let
@@ -1034,8 +1067,7 @@
                   :github $ str |https://github.com/ upstream |/releases/new?tag= target-version
               println "|host kind" host-kind |from current |to target-version
               if use-current?
-                run-command! (str "|git tag " current "| && git push origin " current "| && echo " web-url) d! $ {} $ :on-finish
-                  fn $
+                run-command! (str "|git tag " current "| && git push origin " current "| && echo " web-url) d! $ {}
                 do
                   when has-npm-config? $ let
                       pkg $ js/JSON.parse $ fs/readFileSync |package.json |utf8
@@ -1044,17 +1076,19 @@
                   if has-npm-config?
                     run-command!
                       str "|git add . && git commit -m \"release " tag-version "|\" && git tag " tag-version "| && git push origin " main-branch "| " tag-version "| && echo " web-url
-                      , d! $ {} $ :on-finish
-                        fn $
-                    run-command! (str "|git tag " tag-version "| && git push origin " tag-version "| && echo " web-url) d! $ {} $ :on-finish
-                      fn $
+                      , d! $ {}
+                    run-command! (str "|git tag " tag-version "| && git push origin " tag-version "| && echo " web-url) d! $ {}
           :examples $ []
           :schema $ :: 'Dynamic
         'apply-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn apply-stash! (d!)
             run-command! "|git stash apply" d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn command-output! (command)
             unsafe-coerce
@@ -1092,14 +1126,23 @@
               true $ run-command!
                 str "|git add . && \\\ngit commit -m " $ js/JSON.stringify message
                 , d! $ {}
-                  :on-finish $ fn $
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
+            :features $ #{} :js-ffi
         'display-status! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn display-status! (d!)
             run-command! "|git status" d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'dots-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dots-pattern (new js/RegExp |^\.{2,}$)
           :examples $ []
@@ -1107,24 +1150,44 @@
         'edit-with $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn edit-with (command d!)
             run-command! (str command "| ./") d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'fetch-origin! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-origin! (d!)
             run-command! "|git fetch origin --prune" d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'finish-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn finish-current! (branch-name main-branch d!)
             run-command! (str "|git fetch --prune && git checkout " main-branch "| && git merge origin/" main-branch "| && git branch -d " branch-name) d! $ {} $ :on-finish
-              fn () $ d! $ :: :effect/read-branches
+              fn ()
+                hint-fn $ {}
+                  :args $ []
+                  :return 'Unit
+                d! $ :: :effect/read-branches
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'force-push! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn force-push! (branch d!)
             run-command! (str "|git push origin " branch "| -f") d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'get-upstream! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-upstream! ()
             let
@@ -1148,17 +1211,40 @@
             js/process.kill pid
           :examples $ []
           :schema $ :: 'Dynamic
+        'listen-command-output! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn listen-command-output! (stream callback)
+            if (js-present? stream) (stream .on-data! |data callback) (raise "|Command output stream is unavailable")
+            , &unit
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] (:: 'JsNullish 'app.manager/CommandStreamHost)
+              :: 'Fn $ {} (:return 'Unit)
+                :args $ [] 'String
+            :features $ #{} :js-ffi
         'new-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn new-branch! (branch-name d!)
             run-command! (str "|git checkout -b " branch-name) d! $ {} $ :on-finish
-              fn () $ d! $ :: :effect/read-branches
+              fn ()
+                hint-fn $ {}
+                  :args $ []
+                  :return 'Unit
+                d! $ :: :effect/read-branches
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'pull-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pull-current! (d!)
             run-command! "|git pull" d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'push-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn push-current! (current d!)
             cond
@@ -1167,8 +1253,12 @@
               (default-branch? current)
                 d! $ :: :session/add-message $ {} (:text "|Can't push to main branch!")
               true $ run-command! (str "|git push origin " current) d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'read-branches! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-branches! (d!)
             let
@@ -1192,58 +1282,104 @@
         'rebase-master! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rebase-master! (main-branch d!)
             run-command! (str "|git rebase origin/" main-branch) d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'remove-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-branch! (branch d!)
             run-command! (str "|git branch -d " branch) d! $ {} $ :on-finish
-              fn () $ d! $ :: :effect/read-branches
+              fn ()
+                hint-fn $ {}
+                  :args $ []
+                  :return 'Unit
+                d! $ :: :effect/read-branches
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'remove-remote! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-remote! (current d!)
             cond
                 default-branch? current
                 d! $ :: :session/add-message $ {} (:text "|Can't remove a main branch!")
               true $ run-command! (str "|git push origin :" current) d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'run-command! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-command! (command d! options)
             let
-                proc $ cp/exec command $ js-object (:cwd js/process.env.CWD)
+                proc $ unsafe-coerce
+                  cp/exec command $ js-object $ :cwd js/process.env.CWD
+                  , CommandProcessHost
+                stdout $ js-get proc :stdout
+                stderr $ js-get proc :stderr
               d! $ :: :process/start $ {}
-                :pid $ .-pid proc
+                :pid $ js-get proc :pid
                 :command command
-              .!on
-                unsafe-coerce (.-stdout proc) JsObject
-                , |data $ fn (chunk)
-                  d! $ :: :process/log $ {}
-                    :id $ nanoid
-                    :time $ js/Date.now
-                    :text chunk
-                    :kind :log
-              .!on
-                unsafe-coerce (.-stderr proc) JsObject
-                , |data $ fn (chunk)
-                  d! $ :: :process/log $ {}
-                    :id $ nanoid
-                    :time $ js/Date.now
-                    :text chunk
-                    :kind :error
-              .!on (unsafe-coerce proc JsObject) |exit $ fn (event _)
-                d! $ :: :process/finish $ .-pid proc
-                let
-                    on-finish $ option:unwrap-or (get options :on-finish) nil
-                  if (fn? on-finish) (on-finish)
-              .!on proc |error $ fn (error) (js/console.error error)
+              listen-command-output! stdout $ fn (chunk)
+                hint-fn $ {}
+                  :args $ [] 'String
+                  :return 'Unit
+                d! $ :: :process/log $ {}
+                  :id $ nanoid
+                  :time $ js/Date.now
+                  :text chunk
+                  :kind :log
+                , &unit
+              listen-command-output! stderr $ fn (chunk)
+                hint-fn $ {}
+                  :args $ [] 'String
+                  :return 'Unit
+                d! $ :: :process/log $ {}
+                  :id $ nanoid
+                  :time $ js/Date.now
+                  :text chunk
+                  :kind :error
+                , &unit
+              proc .on-exit! |exit $ fn (event _)
+                hint-fn $ {}
+                  :args $ [] (:: 'JsNullish 'Number) (:: 'JsNullish 'String)
+                  :return 'Unit
+                d! $ :: :process/finish $ js-get proc :pid
+                match (get options :on-finish)
+                  (:some on-finish) (on-finish)
+                  (:none) &unit
+                , &unit
+              proc .on-error! |error $ fn (error)
+                hint-fn $ {}
+                  :args $ [] 'JsObject
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+                js/console.error error
+                , &unit
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String
+              :: 'Fn $ {} (:return 'Unit)
+                :args $ [] 'Enum
+              :: 'Map 'Tag $ :: 'Fn $ {} (:return 'Unit)
+                :args $ []
+            :features $ #{} :js-ffi
         'run-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-stash! (d!)
             run-command! "|git stash" d! $ {}
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'show-version $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn show-version (op-data upstream d!)
             let
@@ -1253,17 +1389,13 @@
                   first
               cond
                   pos? $ .!indexOf files |package.json
-                  run-command! "|cat package.json | grep \"\\\"version\"" d! $ {} $ :on-finish
-                    fn $
+                  run-command! "|cat package.json | grep \"\\\"version\"" d! $ {}
                 (pos? (.!indexOf files |release.edn))
-                  run-command! "|cat release.edn | grep :version" d! $ {} $ :on-finish
-                    fn $
+                  run-command! "|cat release.edn | grep :version" d! $ {}
                 (pos? (.!indexOf files |calcit.cirru))
-                  run-command! "|cat calcit.cirru | grep version" d! $ {} $ :on-finish
-                    fn $
+                  run-command! "|cat calcit.cirru | grep version" d! $ {}
                 (some? maybe-nimble)
-                  run-command! (str "|cat " maybe-nimble "| | grep version") d! $ {} $ :on-finish
-                    fn $
+                  run-command! (str "|cat " maybe-nimble "| | grep version") d! $ {}
                 true nil
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1271,9 +1403,17 @@
           :code $ quote $ defn switch-branch! (current branch-name d!)
             when (not= current branch-name)
               run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
-                fn () $ d! $ :: :repo/set-current branch-name
+                fn ()
+                  hint-fn $ {}
+                    :args $ []
+                    :return 'Unit
+                  d! $ :: :repo/set-current branch-name
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
         'switch-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-path (new-path dispatch! sid) (js/process.chdir new-path)
             let
@@ -1303,9 +1443,17 @@
         'switch-remote-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-remote-branch! (branch-name d!)
             run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
-              fn () $ d! $ :: :effect/read-branches
+              fn ()
+                hint-fn $ {}
+                  :args $ []
+                  :return 'Unit
+                d! $ :: :effect/read-branches
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.manager
           :require (|child_process :as cp) (|fs :as fs)
@@ -2084,7 +2232,8 @@
         'pos? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pos? (x) (&> x 0)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Bool)
+            :args $ [] 'Number
         'read-items $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-items (text)
             let
@@ -2103,7 +2252,8 @@
           :code $ quote $ defn default-branch? (x)
             or (= x |main) (= x |master) (= x |develop)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Bool)
+            :args $ [] 'String
         'detects-main $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn detects-main (branches)
             if (contains? branches |main) |main $ if (contains? branches |develop) |develop |master
