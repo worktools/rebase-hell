@@ -95,7 +95,9 @@ Action 使用可读正式 release tag；tag 可变，仍有供应链风险，部
 
 `app.env` 的公开类型检查与定向 JS 生成通过；实际 Node 默认 / switch / other 参数检查通过，子进程未继承凭据，未执行 Git 或启动服务。DOM 边界通过静态检查，未做浏览器运行验收。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/main-switch!` 的 Option 被隐式字符串化错误；仍需逐个补齐真实函数、数据和 FFI 合同。格式诊断中的未解决契约从 132 降至 124，这只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+固定站点配置改为 `Site`，端口为 Number，其余九个字段为 String；原端口、标题、CDN、UI、存储键和文件路径保持不变。三个旧 Map/Option 读取改为直接字段读取，服务端默认端口不再强制转换为 String。未使用的旧 `cdn?` 环境探测已删除，旧定义可从 Git 历史恢复；部署仍由原工作流的前端路径配置决定。配置公开类型检查和实际 Node 十字段核对通过，路径查找函数补齐 String → JsNullish<String> 的 Node 宿主合同并通过定向静态检查；没有执行文件系统查找或 Git 操作。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.server/main-switch!` 的 chalk 未类型化 JS 方法；仍需逐个补齐真实函数、数据和 FFI 合同。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

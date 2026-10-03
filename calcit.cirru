@@ -30,10 +30,8 @@
                 query $ unsafe-coerce (.-query url-obj) JsObject
                 port-value $ .?-port query
                 host-value $ .-host query
-                port $ if (js-present? port-value) (unsafe-coerce port-value String)
-                  option:unwrap-or (&map:get config/site :port) 0
-                host $ if (js-present? host-value) (unsafe-coerce host-value String)
-                  option:unwrap-or (&map:get config/site :ws-host) |
+                port $ if (js-present? port-value) (unsafe-coerce port-value String) (:port config/site)
+                host $ if (js-present? host-value) (unsafe-coerce host-value String) (:ws-host config/site)
               ws-connect! (str |ws:// host |: port)
                 {}
                   :on-open $ fn (event) (simulate-login!)
@@ -191,7 +189,7 @@
           :code $ quote $ defn simulate-login! ()
             let
                 storage $ unsafe-coerce js/localStorage JsObject
-                raw $ .!getItem storage $ option:unwrap-or (&map:get config/site :storage-key) |
+                raw $ .!getItem storage $ :storage-key config/site
               if (js-present? raw)
                 do (println "|Found storage.")
                   dispatch! $ :: :user/log-in $ parse-cirru-edn (unsafe-coerce raw String)
@@ -986,15 +984,10 @@
             app.config :as config
     'app.config $ %{} 'FileEntry
       :defs $ {}
-        'cdn? $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def cdn?
-            cond
-                exists? js/window
-                , false
-              (exists? js/process) (= |true js/process.env.cdn)
-              :else false
+        'Site $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Site (:port 'Number) (:title 'String) (:ws-host 'String) (:icon 'String) (:dev-ui 'String) (:release-ui 'String) (:cdn-url 'String) (:theme 'String) (:storage-key 'String) (:storage-file 'String)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
@@ -1002,9 +995,9 @@
           :schema $ :: 'Dynamic
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
-            {} (:port 8009) (:title "|Rebase Hell") (:ws-host |localhost) (:icon |https://cdn.tiye.me/logo/rebase-hell.png) (:dev-ui |http://localhost:8100/main.css) (:release-ui |https://cdn.tiye.me/favored-fonts/main.css) (:cdn-url |https://cdn.tiye.me/rebase-hell/) (:theme |#eeeeff) (:storage-key |rebase-hell-storage) (:storage-file |storage.edn)
+            Site :port 8009 :title "|Rebase Hell" :ws-host |localhost :icon |https://cdn.tiye.me/logo/rebase-hell.png :dev-ui |http://localhost:8100/main.css :release-ui |https://cdn.tiye.me/favored-fonts/main.css :cdn-url |https://cdn.tiye.me/rebase-hell/ :theme |#eeeeff :storage-key |rebase-hell-storage :storage-file |storage.edn
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'app.config/Site
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.env $ %{} 'FileEntry
@@ -1433,7 +1426,11 @@
                 recur $ path/dirname dir
                 , nil
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {}
+            :args $ [] 'String
+            :features $ #{} :js-ffi
+            :return $ :: 'JsNullish 'String
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
             js/process.on |SIGHUP $ fn (e _)
@@ -1465,8 +1462,9 @@
             let
                 port $ let
                     port-value $ .?-port js/process.env
-                  js/parseInt $ if (js-present? port-value) (unsafe-coerce port-value String)
-                    unsafe-coerce (:port config/site) String
+                  if (js-present? port-value)
+                    js/parseInt $ unsafe-coerce port-value String
+                    :port config/site
                 url-obj $ unsafe-coerce (url-parse |https://r.tiye.me/worktools/rebase-hell/ true) JsObject
               run-server! port
               js-set
