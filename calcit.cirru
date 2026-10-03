@@ -1590,21 +1590,21 @@
           :code $ quote $ def message
             {} (:id nil) (:text nil) (:kind nil)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'Dynamic
         'router $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def router
             {} (:name nil) (:title nil)
               :data $ {}
               :router nil
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'Dynamic
         'session $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def session
             {} (:user-id nil) (:id nil) (:nickname nil)
               :router $ do router $ {} (:name :home) (:data nil) (:router nil)
               :messages $ do message $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'Dynamic
         'user $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def user
             {} (:name nil) (:id nil) (:nickname nil) (:avatar nil) (:password nil)
@@ -2047,10 +2047,10 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (db op sid op-id op-time)
             match op
-              (:session/connect) (session/connect db sid op-id op-time)
-              (:session/disconnect) (session/disconnect db sid op-id op-time)
-              (:session/remove-message data) (session/remove-message db data sid op-id op-time)
-              (:session/add-message data) (session/add-message db data sid op-id op-time)
+              (:session/connect) (session/connect db sid)
+              (:session/disconnect) (session/disconnect db sid)
+              (:session/remove-message data) (session/remove-message db data sid)
+              (:session/add-message data) (session/add-message db data sid op-id)
               (:user/log-in data) (user/log-in db data sid op-id op-time)
               (:user/sign-up data) (user/sign-up db data sid op-id op-time)
               (:user/log-out) (user/log-out db sid op-id op-time)
@@ -2062,8 +2062,8 @@
               (:process/finish data) (process/finish db data sid op-id op-time)
               (:process/log data) (process/log db data)
               (:process/clear-logs) (process/clear-logs db sid op-id op-time)
-              (:session/track-footprint data) (session/track-footprint db data sid op-id op-time)
-              (:session/drop-footprint data) (session/drop-footprint db data sid op-id op-time)
+              (:session/track-footprint dirpath upstream) (session/track-footprint db dirpath upstream)
+              (:session/drop-footprint data) (session/drop-footprint db data)
               _ $ do (println "|Unknown op:" op) db
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -2155,45 +2155,89 @@
     'app.updater.session $ %{} 'FileEntry
       :defs $ {}
         'add-message $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn add-message (db op-data sid op-id op-time)
+          :code $ quote $ defn add-message (db op-data sid op-id)
             update-in db ([] :sessions sid :messages)
               fn (messages)
-                assoc (option:unwrap-or messages {}) op-id $ merge op-data $ {} (:id op-id)
+                hint-fn $ {}
+                  :args $ [] $ :: 'Option 'Dynamic
+                  :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                assoc
+                  decode-map-as
+                    option:unwrap-or messages $ {}
+                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  , op-id $ merge op-data $ {} (:id op-id)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String 'String
+            :return $ :: 'Map 'Tag 'Dynamic
         'connect $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn connect (db sid op-id op-time)
+          :code $ quote $ defn connect (db sid)
             assoc-in db ([] :sessions sid)
               merge schema/session $ {} $ :id sid
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
         'disconnect $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn disconnect (db sid op-id op-time)
-            update db :sessions $ fn (session) (dissoc session sid)
+          :code $ quote $ defn disconnect (db sid)
+            update db :sessions $ fn (sessions)
+              hint-fn $ {}
+                :args $ [] 'Dynamic
+                :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              dissoc
+                decode-map-as sessions $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                , sid
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
         'drop-footprint $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn drop-footprint (db op-data sid op-id op-time)
-            update db :footprints $ fn (xs) (println |removing xs op-data) (dissoc xs op-data)
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'remove-message $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn remove-message (db op-data sid op-id op-time)
-            update-in db ([] :sessions sid :messages)
-              fn (messages)
-                dissoc (option:unwrap-or messages {})
-                  option:unwrap-or (get op-data :id) nil
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'track-footprint $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn track-footprint (db op-data sid op-id op-time)
+          :code $ quote $ defn drop-footprint (db dirpath)
             update db :footprints $ fn (xs)
-              let-sugar
-                    [] dirpath upstream
-                    , op-data
-                assoc xs dirpath upstream
+              hint-fn $ {}
+                :args $ [] 'Dynamic
+                :return $ :: 'Map 'String 'String
+              let
+                  paths $ decode-map-as xs $ :: 'Map 'String 'String
+                println |removing paths dirpath
+                dissoc paths dirpath
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
+        'remove-message $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn remove-message (db op-data sid)
+            let
+                id $ decode-map-as
+                  option:unwrap-or (get op-data :id) nil
+                  , 'String
+              update-in db ([] :sessions sid :messages)
+                fn (messages)
+                  hint-fn $ {}
+                    :args $ [] $ :: 'Option 'Dynamic
+                    :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  dissoc
+                    decode-map-as
+                      option:unwrap-or messages $ {}
+                      :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                    , id
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
+        'track-footprint $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn track-footprint (db dirpath upstream)
+            update db :footprints $ fn (xs)
+              hint-fn $ {}
+                :args $ [] 'Dynamic
+                :return $ :: 'Map 'String 'String
+              assoc
+                decode-map-as xs $ :: 'Map 'String 'String
+                , dirpath upstream
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String 'String
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.session
           :require $ [] app.schema :as schema

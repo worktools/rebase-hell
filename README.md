@@ -125,7 +125,9 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,Dynamic> 状态边界；该异构 Map 是现有持久化及客户端协议，不冒称闭合模型，也不改成名义 Struct 直接发送。`set-current` 收紧分支为 String，`process/log` 在使用处解码文本和 ID 为 String，删除两层裸转换；缺失文本仍为空，空白日志仍忽略，非空日志缺失或非法 ID 现在明确拒绝。两函数删除未用参数，原日志 payload（含未知字段）保持，不重建投影。两定向根严格检查、当前 AST 的纯 native 求值及实际生成 Node 函数验证通过；updater 整体和其他分支尚未通过。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.session/connect` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+六个 session / footprint updater 补齐具体 String 参数并删除未用参数。开放状态槽在使用处解码为 String 键的 session / message Map 或 Map<String,String> 路径表，消息叶值仍保留异构 Map。原 session 模板、消息未知字段与 ID 覆盖、缺失消息路径创建及缺失顶层槽不更新的行为保持；非法删除 ID 或使用中的容器明确拒绝。三个宿主入口实际发送两个 footprint payload，旧单 payload 匹配会漏掉它们；现在按 dirpath / upstream 两字段匹配和传参，这是路由修复。六个定向根严格检查及 JS 生成、实际生成 Node 的纯数据验证通过；当前 AST 的定向 native 验证确认旧路由漏匹配、新路由更新，不作为整个 updater 验收。没有新增 unsafe、编译器规则或持久验证脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.user/log-in` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
