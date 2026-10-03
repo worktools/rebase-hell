@@ -1664,24 +1664,37 @@
         'check-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn check-version! ()
             let
-                pkg $ unsafe-coerce
-                  js/JSON.parse $ fs/readFileSync $ path/join
-                    dirname $ fileURLToPath js/import.meta.url
+                pkg $ contract/expect-object "|CLI package.json" $ js/JSON.parse
+                  node/read-text! $ node/path-join
+                    node/path-dirname $ contract/expect-string |fileURLToPath $ fileURLToPath (contract/expect-string |import.meta.url js/import.meta.url)
                     , |../package.json
-                  , JsObject
-                version $ unsafe-coerce (.-version pkg) String
-              ->
-                unsafe-coerce (.-name pkg) JsObject
-                .!then $ fn (npm-version)
-                  if (= npm-version version) (println "|Running latest version" version)
-                    println $ colorize :yellow $ str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n"
-                .catch $ fn (err) (js/console.error err)
+                version $ contract/expect-string "|CLI package.json.version" $ contract/object-field "|CLI package.json" pkg |version
+                package-name $ contract/expect-string "|CLI package.json.name" $ contract/object-field "|CLI package.json" pkg |name
+                pending $ latest-package-version package-name
+              let
+                  checked $ pending .then! $ fn (raw-version)
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic
+                      :return 'Unit
+                      :features $ #{} :js-ffi
+                    let
+                        npm-version $ decode-map-as raw-version 'String
+                      if (= npm-version version) (println "|Running latest version" version)
+                        println $ colorize :yellow $ str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n"
+                    , &unit
+                checked .catch! $ fn (err)
+                  hint-fn $ {}
+                    :args $ [] 'Dynamic
+                    :return 'Unit
+                    :features $ #{} :js-ffi
+                  js/console.error err
+                  , &unit
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
-        'command $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def command ()
-          :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op sid)
             let
@@ -1765,6 +1778,14 @@
             :args $ [] 'String
             :features $ #{} :js-ffi
             :return $ :: 'JsNullish 'String
+        'latest-package-version $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn latest-package-version (package-name)
+            unsafe-coerce (latest-version package-name) PromiseHost
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'js-ffi.shared/PromiseHost)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
             let
@@ -1837,7 +1858,7 @@
                 previous-port $ let
                     raw-port $ cp/execSync $ str "|lsof -ti tcp:" port "| -sTCP:LISTEN"
                   .trim $ unsafe-coerce (.!toString raw-port) String
-                git-path $ find-git-path $ js/process.cwd
+                git-path $ find-git-path $ node/cwd
               when (js-nullish? git-path)
                 println $ colorize :red "|Missing .git/ folder, not a valid path!"
                 js/process.exit 1
@@ -2026,7 +2047,8 @@
             |nanoid :refer $ nanoid
             app.node.chalk :refer $ colorize
             js-ffi.node :as node
-            js-ffi.shared :refer $ encode-uri-component now-ms
+            js-ffi.shared :refer $ encode-uri-component now-ms PromiseHost
+            js-ffi.contract :as contract
     'app.style $ %{} 'FileEntry
       :defs $ {} $ 'link
         %{} 'CodeEntry (:doc |)
