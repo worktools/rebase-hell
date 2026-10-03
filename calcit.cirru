@@ -1617,7 +1617,7 @@
         '*client-caches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *client-caches ({})
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Map 'String (:: 'Map 'Tag 'Dynamic)
         '*initial-db $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *initial-db
             do
@@ -1627,9 +1627,9 @@
           :examples $ []
           :schema $ :: 'Dynamic
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *loop-trigger 0
+          :code $ quote $ defatom *loop-trigger (%none)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Option 'js-ffi.node/NodeTimerHost
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *proxied-dispatch! dispatch!
           :examples $ []
@@ -1639,12 +1639,12 @@
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *reader-reel @*reel
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref 'cumulo-reel.core/ReelState
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *reel
-            merge reel-schema $ {} (:base @*initial-db) (:db @*initial-db)
+            struct-with reel-schema (:base @*initial-db) (:db @*initial-db)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref 'cumulo-reel.core/ReelState
         'check-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn check-version! ()
             let
@@ -1670,14 +1670,14 @@
           :code $ quote $ defn dispatch! (op sid)
             let
                 op-id $ nanoid
-                op-time $ js/Date.now
+                op-time $ now-ms
                 d! $ fn (op')
                   hint-fn $ {}
                     :args $ [] 'Enum
                     :return 'Unit
                   dispatch! op' sid
                   , &unit
-                db $ :db @*reel
+                db $ decode-map-as (:db @*reel) (:: 'Map 'Tag 'Dynamic)
                 current $ option:unwrap-or
                   get-in db $ [] :repo :current
                   , nil
@@ -1849,7 +1849,9 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (println "|Code updated.") (clear-twig-caches!) (reset! *proxied-dispatch! dispatch!)
             reset! *reel $ refresh-reel @*reel @*initial-db updater
-            js/clearTimeout @*loop-trigger
+            match @*loop-trigger
+              (:some handle) (node/clear-timeout! handle)
+              (:none) &unit
             render-loop! *loop-trigger
             sync-clients! @*reader-reel
             , &unit
@@ -1864,9 +1866,20 @@
               not $ identical? @*reader-reel @*reel
               reset! *reader-reel @*reel
               sync-clients! @*reader-reel
-            reset! *loop $ flipped js/setTimeout 200 $ fn () (render-loop! *loop)
+            reset! *loop $ %some $ node/set-timeout!
+              fn ()
+                hint-fn $ {}
+                  :args $ []
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+                render-loop! *loop
+              , 200
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Ref (:: 'Option 'js-ffi.node/NodeTimerHost)
+            :features $ #{} :js-ffi
         'run-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
@@ -1923,22 +1936,35 @@
         'sync-clients! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn sync-clients! (reel)
             wss-each! $ fn (sid socket)
+              hint-fn $ {}
+                :args $ [] 'String 'ws-edn.server/NodeWebSocketHost
+                :return 'Unit
+                :features $ #{} :js-ffi
               let
-                  db $ option:unwrap-or (get reel :db) {}
-                  records $ option:unwrap-or (get reel :records) []
-                  session $ get-in db $ [] :sessions sid
-                  old-store $ or (get @*client-caches sid) nil
+                  db $ decode-map-as (:db reel) (:: 'Map 'Tag 'Dynamic)
+                  records $ :records reel
+                  session $ decode-map-as
+                    option:unwrap-or
+                      get-in db $ [] :sessions sid
+                      {}
+                    :: 'Map 'Tag 'Dynamic
+                  old-store $ option:unwrap-or (get @*client-caches sid) nil
                   new-store $ twig-container db session records
                   changes $ diff-twig old-store new-store $ {} (:key :id)
                 when config/dev? $ println $ colorize :gray
                   str "|Changes for " sid "|: " $ count records
                 if
-                  not= changes $ []
+                  not $ empty? changes
                   do
                     wss-send! sid $ {} (:kind :patch) (:data changes)
                     swap! *client-caches assoc sid new-store
+              , &unit
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'cumulo-reel.core/ReelState
+            :features $ #{} :js-ffi
         'wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def wd-file-path (read-wd-file-path)
           :examples $ []
@@ -1969,7 +1995,7 @@
             |nanoid :refer $ nanoid
             app.node.chalk :refer $ colorize
             js-ffi.node :as node
-            js-ffi.shared :refer $ encode-uri-component
+            js-ffi.shared :refer $ encode-uri-component now-ms
     'app.style $ %{} 'FileEntry
       :defs $ {} $ 'link
         %{} 'CodeEntry (:doc |)
@@ -2002,44 +2028,76 @@
             [] app.util :refer $ [] grab-upstream
     'app.twig.container $ %{} 'FileEntry
       :defs $ {}
+        'session-user-id $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn session-user-id (session)
+            let
+                raw $ option:unwrap-or (get session :user-id) nil
+              if (nil? raw) (%none)
+                %some $ decode-map-as raw 'String
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :return $ :: 'Option 'String
         'twig-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-container (db session records)
             let
-                logged-in? $ option:some? $ get session :user-id
-                router $ option:unwrap-or (get session :router) {}
+                logged-in? $ option:some? $ session-user-id session
+                router $ decode-map-as
+                  option:unwrap-or (get session :router) ({})
+                  :: 'Map 'Tag 'Dynamic
+                sessions $ decode-map-as
+                  option:unwrap-or (get db :sessions) ({})
+                  :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                 base-data $ {} (:logged-in? logged-in?) (:session session)
                   :reel-length $ count records
               merge base-data $ {}
-                :user $ twig-user $ option:unwrap-or
-                  get-in db $ [] :users $ option:unwrap-or (get session :user-id) nil
-                  , nil
-                :router $ assoc
-                  or router $ {}
-                  , :data $ case-default
-                    option:unwrap-or (get router :name) nil
-                    {}
-                    :home $ option:unwrap-or (get db :pages) {}
-                    :profile $ twig-members
-                      option:unwrap-or (get db :sessions) {}
-                      option:unwrap-or (get db :users) {}
-                :count $ count $ option:unwrap-or (get db :sessions) {}
+                :user $ match (session-user-id session)
+                  (:none) nil
+                  (:some user-id)
+                    match
+                      get-in db $ [] :users user-id
+                      (:none) nil
+                      (:some user)
+                        twig-user $ decode-map-as user $ :: 'Map 'Tag 'Dynamic
+                :router $ assoc router :data $ case-default
+                  match (get router :name)
+                    (:none) nil
+                    (:some name) (decode-map-as name 'Tag)
+                  {}
+                  :home $ option:unwrap-or (get db :pages) {}
+                  :profile $ twig-members sessions $ decode-map-as
+                    option:unwrap-or (get db :users) ({})
+                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                :count $ count sessions
                 ; :color $ color/randomColor
                 :repo $ option:unwrap-or (get db :repo) {}
                 :logs $ option:unwrap-or (get db :logs) {}
                 :process-status $ option:unwrap-or (get db :process-status) {}
                 :footprints $ option:unwrap-or (get db :footprints) {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
         'twig-members $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-members (sessions users)
-            -> sessions $ .map-kv $ fn (k session)
-              [] k $ option:unwrap-or
-                get-in users $ []
-                  option:unwrap-or (get session :user-id) nil
-                  , :name
-                , |
+            .map-kv sessions $ fn (sid session)
+              hint-fn $ {}
+                :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
+                :return $ :: 'List 'Dynamic
+              [] sid $ match (session-user-id session)
+                (:none) |
+                (:some user-id)
+                  decode-map-as
+                    option:unwrap-or
+                      get-in users $ [] user-id :name
+                      , |
+                    , 'String
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ []
+              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+            :return $ :: 'Map 'String 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.container
           :require
@@ -2050,7 +2108,9 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-user (user) (dissoc user :password)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.user (:require)
     'app.updater $ %{} 'FileEntry
