@@ -1645,6 +1645,22 @@
             struct-with reel-schema (:base @*initial-db) (:db @*initial-db)
           :examples $ []
           :schema $ :: 'Ref 'cumulo-reel.core/ReelState
+        'SignalProcessHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait SignalProcessHost
+            .on-signal! $ :: 'Fn $ {}
+              :args $ [] 'app.server/SignalProcessHost 'String $ :: 'Fn
+                {}
+                  :args $ [] 'String
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+              :return 'app.server/SignalProcessHost
+            .chdir! $ :: 'Fn $ {}
+              :args $ [] 'app.server/SignalProcessHost 'String
+              :return 'Unit
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+            :names $ {} (:chdir! |chdir) (:on-signal! |on)
+          :schema $ :: 'Trait
         'check-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn check-version! ()
             let
@@ -1751,20 +1767,33 @@
             :return $ :: 'JsNullish 'String
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
-            js/process.on |SIGHUP $ fn (e _)
-              let
-                  new-path $ unsafe-coerce (fs/readFileSync wd-file-path |utf8) String
-                js/process.chdir new-path
+            let
+                host $ unsafe-coerce js/process SignalProcessHost
+              host .on-signal! |SIGHUP $ fn (_signal)
+                hint-fn $ {}
+                  :args $ [] 'String
+                  :return 'Unit
+                  :features $ #{} :js-ffi
                 let
-                    upstream $ manager/get-upstream!
-                  dispatch! (:: :repo/set-upstream upstream) |system
-                  dispatch! (:: :effect/read-branches) |system
-                  dispatch!
-                    :: :session/track-footprint new-path $ option:unwrap-or (get upstream :upstream) nil
-                    , |system
-                  println "|Switching to" new-path
+                    new-path $ node/read-text! wd-file-path
+                  host .chdir! new-path
+                  let
+                      upstream $ manager/get-upstream!
+                    dispatch! (:: :repo/set-upstream upstream) |system
+                    dispatch! (:: :effect/read-branches) |system
+                    dispatch!
+                      :: :session/track-footprint new-path $ decode-map-as
+                        option:unwrap-or (get upstream :upstream) nil
+                        , 'String
+                      , |system
+                    println "|Switching to" new-path
+                , &unit
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if (= run-mode :switch) (main-switch!) (main-server!)
@@ -1785,11 +1814,13 @@
             ; js/process.on |SIGINT on-exit!
             ; repeat! 600 $ "#()" persist-db!
             let
-                upstream manager/get-upstream!
+                upstream $ manager/get-upstream!
               dispatch! (:: :repo/set-upstream upstream) |system
               dispatch!
-                :: :session/track-footprint (js/process.cwd)
-                  option:unwrap-or (get upstream :upstream) nil
+                :: :session/track-footprint (node/cwd)
+                  decode-map-as
+                    option:unwrap-or (get upstream :upstream) nil
+                    , 'String
                 , |system
             listen-to-switching!
             check-version!
