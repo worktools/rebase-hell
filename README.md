@@ -93,7 +93,7 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 已验证：完整 server 的 main! / reload! 严格门禁与 JS 生成、可达 28 个生成模块的语法检查；完整 updater 严格检查和实际生成 JS 的全部 17 路由；客户端投影 / 用户 / 成员函数、同步、循环、热更新、信号监听和版本检查定向严格检查；纯投影及启动 upstream 消息块的当前 AST native 求值；实际生成 JS 的隔离数据、WS / diff 缓存、定时器 / 热更新 / SIGHUP / npm Promise mock，以及旧 URL / parseInt 行为对照。命令执行器及相关适配器的定向检查使用 mock，不执行真实 Git、编辑器、进程终止、信号、目录切换、npm 查询、服务、存储或部署。这些不是完整应用运行验收，也不代表所有未调用定义都已通过类型检查。
 
-前端根组件已改为 Option<Map>，离线分支先判别再读取数据；状态色接受 Option<String>，首页三个 Map 不再被当函数调用，连接和消息回调按现行接口派发单个 Enum。当前 AST 的离线分支、首页参数、消息回调和状态色使用隔离 mock 验证，不代表真实 Respo / DOM 渲染通过。
+前端根组件已改为 Option<Map>，离线分支先判别再读取数据；状态色接受 Option<String>，首页三个 Map 不再被当函数调用，连接和消息回调按现行接口派发单个 Enum。导航字段按 String / Tag 检查，URL 转换去掉裸 unsafe，透明度使用 Option。用户面板的成员为 Map<String,String>，刷新 / 退出双参数回调复用已发布 JS-FFI，保持 origin + time URL、先派发后删 storage 和原异常传播。当前 AST 与实际生成 JS 的隔离数据 / 假浏览器测试通过；Respo 元素构建使用 mock，不代表真实 DOM、完整组件门禁或前端入口 codegen 通过。
 
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；状态色定向门禁另遇已发布 Respo 的五处 ToString 警告（已有 Markdown #65 / Respo #198）。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 

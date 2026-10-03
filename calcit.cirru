@@ -247,8 +247,10 @@
                         option:unwrap-or (get store :process-status) {}
                         option:unwrap-or (get store :footprints) {}
                       :profile $ comp-profile
-                        option:unwrap-or (get store :user) {}
-                        , router-data
+                        decode-map-as
+                          option:unwrap-or (get store :user) ({})
+                          :: 'Map 'Tag 'Dynamic
+                        decode-map-as router-data $ :: 'Map 'String 'String
                     comp-status-color $ let
                         raw $ option:unwrap-or (get store :color) nil
                       if (nil? raw) (%none)
@@ -896,12 +898,18 @@
         'comp-navigation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-navigation (states logged-in? count-members repo)
             let
-                upstream $ option:unwrap-or (&map:get repo :upstream) |
-                address $ option:unwrap-or
-                  &map:get (wo-js-log repo) :address
-                  , |
+                upstream $ decode-map-as
+                  option:unwrap-or (get repo :upstream) |
+                  , 'String
+                address $ decode-map-as
+                  option:unwrap-or
+                    get (wo-js-log repo) :address
+                    , |
+                  , 'String
                 git-url $ case-default
-                  option:unwrap-or (&map:get repo :host-kind) :unknown
+                  decode-map-as
+                    option:unwrap-or (get repo :host-kind) :unknown
+                    , 'Tag
                   if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
                   :github $ str |https://github.com/ upstream
               div
@@ -928,7 +936,8 @@
                   =< 8 nil
                   <> count-members
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Bool 'Number $ :: 'Map 'Tag 'Dynamic
         'css-nav-label $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-nav-label
             {} $ |$0 $ {}
@@ -936,7 +945,7 @@
               :font-family ui/font-code
               :font-size 14
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-nav-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-nav-title
             {} $ |$0 $ {}
@@ -945,20 +954,21 @@
               :font-family ui/font-fancy
               :text-decoration :none
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-navigation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-navigation
             {} $ |$0 $ merge ui/row-center
               {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
                 :background-color $ hsl 0 0 98
-                :border-bottom $ str "|1px solid " $ hsl 0 0 50 0.1
+                :border-bottom $ str "|1px solid " $ hsl 0 0 50 (%some 0.1)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-git-at-url (address)
-            -> (unsafe-coerce address String) (.replace |git@ |https://) (.replace |.com: |.com/)
+            -> address (.replace |git@ |https://) (.replace |.com: |.com/)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.navigation
           :require
@@ -979,7 +989,9 @@
                 :style $ {} $ :padding 16
               div
                 {} $ :style $ {} (:font-family ui/font-fancy) (:font-size 32) (:font-weight 100)
-                <> $ str "|Hello! " $ option:unwrap-or (&map:get user :name) |
+                <> $ str "|Hello! " $ decode-map-as
+                  option:unwrap-or (get user :name) |
+                  , 'String
               =< nil 16
               div
                 {} $ :class-name css/row
@@ -989,6 +1001,9 @@
                   {} $ :class-name css/row
                   -> members (.to-list)
                     .map-pair $ fn (k username)
+                      hint-fn $ {}
+                        :args $ [] 'String 'String
+                        :return $ :: 'List 'Dynamic
                       [] k $ div
                         {} $ :style $ {} (:padding "|0 8px")
                           :border $ str "|1px solid " $ hsl 0 0 80
@@ -999,18 +1014,40 @@
               div ({})
                 button
                   {} (:class-name css/button)
-                    :on-click $ fn (e d! m!)
-                      .replace js/location $ str js/location.origin |?time= $ js/Date.now
+                    :on-click $ fn (_e _d!)
+                      hint-fn $ {}
+                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                          {}
+                            :args $ [] 'Enum
+                            :return 'Unit
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      browser/location-replace! $ str
+                          browser/location-host
+                          , :origin
+                        , |?time= $ shared/now-ms
                   <> |Refresh
                 =< 8 nil
                 button
                   {} (:class-name css/button)
                     :style $ {} (:color :red) (:border-color :red)
-                    :on-click $ fn (e dispatch!) (dispatch! :user/log-out nil)
-                      js/localStorage.removeItem $ :storage-key config/site
+                    :on-click $ fn (_e dispatch!)
+                      hint-fn $ {}
+                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                          {}
+                            :args $ [] 'Enum
+                            :return 'Unit
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      dispatch! $ :: :user/log-out
+                      (browser/window-local-storage) .remove-item! $ :storage-key config/site
+                      , &unit
                   <> "|Log out"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'String 'String)
+            :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.profile
           :require
@@ -1021,6 +1058,8 @@
             respo.core :refer $ defcomp list-> <> span div button
             respo.comp.space :refer $ =<
             app.config :as config
+            js-ffi.browser :as browser
+            js-ffi.shared :as shared
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'Site $ %{} 'CodeEntry (:doc |)
