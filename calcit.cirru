@@ -2046,7 +2046,7 @@
       :defs $ {} $ 'updater
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (db op sid op-id op-time)
-            tag-match op
+            match op
               (:session/connect) (session/connect db sid op-id op-time)
               (:session/disconnect) (session/disconnect db sid op-id op-time)
               (:session/remove-message data) (session/remove-message db data sid op-id op-time)
@@ -2056,17 +2056,19 @@
               (:user/log-out) (user/log-out db sid op-id op-time)
               (:router/change data) (router/change db data sid op-id op-time)
               (:repo/set-branches data) (repo/set-repo db data sid op-id op-time)
-              (:repo/set-current data) (repo/set-current db data sid op-id op-time)
+              (:repo/set-current data) (repo/set-current db data)
               (:repo/set-upstream data) (repo/set-upstream db data sid op-id op-time)
               (:process/start data) (process/start db data sid op-id op-time)
               (:process/finish data) (process/finish db data sid op-id op-time)
-              (:process/log data) (process/log db data sid op-id op-time)
+              (:process/log data) (process/log db data)
               (:process/clear-logs) (process/clear-logs db sid op-id op-time)
               (:session/track-footprint data) (session/track-footprint db data sid op-id op-time)
               (:session/drop-footprint data) (session/drop-footprint db data sid op-id op-time)
               _ $ do (println "|Unknown op:" op) db
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'String 'Number
+            :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require (app.updater.session :as session) (app.updater.user :as user) (app.updater.router :as router) (app.updater.repo :as repo) (app.updater.process :as process) (app.schema :as schema)
@@ -2090,18 +2092,20 @@
           :examples $ []
           :schema $ :: 'Dynamic
         'log $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn log (db op-data sid op-id op-time)
-            if
-              .blank? $ unsafe-coerce
-                unsafe-coerce
+          :code $ quote $ defn log (db op-data)
+            let
+                text $ decode-map-as
                   option:unwrap-or (get op-data :text) |
-                  , String
-                , String
-              , db $ assoc-in db
-                [] :logs $ option:unwrap-or (get op-data :id) nil
+                  , 'String
+              if (.blank? text) db $ assoc-in db
+                [] :logs $ decode-map-as
+                  option:unwrap-or (get op-data :id) nil
+                  , 'String
                 , op-data
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
         'start $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn start (db op-data sid op-id op-time)
             let
@@ -2115,10 +2119,12 @@
     'app.updater.repo $ %{} 'FileEntry
       :defs $ {}
         'set-current $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn set-current (db op-data sid op-id op-time)
-            assoc-in db ([] :repo :current) op-data
+          :code $ quote $ defn set-current (db current)
+            assoc-in db ([] :repo :current) current
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :return $ :: 'Map 'Tag 'Dynamic
         'set-repo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-repo (db op-data sid op-id op-time)
             update db :repo $ fn (repo) (merge repo op-data)

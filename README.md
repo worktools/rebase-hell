@@ -123,7 +123,9 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 `show-version` 删除两个无用参数，目录读取边界解码 List<String>，按 Option 处理首个 nimble 文件，保留 package.json / release.edn / calcit.cirru / nimble 的优先级及原命令文本。`kill-process!` 明确 Number → Unit，删除无用回调参数，复用 `colorize` 保留原双参数着色的空格连接效果、先日志后 kill、默认 signal 和错误传播；没有新增 PID 安全策略。两根严格检查及实际生成 JS 的隔离 mock 验证通过，无真实目录读取、shell 命令或进程终止。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater/updater` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+updater 改用 `match`，声明具体 Enum / String / Number 参数和 Map<Tag,Dynamic> 状态边界；该异构 Map 是现有持久化及客户端协议，不冒称闭合模型，也不改成名义 Struct 直接发送。`set-current` 收紧分支为 String，`process/log` 在使用处解码文本和 ID 为 String，删除两层裸转换；缺失文本仍为空，空白日志仍忽略，非空日志缺失或非法 ID 现在明确拒绝。两函数删除未用参数，原日志 payload（含未知字段）保持，不重建投影。两定向根严格检查、当前 AST 的纯 native 求值及实际生成 Node 函数验证通过；updater 整体和其他分支尚未通过。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.updater.session/connect` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher / updater 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 
