@@ -95,7 +95,9 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 前端根组件已改为 Option<Map>，离线分支先判别再读取数据；状态色接受 Option<String>，首页三个 Map 不再被当函数调用，连接和消息回调按现行接口派发单个 Enum。导航字段按 String / Tag 检查，URL 转换去掉裸 unsafe，透明度使用 Option。用户面板的成员为 Map<String,String>，刷新 / 退出双参数回调复用已发布 JS-FFI，保持 origin + time URL、先派发后删 storage 和原异常传播。当前 AST 与实际生成 JS 的隔离数据 / 假浏览器测试通过；Respo 元素构建使用 mock，不代表真实 DOM、完整组件门禁或前端入口 codegen 通过。
 
-仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；状态色定向门禁另遇已发布 Respo 的五处 ToString 警告（已有 Markdown #65 / Respo #198）。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
+分支 / 路径组件明确 String、Bool、Map<String,String>，回调派发单 Enum，排序先解包 last 再按小写名称比较，样式合并使用空 Map 分支。实际生成 JS 的隔离测试覆盖路径过滤 / 排序、原远端最后一段名称、默认分支删除入口和操作 payload。删除当前无调用的登录面板四个定义及闲置 import、去重 home imports；客户端自动登录和服务端认证保持不变，删除的代码可从 Git 历史恢复。
+
+仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
 已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。
 

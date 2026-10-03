@@ -340,7 +340,6 @@
             respo.comp.space :refer $ =<
             app.comp.navigation :refer $ comp-navigation
             app.comp.profile :refer $ comp-profile
-            app.comp.login :refer $ comp-login
             respo-message.comp.messages :refer $ comp-messages
             cumulo-reel.comp.reel :refer $ comp-reel
             app.config :refer $ dev?
@@ -362,25 +361,44 @@
                     {}
                       :background-color $ hsl 0 0 100
                       :border-radius |4px
-                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 0.1
-                  if remote? $ {}
-                    :color $ hsl 0 0 80
-                    :line-height |26px
-                    :font-size 13
-                :on-click $ fn (e d!)
+                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 (%some 0.1)
+                    {}
                   if remote?
-                    d! :effect/switch-remote-branch $ last $ .split branch |/
-                    d! :effect/switch-branch branch
+                    {}
+                      :color $ hsl 0 0 80
+                      :line-height |26px
+                      :font-size 13
+                    {}
+                :on-click $ fn (e d!)
+                  hint-fn $ {}
+                    :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                      {}
+                        :args $ [] 'Enum
+                        :return 'Unit
+                    :return 'Unit
+                  if remote?
+                    d! $ :: :effect/switch-remote-branch $ option:unwrap-or
+                      last $ .split branch |/
+                      , |
+                    d! $ :: :effect/switch-branch branch
               <> branch nil
               if
                 and (not= current branch)
                   not $ default-branch? branch
                   not remote?
                 a
-                  {} $ :on-click $ fn (e d!) (d! :effect/remove-branch branch)
+                  {} $ :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    d! $ :: :effect/remove-branch branch
                   comp-i :x 14 $ hsl 20 80 80
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'String 'String 'Bool
         'comp-commit $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-commit (states current)
             let
@@ -413,15 +431,35 @@
               {} $ :style $ {} (:max-width 280)
               -> footprints (.to-list)
                 .filter-pair $ fn (k v)
+                  hint-fn $ {}
+                    :args $ [] 'String 'String
+                    :return 'Bool
                   not $ = v current
                 .sort-by $ fn (pair)
-                  .!toLowerCase $ last pair
+                  hint-fn $ {}
+                    :args $ [] $ :: 'List 'String
+                    :return 'String
+                    :features $ #{} :js-ffi
+                  decode-map-as
+                    .!toLowerCase $ option:unwrap-or (last pair) |
+                    , 'String
                 .map-pair $ fn (k v)
+                  hint-fn $ {}
+                    :args $ [] 'String 'String
+                    :return $ :: 'List 'Dynamic
+                    :features $ #{} :js-ffi
                   [] k $ div
                     {}
                       :class-name $ str-spaced css/row |hoverable css-footprint
                       :style $ {} $ :justify-content :flex-end
-                      :on-click $ fn (e d!) (d! :effect/switch-path k)
+                      :on-click $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
+                        d! $ :: :effect/switch-path k
                       :title k
                       :tab-index 0
                     <> v
@@ -430,9 +468,18 @@
                       comp-icon :x
                         {} (:font-size 14)
                           :color $ hsl 0 90 70
-                        fn (e d!) (d! :session/drop-footprint k)
+                        fn (e d!)
+                          hint-fn $ {}
+                            :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                              {}
+                                :args $ [] 'Enum
+                                :return 'Unit
+                            :return 'Unit
+                          d! $ :: :session/drop-footprint k
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'String 'String) 'String
+            :features $ #{} :js-ffi
         'comp-home $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-home (states repo logs status footprints)
             let
@@ -711,7 +758,7 @@
           :code $ quote $ defstyle css-branch
             {} $ |$0 $ {} (:cursor :pointer) (:line-height |32px) (:padding "|0 8px") (:min-width 200) (:font-family ui/font-code)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-button
             {}
@@ -741,7 +788,7 @@
               |&:hover $ {} $ :color :black
               |&:active $ {} $ :color :black
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-log
             {} $ |$0 $ {} (:line-height |20px) (:font-size 13)
@@ -804,7 +851,7 @@
               (str |. css-footprint "|:hover &")
                 {} $ :opacity 0.5
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'title-seperators $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def title-seperators (new js/RegExp "|(\\s|\\,)+")
           :examples $ []
@@ -822,7 +869,7 @@
             respo-ui.core :as ui
             respo-ui.css :as css
             respo.comp.space :refer $ =<
-            respo.core :refer $ defcomp <> >> list-> >> span div button pre a
+            respo.core :refer $ defcomp <> >> list-> span div button pre a
             app.config :as config
             respo-alerts.core :refer $ use-prompt use-modal-menu
             feather.core :refer $ comp-icon comp-i
@@ -830,69 +877,6 @@
             app.style :as style
             app.util.string :refer $ default-branch?
             respo.css :refer $ defstyle
-            respo-ui.css :as css
-    'app.comp.login $ %{} 'FileEntry
-      :defs $ {}
-        'comp-login $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-login (states)
-            let
-                cursor $ :cursor states
-                state $ or (:data states) initial-state
-              div
-                {} $ :class-name $ str-spaced css/flex css/center
-                div ({})
-                  div
-                    {} $ :style $ {}
-                    div ({})
-                      input $ {} (:placeholder |Username)
-                        :value $ :username state
-                        :class-name css/input
-                        :on-input $ on-input state cursor :username
-                    =< nil 8
-                    div ({})
-                      input $ {} (:placeholder |Password)
-                        :value $ :password state
-                        :class-name css/input
-                        :on-input $ on-input state cursor :password
-                  =< nil 8
-                  div
-                    {} $ :style $ {} (:text-align :right)
-                    span $ {} (:inner-text "|Sign up") (:class-name css/link)
-                      :on-click $ on-submit (:username state) (:password state) true
-                    =< 8 nil
-                    span $ {} (:inner-text "|Log in") (:class-name css/link)
-                      :on-click $ on-submit (:username state) (:password state) false
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'initial-state $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def initial-state
-            {} (:username |) (:password |)
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'on-input $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn on-input (state cursor k)
-            fn (e dispatch!)
-              dispatch! cursor $ assoc state k $ :value e
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'on-submit $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn on-submit (username password signup?)
-            fn (e dispatch!)
-              dispatch! (if signup? :user/sign-up :user/log-in) ([] username password)
-              js/localStorage.setItem (:storage-key config/site)
-                format-cirru-edn $ [] username password
-          :examples $ []
-          :schema $ :: 'Dynamic
-      :ns $ %{} 'NsEntry (:doc |)
-        :code $ quote $ ns app.comp.login
-          :require
-            respo.core :refer $ defcomp <> div input button span
-            respo.comp.space :refer $ =<
-            respo.comp.inspect :refer $ comp-inspect
-            respo-ui.core :as ui
-            app.schema :as schema
-            app.style :as style
-            app.config :as config
     'app.comp.navigation $ %{} 'FileEntry
       :defs $ {}
         'comp-navigation $ %{} 'CodeEntry (:doc |)
