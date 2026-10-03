@@ -119,7 +119,9 @@ dispatcher 与代理 Ref 声明 Enum / String → Unit，旧 `tag-match` 改为 
 
 合同按实际 Node 24 exec 的默认 UTF-8 行为核对。命令、cwd、日志字段和分支保护保持；exit 无论成功与否都执行完成回调的旧策略暂保留，error 仍仅输出原 error，不冒称错误处理完善。二十个定向根严格检查通过，实际生成 JS 在隔离 EventEmitter / exec mock 中验证公共执行器和十六个操作的命令字符串、同分支不执行、日志 / 完成字段、主分支保护、完成回调 Unit 与刷新消息通过。没有执行 Git、编辑器或服务。`add-tag!` / `show-version` 只删除其空回调，剩余函数体尚未验收；没有新增编译器规则、依赖或持久验证脚本。
 
-当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/add-tag!` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
+`add-tag!` 现已补齐 String / Tag 参数、Enum 回调与 Unit 返回。版本读取用已发布的 JS 边界检查，写回仍保留原 JSON 对象的未知字段、两空格缩进及末尾换行；dots 标记保留原正则语义。RegExp 与可写包对象仅声明最小 Node 宿主合同，各保留一次显式宿主转换，不声称完整对象形状已深层验证。四个定向根严格检查通过，实际生成 Node 函数在隔离文件 / 命令 mock 中验证标记、三种命令分支、原主分支参数、未知字段保留和非法版本拒绝通过；没有真实文件写入、Git 执行、发版或新增持久验证脚本。
+
+当前迁移尚未完成：完整默认检查在 `app.comp.container/comp-container` 的旧 whole-Dynamic 函数契约失败，服务端推进到 `app.manager/show-version` 的旧 whole-Dynamic 合同；仍需逐个补齐真实函数、数据和 FFI 合同。定向验证不等于 dispatcher 函数体、服务启动或完整目标 JS 生成通过。未解决契约统计只是盘点，不等于这些函数体已全部验收。严格 Caps 解析仍有三个发布图冲突，普通安装与 toolchain / immutable 检查通过不代表严格图一致。未通过整站 JS 构建、UI / Git 服务运行或实际上传，不能部署或宣称类型清零。
 
 ### License
 

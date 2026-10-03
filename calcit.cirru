@@ -1050,18 +1050,29 @@
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} $ :on-data! |on
           :schema $ :: 'Trait
+        'PackageJsonHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait PackageJsonHost (:version 'String)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+            :writable $ #{} :version
+          :schema $ :: 'Trait
+        'VersionPatternHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait VersionPatternHost
+            .test? $ :: 'Fn $ {}
+              :args $ [] 'app.manager/VersionPatternHost 'String
+              :return 'Bool
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
+            :names $ {} $ :test? |test
+          :schema $ :: 'Trait
         'add-tag! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn add-tag! (tag-version upstream host-kind main-branch d!)
             let
                 has-npm-config? $ fs/existsSync |package.json
                 current $ cond
-                  has-npm-config? $ unsafe-coerce
-                    .-version $ unsafe-coerce
-                      js/JSON.parse $ fs/readFileSync |package.json |utf8
-                      , JsObject
-                    , String
+                  has-npm-config? $ read-package-version!
                   true |0.0.0
-                use-current? $ or (= current tag-version) (.!test dots-pattern tag-version)
+                use-current? $ or (= current tag-version) (current-version-marker? tag-version)
                 target-version $ if use-current? current tag-version
                 web-url $ case-default host-kind (str |https://github.com/ upstream |/releases/new?tag= target-version)
                   :github $ str |https://github.com/ upstream |/releases/new?tag= target-version
@@ -1069,17 +1080,20 @@
               if use-current?
                 run-command! (str "|git tag " current "| && git push origin " current "| && echo " web-url) d! $ {}
                 do
-                  when has-npm-config? $ let
-                      pkg $ js/JSON.parse $ fs/readFileSync |package.json |utf8
-                    aset pkg |version target-version
-                    fs/writeFileSync |package.json $ str (js/JSON.stringify pkg nil 2) &newline
+                  when has-npm-config? $ write-package-version! target-version
                   if has-npm-config?
                     run-command!
                       str "|git add . && git commit -m \"release " tag-version "|\" && git tag " tag-version "| && git push origin " main-branch "| " tag-version "| && echo " web-url
                       , d! $ {}
                     run-command! (str "|git tag " tag-version "| && git push origin " tag-version "| && echo " web-url) d! $ {}
+              , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String 'String 'Tag 'String $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Enum
+            :features $ #{} :js-ffi
         'apply-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn apply-stash! (d!)
             run-command! "|git stash apply" d! $ {}
@@ -1134,6 +1148,16 @@
               {} (:return 'Unit)
                 :args $ [] 'Enum
             :features $ #{} :js-ffi
+        'current-version-marker? $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn current-version-marker? (text)
+            let
+                pattern $ unsafe-coerce (new js/RegExp |^\.{2,}$) VersionPatternHost
+              pattern .test? text
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Bool)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'display-status! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn display-status! (d!)
             run-command! "|git status" d! $ {}
@@ -1143,10 +1167,6 @@
             :args $ [] $ :: 'Fn
               {} (:return 'Unit)
                 :args $ [] 'Enum
-        'dots-pattern $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def dots-pattern (new js/RegExp |^\.{2,}$)
-          :examples $ []
-          :schema $ :: 'Dynamic
         'edit-with $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn edit-with (command d!)
             run-command! (str command "| ./") d! $ {}
@@ -1278,6 +1298,16 @@
             :args $ [] $ :: 'Fn
               {} (:return 'Unit)
                 :args $ [] 'Enum
+            :features $ #{} :js-ffi
+        'read-package-version! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-package-version! ()
+            contract/expect-string |package.json.version $ contract/object-field |package.json
+              js/JSON.parse $ fs/readFileSync |package.json |utf8
+              , |version
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ []
             :features $ #{} :js-ffi
         'rebase-master! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rebase-master! (main-branch d!)
@@ -1454,6 +1484,20 @@
             :args $ [] 'String $ :: 'Fn
               {} (:return 'Unit)
                 :args $ [] 'Enum
+        'write-package-version! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn write-package-version! (version)
+            let
+                pkg $ unsafe-coerce
+                  contract/expect-object |package.json $ js/JSON.parse $ fs/readFileSync |package.json |utf8
+                  , PackageJsonHost
+              js-set pkg :version version
+              fs/writeFileSync |package.json $ str (js/JSON.stringify pkg nil 2) &newline
+            , &unit
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :node)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.manager
           :require (|child_process :as cp) (|fs :as fs)
@@ -1464,6 +1508,7 @@
             app.util :refer $ pos?
             |nanoid :refer $ nanoid
             js-ffi.shared :as shared
+            js-ffi.contract :as contract
     'app.node.chalk $ %{} 'FileEntry
       :defs $ {}
         'ChalkHost $ %{} 'CodeEntry (:doc |)
