@@ -99,6 +99,8 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 首页根组件明确五个数据参数，分支集合在使用处检查 Set<String>，根调用同步解码日志 / 进程状态 / 路径 Map。菜单直接使用 Alerts 的 item Enum，原本把 Enum 当 Map、把分支字符串当函数调用的回调已修正；Clear 不派发空分支切换。过滤先解包 last，选择远端分支保留去掉 remote 后的全部路径段。当前 AST 的纯 native 数据 / mock dispatch 测试通过；复用 Respo 既有 dispatch 包装器，不新增兼容层。
 
+日志组件明确日志 Map / 状态 Map、文本 String 和排序时间 Number；状态 / 清理 / 结束进程回调统一单 Enum。URL 正则原样保留且仍只匹配首个地址，无结果归一为空 List<String>；正则构造移到显式 JS-FFI 的使用处，删除错误声明为 Fn 的旧宿主常量。复制回调改为两参数 / Unit，仍调用原同步 npm 包，异常原样传播。实际生成函数的隔离测试覆盖排序、空日志 / URL、链接、操作 payload 和 mock 复制；未执行真实 DOM、剪贴板或进程操作。日志根门禁仍因 Respo / Feather 六条共享类型警告失败。
+
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
 已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。

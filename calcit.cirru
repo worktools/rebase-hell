@@ -590,15 +590,24 @@
         'comp-log-chunk $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-log-chunk (log)
             let
-                text $ option:unwrap-or (&map:get log :text) |
-                kind $ option:unwrap-or (&map:get log :kind) nil
-                urls $ -> (.!match text url-pattern) (to-calcit-data) (.to-list)
+                text $ decode-map-as
+                  option:unwrap-or (get log :text) |
+                  , 'String
+                kind $ option:unwrap-or (get log :kind) nil
+                urls $ let
+                    matched $ to-calcit-data $ js/String.prototype.match.call text (new js/RegExp |https?://\S+)
+                  decode-map-as
+                    if (nil? matched) ([]) matched
+                    :: 'List 'String
               div
                 {} $ :style $ {} (:position :relative)
                 pre $ {} (:class-name css-log) (:inner-text text)
                 if-not (empty? urls)
                   list-> ({})
                     -> urls $ map $ fn (url)
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return $ :: 'List 'Dynamic
                       [] url $ a $ {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
                         :style $ {} (:line-height |16px) (:height |16px)
                 if (= :command kind)
@@ -608,10 +617,19 @@
                       {} (:font-size 16)
                         :color $ hsl 200 80 64
                         :cursor :pointer
-                      fn (e d! m!) (copy! text)
+                      fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
+                        copy! text
+                        , &unit
           :examples $ []
+          :ffi $ {} (:backend :js) (:target :browser)
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
         'comp-logs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-logs (logs status)
@@ -624,12 +642,24 @@
                 =< 16 nil
                 button $ {} (:class-name css-button) (:inner-text |Status)
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :effect/status
                 =< 16 nil
                 if
                   not $ empty? logs
                   button $ {} (:class-name css-button) (:inner-text |Clear)
                     :on-click $ fn (e d!)
+                      hint-fn $ {}
+                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                          {}
+                            :args $ [] 'Enum
+                            :return 'Unit
+                        :return 'Unit
                       d! $ :: :process/clear-logs
               if
                 not $ empty? status
@@ -641,23 +671,36 @@
                       :class-name $ str-spaced |rotating css/center
                       :style $ {} (:width 24) (:height 24) (:line-height |0px)
                     comp-icon :loader
-                      &{} :font-size 24 :color (hsl 0 0 0 0.5) :height 24
+                      &{} :font-size 24 :color
+                        hsl 0 0 0 $ %some 0.5
+                        , :height 24
                       , nil
                   =< 16 nil
                   list->
                     {} $ :class-name css/expand
                     -> status (.to-list)
                       .map-pair $ fn (pid command)
+                        hint-fn $ {}
+                          :args $ [] 'Dynamic 'String
+                          :return $ :: 'List 'Dynamic
                         [] pid $ div
                           {} $ :class-name css-command
-                          <> pid $ {} $ :color (hsl 0 0 80)
+                          <> (str pid)
+                            {} $ :color $ hsl 0 0 80
                           =< 4 nil
                           comp-icon :x
                             {} (:font-size 12)
                               :color $ hsl 0 80 88
                               :cursor :pointer
                               :margin-top 4
-                            fn (e d!) (d! :effect/kill-process pid)
+                            fn (e d!)
+                              hint-fn $ {}
+                                :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                                  {}
+                                    :args $ [] 'Enum
+                                    :return 'Unit
+                                :return 'Unit
+                              d! $ :: :effect/kill-process pid
                           =< 12 nil
                           div
                             {} $ :class-name css/expand
@@ -667,14 +710,28 @@
                   :style $ {} $ :overflow :auto
                 -> logs (.to-list)
                   .sort-by $ fn (pair)
+                    hint-fn $ {}
+                      :args $ [] $ :: 'List 'Dynamic
+                      :return 'Number
                     let
-                        item $ option:unwrap-or (last pair) {}
-                        time $ option:unwrap-or (&map:get item :time) 0
+                        item $ decode-map-as
+                          option:unwrap-or (last pair) ({})
+                          :: 'Map 'Tag 'Dynamic
+                        time $ decode-map-as
+                          option:unwrap-or (get item :time) 0
+                          , 'Number
                       negate time
                   .map-pair $ fn (id log)
+                    hint-fn $ {}
+                      :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
+                      :return $ :: 'List 'Dynamic
                     [] id $ comp-log-chunk log
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ []
+              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              :: 'Map 'Dynamic 'String
+            :features $ #{} :js-ffi
         'comp-new-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-new-branch (states)
             let
@@ -809,16 +866,16 @@
                 :background-color $ hsl 200 40 98
                 :transition-duration |200ms
               |&:hover $ {} $ :box-shadow
-                str "|1px 1px 4px " $ hsl 0 0 0 0.2
+                str "|1px 1px 4px " $ hsl 0 0 0 $ %some 0.2
               |&:active $ {} (:transform "|scale(1.06)") (:transition-duration |0ms)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-command
             {} $ |$0 $ merge ui/row
               {} (:font-family ui/font-code) (:font-size 13) (:line-height |20px)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-footprint $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-footprint
             {}
@@ -842,7 +899,7 @@
               :white-space :pre-line
               :margin-bottom 4
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-remote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-remote
             {}
@@ -897,12 +954,6 @@
           :code $ quote $ def title-seperators (new js/RegExp "|(\\s|\\,)+")
           :examples $ []
           :schema $ :: 'Dynamic
-        'url-pattern $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def url-pattern (new js/RegExp |https?://\S+)
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'JsObject)
-            :args $ []
-            :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.home
           :require
