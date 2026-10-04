@@ -1032,11 +1032,12 @@
           :code $ quote $ defstyle css-remote
             {}
               |& $ {} (:font-family ui/font-fancy) (:cursor :pointer) (:font-size 12)
-                :color $ hsl 0 0 60 0.4
+                :color $ hsl 0 0 60 $ %some 0.4
                 :transition-duration |200ms
-              |&:hover $ {} $ :color (hsl 0 0 60 0.8)
+              |&:hover $ {} $ :color
+                hsl 0 0 60 $ %some 0.8
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-section-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-section-title
             {} $ |$0 $ {} (:font-family ui/font-fancy) (:margin "|8px 0 4px 0")
@@ -1048,23 +1049,21 @@
               :background-color $ hsl 0 0 92
           :examples $ []
           :schema $ :: 'String
-        'numbers-pattern $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def numbers-pattern (new js/RegExp |^\d+$)
-          :examples $ []
-          :schema $ :: 'Dynamic
         'render-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-button (text danger? on-click)
             button $ {} (:class-name css-button)
-              :style $ merge
+              :style $ if danger?
+                {} (:margin "|4px 4px") (:color :red) (:border-color :red)
                 {} $ :margin "|4px 4px"
-                if danger?
-                  {} (:color :red) (:border-color :red)
-                  {}
               :inner-text text
               :on-click on-click
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] 'String 'Bool $ :: 'JsNullish 'respo.schema/EventHandler
+            :args $ [] 'String 'Bool $ :: 'JsNullish
+              :: 'Fn $ {} (:return 'Unit)
+                :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                  {} (:return 'Unit)
+                    :args $ [] 'Enum
         'style-close-icon $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-close-icon
             {}
@@ -1075,10 +1074,6 @@
                 {} $ :opacity 0.5
           :examples $ []
           :schema $ :: 'String
-        'title-seperators $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def title-seperators (new js/RegExp "|(\\s|\\,)+")
-          :examples $ []
-          :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.home
           :require
@@ -1087,11 +1082,9 @@
             respo-ui.css :as css
             respo.comp.space :refer $ =<
             respo.core :refer $ defcomp <> >> list-> span div button pre a
-            app.config :as config
             respo-alerts.core :refer $ use-prompt use-modal-menu
             feather.core :refer $ comp-icon comp-i
             |copy-text-to-clipboard :default copy!
-            app.style :as style
             app.util.string :refer $ default-branch?
             respo.css :refer $ defstyle
     'app.comp.navigation $ %{} 'FileEntry

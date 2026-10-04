@@ -103,9 +103,11 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 快捷栏明确 states Map 和 Component，五个事件回调明确双参数 / Unit；Tag 的 show-version / add-tag 改单 Enum，结果按已发布 prompt 的 String 合同处理，删除三次 unsafe 转换，仍先检查空白、trim 后再提交。删除没有 show 调用的闲置 Pick prompt 配置 / render，新建分支组件保留。当前 AST 的四个操作体和标签提交回调 native mock 测试通过；快捷组件根仍卡在 JS-FFI selectable-element-host（#155），没有该组件的完整 codegen / UI 验收。
 
-操作面板明确 states / repo Map，当前分支使用 get / String decoder；九个回调统一双参数 / Unit 与单 Enum。新建分支结果复用 prompt String 合同，去掉 unsafe，不额外 trim 或扩大原只检查空格的 validator；validator 无错误时返回空 String。按钮辅助函数保留 DOM 的 JsNullish<EventHandler>，普通样式以空 Map 合并；标题、分隔线及 CSS 返回类型明确。当前 AST 的操作体 / 分支回调 native mock，以及实际生成按钮 / 标题 / 分隔线的隔离测试通过；操作面板根仍卡在 JS-FFI #155，辅助函数根仍有 Respo 五条共享警告，未验收真实 UI / Git。
+操作面板明确 states / repo Map，当前分支使用 get / String decoder；九个回调统一双参数 / Unit 与单 Enum。新建分支结果复用 prompt String 合同，去掉 unsafe，不额外 trim 或扩大原只检查空格的 validator；validator 无错误时返回空 String。按钮辅助函数的 DOM 可空边界使用精确 Fn 合同，普通 / 危险样式直接返回 Map；标题、分隔线及 CSS 返回类型明确。当前 AST 的操作体 / 分支回调 native mock，以及实际生成按钮 / 标题 / 分隔线的隔离测试通过；操作面板根仍卡在 JS-FFI #155，辅助函数根仍有 Respo 五条共享警告，未验收真实 UI / Git。
 
 提交面板明确 states Map / current String，prompt 结果按 String 处理、单 Enum 派发原文并返回 Unit，删除两次 unsafe。原 issue-id RegExp 常量替换为 commit-message-prefix String→String JS-FFI 边界，保持正则、首个匹配与空格后缀；匹配列表使用 decoder，不读取裸宿主数组字段。前缀函数严格检查 / codegen、11种实际生成 JS 正则对照和当前 AST 提交回调测试通过，组件根仍卡在 JS-FFI #155。first 直接接 decoder 的正式版预处理缺陷已报 Calcit #1745，普通 let 绑定可避免；不新增 fix/proof 规则。
+
+首页两个无调用旧正则及两个闲置 import 已删除，可从 Git 恢复；远端入口 CSS 明确 String、透明度为 Option。逐定义检查覆盖首页全部 22 个定义：16 通过，6 受已发布共享模块阻塞，整体 FAIL；本地按钮回调合同不匹配已修正。开放 Map 槽位仍在，不把结构化 schema 或局部零 unsafe 当作类型清零。
 
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
