@@ -739,23 +739,40 @@
                   {} (:initial |) (:text "|Branch name")
                     :style-trigger $ {} (:margin "|0 8px") (:display :inline-block)
                     :validator $ fn (x)
-                      if (.includes? x "| ") "|text with blanks is not a branch name!"
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return 'String
+                      if (.includes? x "| ") "|text with blanks is not a branch name!" |
               div
                 {} $ :style $ {} (:display :inline-block)
                 span
                   {} $ :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     .show branch-plugin d! $ fn (result)
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return 'Unit
                       if
-                        not $ .blank? $ unsafe-coerce result String
-                        d! :effect/new-branch result
+                        not $ .blank? result
+                        d! $ :: :effect/new-branch result
+                      , &unit
+                    , &unit
                   render-button "|New Branch" false nil
                   .render branch-plugin
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
         'comp-operations $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-operations (states repo)
             let
-                current $ option:unwrap-or (&map:get repo :current) |
+                current $ decode-map-as
+                  option:unwrap-or (get repo :current) |
+                  , 'String
               div
                 {} $ :class-name $ str-spaced css/flex css/column
                 if (default-branch? current)
@@ -763,6 +780,12 @@
                     div
                       {} $ :class-name css/row
                       render-button |Pull false $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
                         d! $ :: :effect/pull-current
                     comp-title |Others
                     div
@@ -771,12 +794,36 @@
                   div ({}) (comp-title |Basic)
                     div ({})
                       render-button |Push false $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
                         d! $ :: :effect/push-current
                       render-button |Pull false $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
                         d! $ :: :effect/pull-current
                       render-button |Finish false $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
                         d! $ :: :effect/finish-branch
                       render-button |RmRemote false $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
                         d! $ :: :effect/rm-remote
                     comp-title |Other
                     div ({})
@@ -784,15 +831,44 @@
                       comp-commit (>> states :commit) current
                     comp-title |Forced
                     div ({})
-                      render-button "|Rebase main" true $ fn (e d!) (d! :effect/rebase-master nil)
-                      render-button "|Force push" true $ fn (e d!) (d! :effect/force-push nil)
+                      render-button "|Rebase main" true $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
+                        d! $ :: :effect/rebase-master
+                      render-button "|Force push" true $ fn (e d!)
+                        hint-fn $ {}
+                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                            {}
+                              :args $ [] 'Enum
+                              :return 'Unit
+                          :return 'Unit
+                        d! $ :: :effect/force-push
                 =< nil 24
                 comp-title |Editor
                 div ({})
-                  render-button "|code ./" false $ fn (e d!) (d! :effect/edit-with |code)
-                  render-button "|subl ./" false $ fn (e d!) (d! :effect/edit-with |subl)
+                  render-button "|code ./" false $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    d! $ :: :effect/edit-with |code
+                  render-button "|subl ./" false $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    d! $ :: :effect/edit-with |subl
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quick-ops (states)
             let
@@ -874,14 +950,16 @@
           :code $ quote $ defn comp-thin-divider ()
             div $ {} $ :class-name css-thin-divider
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
+            :args $ []
         'comp-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-title (title)
             div
               {} $ :class-name css-section-title
               <> title
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'String
         'css-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-branch
             {} $ |$0 $ {} (:cursor :pointer) (:line-height |32px) (:padding "|0 8px") (:min-width 200) (:font-family ui/font-code)
@@ -943,13 +1021,13 @@
           :code $ quote $ defstyle css-section-title
             {} $ |$0 $ {} (:font-family ui/font-fancy) (:margin "|8px 0 4px 0")
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'css-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-thin-divider
             {} $ |$0 $ {} (:height |80%) (:width 1) (:margin "|auto 12px")
               :background-color $ hsl 0 0 92
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'issue-id-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def issue-id-pattern (new js/RegExp "|\\w+-\\d+(?=-)")
           :examples $ []
@@ -965,11 +1043,14 @@
             button $ {} (:class-name css-button)
               :style $ merge
                 {} $ :margin "|4px 4px"
-                if danger? $ {} (:color :red) (:border-color :red)
+                if danger?
+                  {} (:color :red) (:border-color :red)
+                  {}
               :inner-text text
               :on-click on-click
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
+            :args $ [] 'String 'Bool $ :: 'JsNullish 'respo.schema/EventHandler
         'style-close-icon $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-close-icon
             {}
