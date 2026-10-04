@@ -125,15 +125,26 @@
           :schema $ :: 'Dynamic
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
-            case-default
-              option:unwrap-or (&map:get data :kind) nil
-              (println "|unknown server data kind:" data)
-              :patch $ let
-                  changes $ option:unwrap-or (&map:get data :data) {}
-                when config/dev? $ js/console.log |Changes changes
-                reset! *store $ patch-twig @*store changes
+            let
+                message $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              case-default
+                option:unwrap-or (get message :kind) nil
+                println "|unknown server data kind:" data
+                :patch $ let
+                    changes $ decode-map-as
+                      option:unwrap-or (get message :data) ([])
+                      :: 'List 'recollect.schema/change-op
+                    base $ option:unwrap-or (js-nullish->option @*store) nil
+                    next-store $ patch-twig base changes
+                  when config/dev? $ js/console.log |Changes changes
+                  if (nil? next-store) (reset! *store nil)
+                    reset! *store $ decode-map-as next-store $ :: 'Map 'Tag 'Dynamic
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'read-mount-target! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-mount-target! ()
             match (browser/query-selector |.app)

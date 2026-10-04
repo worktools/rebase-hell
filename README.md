@@ -109,6 +109,8 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 首页两个无调用旧正则及两个闲置 import 已删除，可从 Git 恢复；远端入口 CSS 明确 String、透明度为 Option。逐定义检查覆盖首页全部 22 个定义：16 通过，6 受已发布共享模块阻塞，整体 FAIL；本地按钮回调合同不匹配已修正。开放 Map 槽位仍在，不把结构化 schema 或局部零 unsafe 当作类型清零。
 
+客户端补丁接收入口明确 Fn(Dynamic)→Unit，Dynamic 仅为入站边界；消息解码为 Map<Tag,Dynamic>，使用 get / Option 解包，补丁按 Recollect 的 List<change-op> 解码，缺省为空 List。断线空 store 经 JsNullish→Option 归一为 nil，补丁结果在写入前检查 Map；未知消息只记录日志，不再误调用日志返回值。入口 strict / warn-dyn-method 和 codegen 通过，实际生成函数搭配实际 Recollect diff / patch 的临时隔离测试覆盖首包、后续、空 / 缺省补丁、未知消息和非法数据拒绝；不涉及真实浏览器 / socket / storage，不新增仓库校验脚本。完整前端门禁仍未通过。
+
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
 已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异）、#1745（first 嵌套 decoder），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。
