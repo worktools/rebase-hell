@@ -23,35 +23,76 @@
           :code $ quote $ defatom *store nil
           :examples $ []
           :schema $ :: 'Ref $ :: 'JsNullish (:: 'Map 'Tag 'Dynamic)
+        'UrlParseQuery $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait UrlParseQuery
+            :host $ :: 'JsNullish 'String
+            :port $ :: 'JsNullish 'String
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
+          :schema $ :: 'Trait
+        'UrlParseResult $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait UrlParseResult (:query 'app.client/UrlParseQuery)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
+          :schema $ :: 'Trait
         'connect! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn connect! ()
             let
-                url-obj $ unsafe-coerce (url-parse js/location.href true) JsObject
-                query $ unsafe-coerce (.-query url-obj) JsObject
-                port-value $ .?-port query
-                host-value $ .-host query
-                port $ if (js-present? port-value) (unsafe-coerce port-value String) (:port config/site)
-                host $ if (js-present? host-value) (unsafe-coerce host-value String) (:ws-host config/site)
+                url-obj $ unsafe-coerce
+                  url-parse (browser/location-href) true
+                  , UrlParseResult
+                query $ url-obj :query
+                port $ option:unwrap-or
+                  js-nullish->option $ query :port
+                  str $ :port config/site
+                host $ option:unwrap-or
+                  js-nullish->option $ query :host
+                  :ws-host config/site
               ws-connect! (str |ws:// host |: port)
                 {}
-                  :on-open $ fn (event) (simulate-login!)
+                  :on-open $ fn (_event)
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic
+                      :return 'Unit
+                      :features $ #{} :js-ffi
+                    simulate-login!
                     dispatch! $ :: :effect/read-branches
-                  :on-close $ fn (event) (reset! *store nil) (js/console.error "|Lost connection!")
+                    , &unit
+                  :on-close $ fn (_event)
+                    hint-fn $ {}
+                      :args $ [] 'Dynamic
+                      :return 'Unit
+                      :features $ #{} :js-ffi
+                    reset! *store nil
+                    js/console.error "|Lost connection!"
+                    , &unit
                   :on-data on-server-data
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when
-              and config/dev? $ not= (nth op 0) :states
+              and config/dev? $ not= (&enum:nth op 0) :states
               println |Dispatch op
-            tag-match op
+            match op
               (:states cursor s)
-                reset! *states $ update-states @*states cursor s
+                reset! *states $ decode-map-as
+                  update-states @*states
+                    decode-map-as cursor $ :: 'List 'Dynamic
+                    , s
+                  :: 'Map 'Tag 'Dynamic
               (:effect/connect) (connect!)
               _ $ ws-send! op
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Enum
+            :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -201,15 +242,18 @@
             :features $ #{} :js-ffi
         'simulate-login! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn simulate-login! ()
-            let
-                storage $ unsafe-coerce js/localStorage JsObject
-                raw $ .!getItem storage $ :storage-key config/site
-              if (js-present? raw)
+            match
+              browser/storage-get $ :storage-key config/site
+              (:some raw)
                 do (println "|Found storage.")
-                  dispatch! $ :: :user/log-in $ parse-cirru-edn (unsafe-coerce raw String)
-                do $ println "|Found no storage."
+                  dispatch! $ :: :user/log-in $ parse-cirru-edn raw
+              (:none) (println "|Found no storage.")
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.client
           :require
@@ -1275,7 +1319,7 @@
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             Site :port 8009 :title "|Rebase Hell" :ws-host |localhost :icon |https://cdn.tiye.me/logo/rebase-hell.png :dev-ui |http://localhost:8100/main.css :release-ui |https://cdn.tiye.me/favored-fonts/main.css :cdn-url |https://cdn.tiye.me/rebase-hell/ :theme |#eeeeff :storage-key |rebase-hell-storage :storage-file |storage.edn
