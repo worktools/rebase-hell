@@ -105,9 +105,11 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 操作面板明确 states / repo Map，当前分支使用 get / String decoder；九个回调统一双参数 / Unit 与单 Enum。新建分支结果复用 prompt String 合同，去掉 unsafe，不额外 trim 或扩大原只检查空格的 validator；validator 无错误时返回空 String。按钮辅助函数保留 DOM 的 JsNullish<EventHandler>，普通样式以空 Map 合并；标题、分隔线及 CSS 返回类型明确。当前 AST 的操作体 / 分支回调 native mock，以及实际生成按钮 / 标题 / 分隔线的隔离测试通过；操作面板根仍卡在 JS-FFI #155，辅助函数根仍有 Respo 五条共享警告，未验收真实 UI / Git。
 
+提交面板明确 states Map / current String，prompt 结果按 String 处理、单 Enum 派发原文并返回 Unit，删除两次 unsafe。原 issue-id RegExp 常量替换为 commit-message-prefix String→String JS-FFI 边界，保持正则、首个匹配与空格后缀；匹配列表使用 decoder，不读取裸宿主数组字段。前缀函数严格检查 / codegen、11种实际生成 JS 正则对照和当前 AST 提交回调测试通过，组件根仍卡在 JS-FFI #155。first 直接接 decoder 的正式版预处理缺陷已报 Calcit #1745，普通 let 绑定可避免；不新增 fix/proof 规则。
+
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
-已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。
+已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异）、#1745（first 嵌套 decoder），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。
 
 ### License
 

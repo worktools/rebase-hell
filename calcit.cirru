@@ -357,6 +357,20 @@
             respo-ui.css :as css
     'app.comp.home $ %{} 'FileEntry
       :defs $ {}
+        'commit-message-prefix $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn commit-message-prefix (current)
+            let
+                matched $ to-calcit-data $ js/String.prototype.match.call current (new js/RegExp "|\\w+-\\d+(?=-)")
+              if (nil? matched) | $ let
+                  parts $ decode-map-as matched $ :: 'List 'String
+                str
+                  option:unwrap-or (first parts) |
+                  , "| "
+          :examples $ []
+          :ffi $ {} $ :backend :js
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'comp-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-branch (branch current remote?)
             div
@@ -410,27 +424,33 @@
             let
                 commit-plugin $ use-prompt (>> states :prompt)
                   {}
-                    :initial $ let
-                        prefix $ .!match current issue-id-pattern
-                      if (js-present? prefix)
-                        str
-                          .-0 $ unsafe-coerce prefix JsObject
-                          , "| "
-                        , |
+                    :initial $ commit-message-prefix current
                     :text "|Commit message"
                     :style-trigger $ {} (:margin "|0 8px") (:display :inline-block)
               div
                 {} $ :style $ {} (:display :inline-block)
                 span
                   {} $ :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     .show commit-plugin d! $ fn (result)
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return 'Unit
                       if
-                        not $ .blank? $ unsafe-coerce result String
-                        d! :effect/commit result
+                        not $ .blank? result
+                        d! $ :: :effect/commit result
+                      , &unit
+                    , &unit
                   render-button |Commit false nil
                 .render commit-plugin
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
         'comp-footprints $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-footprints (footprints current)
             list->
@@ -1028,12 +1048,6 @@
               :background-color $ hsl 0 0 92
           :examples $ []
           :schema $ :: 'String
-        'issue-id-pattern $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def issue-id-pattern (new js/RegExp "|\\w+-\\d+(?=-)")
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'JsObject)
-            :args $ []
-            :features $ #{} :js-ffi
         'numbers-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def numbers-pattern (new js/RegExp |^\d+$)
           :examples $ []
