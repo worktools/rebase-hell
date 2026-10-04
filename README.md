@@ -113,6 +113,8 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 派发入口改为 match / Enum→Unit，标签比较不再误用返回 Option 的 nth，状态游标按已发布 update-states 的 List 合同检查，更新结果写入前检查 Map。连接 / 自动登录明确 Fn→Unit，复用 browser/location-href 与 storage-get，删掉五处消费者 unsafe，剩下一处只连接可信 url-parse 返回值到最小外部对象合同；host / port 为 JsNullish<String>，不转换整份 query，保留无关参数、重复键、空值、编码及原 ws:// 行为。临时副本仅将 WS import 换成 mock，三个函数 AST / schema / FFI 与候选一致；该 fixture 严格检查、JS 生成及真实 url-parse / Respo cursor / core 的隔离测试通过，涵盖状态更新、URL 对照、自动登录、open/close 顺序及异常传播。正式入口仍卡在已发布 ws-edn 的 WsClient/WsClient0 断言（#45），fixture 不替代完整门禁，没有真实连接 / 存储 / 部署。
 
+键盘入口复用 KeyboardEventHost→Unit，DOM 回调使用既有 keyboard-event-host 适配器，不复制宿主包装器或增加强转。保留 Meta+小写 k、repeat / modifier 与不 preventDefault 的原行为；当前 handler 的隔离生成 JS 测试通过，正式根仍受 ws-edn #45 阻塞，已发布键盘适配器另受 JS-FFI #155 阻塞，不代表完整 DOM 注册验收。仅剩注释调用的旧 Notification 函数和该注释已删除，可从 Git 历史恢复，没有移除实际运行的通知功能。
+
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
 已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异）、#1745（first 嵌套 decoder），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。

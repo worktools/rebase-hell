@@ -128,12 +128,17 @@
                 when
                   and $ not= new-upstream old-upstream
                   println "|switching to" new-upstream
-                  ; notify-user! new-upstream
                   set! js/document.title $ if (nil? new-store) "|(offline)" new-upstream
               , &unit
             on-page-touch $ \ if (nil? @*store) (connect!)
               dispatch! $ :: :effect/read-branches
-            js/window.addEventListener |keydown $ fn (event) (on-keydown event)
+            js/window.addEventListener |keydown $ fn (event)
+              hint-fn $ {}
+                :args $ [] 'Dynamic
+                :return 'Unit
+                :features $ #{} :js-ffi
+              on-keydown $ browser/keyboard-event-host event
+              , &unit
             println "|App started!"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
@@ -145,25 +150,18 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
           :schema $ :: 'js-ffi.browser/DomElementHost
-        'notify-user! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn notify-user! (new-upstream)
-            js/Notification.requestPermission $ fn (perm)
-              when (= perm |granted)
-                let
-                    notify $ new js/Notification $ str "|Switched to " new-upstream
-                  set! (.-onclick notify)
-                    fn () $ flipped js/setTimeout 0 $ fn () (.close notify)
-          :examples $ []
-          :schema $ :: 'Dynamic
         'on-keydown $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-keydown (event)
-            cond
-                and (.-metaKey event)
-                  = |k $ .-key event
-                dispatch! $ :: :process/clear-logs
-              true nil
+            when
+              and (event :meta-key?)
+                = |k $ event :key
+              dispatch! $ :: :process/clear-logs
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'js-ffi.browser/KeyboardEventHost
+            :features $ #{} :js-ffi
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
             let
