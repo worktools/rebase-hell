@@ -123,15 +123,20 @@
                 :return 'Unit
                 :features $ #{} :js-ffi
               let
-                  new-upstream $ if (js-nullish? new-store) nil $ get-in new-store ([] :repo :upstream)
-                  old-upstream $ if (js-nullish? old-store) nil $ get-in old-store ([] :repo :upstream)
-                when
-                  and $ not= new-upstream old-upstream
-                  println "|switching to" new-upstream
-                  set! js/document.title $ if (nil? new-store) "|(offline)" new-upstream
+                  new-upstream $ store-upstream new-store
+                  old-upstream $ store-upstream old-store
+                when (not= new-upstream old-upstream)
+                  println "|switching to" $ option:unwrap-or new-upstream nil
+                  set! js/document.title $ if (js-nullish? new-store) "|(offline)" $ option:unwrap-or new-upstream |
               , &unit
-            on-page-touch $ \ if (nil? @*store) (connect!)
-              dispatch! $ :: :effect/read-branches
+            on-page-touch $ fn ()
+              hint-fn $ {}
+                :args $ []
+                :return 'Unit
+                :features $ #{} :js-ffi
+              if (js-nullish? @*store) (connect!)
+                dispatch! $ :: :effect/read-branches
+              , &unit
             js/window.addEventListener |keydown $ fn (event)
               hint-fn $ {}
                 :args $ [] 'Dynamic
@@ -229,7 +234,7 @@
                 decode-map-as
                   option:unwrap-or (get @*states :states) ({})
                   :: 'Map 'Tag 'Dynamic
-                if (nil? @*store) (%none)
+                if (js-nullish? @*store) (%none)
                   %some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
               , dispatch!
             , &unit
@@ -252,6 +257,23 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
+        'store-upstream $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn store-upstream (store)
+            match (js-nullish->option store)
+              (:none) (%none)
+              (:some data)
+                match
+                  get-in data $ [] :repo :upstream
+                  (:none) (%none)
+                  (:some value)
+                    if (nil? value) (%none)
+                      %some $ decode-map-as value 'String
+          :examples $ []
+          :ffi $ {} (:backend :js) (:target :browser)
+          :schema $ :: 'Fn $ {}
+            :args $ [] $ :: 'JsNullish (:: 'Map 'Tag 'Dynamic)
+            :features $ #{} :js-ffi
+            :return $ :: 'Option 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.client
           :require

@@ -115,6 +115,8 @@ Action 使用可读正式 release tag，仍有 tag 可变的供应链风险；�
 
 键盘入口复用 KeyboardEventHost→Unit，DOM 回调使用既有 keyboard-event-host 适配器，不复制宿主包装器或增加强转。保留 Meta+小写 k、repeat / modifier 与不 preventDefault 的原行为；当前 handler 的隔离生成 JS 测试通过，正式根仍受 ws-edn #45 阻塞，已发布键盘适配器另受 JS-FFI #155 阻塞，不代表完整 DOM 注册验收。仅剩注释调用的旧 Notification 函数和该注释已删除，可从 Git 历史恢复，没有移除实际运行的通知功能。
 
+upstream 监听不再把 get-in 的 Option 写进页面标题；统一将空 store、缺失字段与原初始 nil upstream 归一为 none，存在值才检查 String，日志 / 标题显式解包。store-upstream 定向严格检查和实际 JS 生成通过，当前 watcher 的临时 fixture 覆盖十种状态变化、标题 String、相同值不重复写入及非法字段拒绝。页面唤醒回调明确 Unit，重连与渲染判定使用 JsNullish 对应的判断；临时 mock 测试覆盖 nil / undefined 重连、已有 store 派发 read-branches 和异常传播。不新增持久验证脚本，不代表实际 DOM / 生命周期注册或完整前端门禁通过。
+
 仍未完成：完整前端卡在已发布 Markdown 的 peek-inline-math 把 RegExp 声明为 Fn；组件定向门禁另遇已发布 Respo 的五处 ToString 警告和 Feather 颜色的同类警告（Markdown #65 / Respo #198 / Feather #44）。首页根组件检查另卡在 Alerts 调用的 JS-FFI element-first-child 宿主断言（JS-FFI #155），首页根组件没有通过完整 codegen / DOM 验收。其他前端组件仍待迁移，未绕过门禁或修改缓存。严格 Caps 图仍有三个发布冲突，普通安装 / toolchain / immutable 通过不代表严格图一致。未通过整站构建或真实 UI / Git 服务运行，不能部署或宣称类型清零。开放 Map / Enum / PID / 宿主合同不是闭合数据模型或权限证明；MD5 与 exec 的旧错误处理策略未升级，旧 app.test 的字符串返回值 / SSH scheme 断言也未验收。删除的未使用空 command 定义可从 Git 历史恢复，effect/edit-with 的同名局部绑定不受影响。
 
 已报告的模块 / 编译器阻塞：Calcit #1713（正式版局部 async 继承）、#1703（引用 host 类型）、#1741（空字符串 split 后端差异）、#1745（first 嵌套 decoder），JS-FFI #154（Promise executor 合同）和 #161（文档 frontmatter）。消费者中的适配不代表上游正式版已修复。
