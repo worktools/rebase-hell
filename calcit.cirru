@@ -802,44 +802,74 @@
                     :input-style $ {} $ :font-family ui/font-code
                     :placeholder "|x.x.x or x.x.x-yx..."
                     :button-text "|提交 tag"
-                branch-plugin $ use-prompt (>> states :pick-branch)
-                  {} (:initial |) (:text "|需要 pick 的若干 GitHub issue id")
-                    :style $ {} $ :vertical-align :middle
-                    :placeholder "|100 or \"100, 101\""
-                    :button-text "|生成命令"
               div ({})
                 a $ {}
                   :style $ {} (:cursor :pointer) (:font-family ui/font-fancy)
                   :inner-text |Branches
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :effect/read-branches
                 =< 24 nil
                 button $ {} (:class-name css-button) (:inner-text |Fetch)
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :effect/fetch-origin
                 =< 16 nil
                 button $ {} (:inner-text |Stash) (:class-name css-button)
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :effect/stash
                 =< 16 nil
                 button $ {} (:inner-text "|Stash Apply") (:class-name css-button)
                   :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
                     d! $ :: :effect/stash-apply
                 =< 16 nil
                 button $ {} (:class-name css-button) (:inner-text |Tag)
-                  :on-click $ fn (e d!) (d! :effect/show-version nil)
+                  :on-click $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                        {}
+                          :args $ [] 'Enum
+                          :return 'Unit
+                      :return 'Unit
+                    d! $ :: :effect/show-version
                     .show tag-plugin d! $ fn (result)
-                      if-not
-                        .blank? $ unsafe-coerce result String
+                      hint-fn $ {}
+                        :args $ [] 'String
+                        :return 'Unit
+                      if-not (.blank? result)
                         let
-                            tag $ .trim $ unsafe-coerce result String
-                          when-not
-                            .blank? $ unsafe-coerce tag String
-                            d! :effect/add-tag tag
+                            tag $ .trim result
+                          when-not (.blank? tag)
+                            d! $ :: :effect/add-tag tag
+                      , &unit
+                    , &unit
                 .render tag-plugin
-                .render branch-plugin
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :features $ #{} :js-ffi
         'comp-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-thin-divider ()
             div $ {} $ :class-name css-thin-divider
