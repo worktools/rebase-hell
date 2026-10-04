@@ -33,6 +33,7 @@ jobs:
         with:
           tools: calcit,caps
           caps-version: "0.1.1"
+          deps-file: deps.cirru
       - name: Install immutable dependencies
         run: |
           set -euo pipefail
@@ -44,6 +45,7 @@ jobs:
           set -euo pipefail
           calcit edit format
           git diff --exit-code -- calcit.cirru
+          calcit test app.util/grab-upstream --require-match
           calcit --entry server --check-only --warn-dyn-method
           calcit --check-only --warn-dyn-method
       - name: Select frontend CDN path

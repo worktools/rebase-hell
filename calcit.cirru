@@ -2410,22 +2410,6 @@
           :require
             [] respo-ui.core :refer $ [] hsl
             [] respo-ui.core :as ui
-    'app.test $ %{} 'FileEntry
-      :defs $ {} $ 'test-parse-upstream!
-        %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftest test-parse-upstream! ()
-            testing "|parse Git URL" $ is $ = |jimengio/rebase-hell (grab-upstream |git@github.com:jimengio/rebase-hell.git)
-            testing "|parse SSH URL" $ is $ = |jimengio/jimeng-io
-              grab-upstream |ssh://git@git.jimeng.io:2222/jimengio/jimeng-io.git
-            testing "|parse HTTPS URL" $ is $ = |jimengio/rebase-hell (grab-upstream |https://github.com/jimengio/rebase-hell.git)
-            testing "|parse HTTPS URL" $ is $ thrown? js/Error (grab-upstream |http://github.com/jimengio/rebase-hell.git)
-          :examples $ []
-          :schema $ :: 'Dynamic
-      :ns $ %{} 'NsEntry (:doc |)
-        :code $ quote $ ns app.test
-          :require
-            [] cljs.test :refer $ [] deftest is testing run-tests
-            [] app.util :refer $ [] grab-upstream
     'app.twig.container $ %{} 'FileEntry
       :defs $ {}
         'session-user-id $ %{} 'CodeEntry (:doc |)
@@ -2886,10 +2870,29 @@
                 Origin :address url :upstream
                   -> url .trim (.split |:) (.last) (.unwrap) (.replace |//github.com/ |) (.replace |.git |)
                   , :host-kind $ if (.includes? url |github.com) :github :unknown
+              (.starts-with? url |ssh://)
+                Origin :address url :upstream
+                  -> url (.trim) (.slice 6) (.split |/) (.drop 1) (.join-string |/) (.replace |.git |)
+                  , :host-kind $ if (.includes? url |github.com) :github :unknown
               true $ raise $ str "|Invalid url:" url
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.schema/Origin)
             :args $ [] 'String
+          :tests $ []
+            %{} 'TestEntry (:name |git-scp)
+              :code $ quote $ is= (Origin :address |git@github.com:jimengio/rebase-hell.git :upstream |jimengio/rebase-hell :host-kind :github) (grab-upstream |git@github.com:jimengio/rebase-hell.git)
+              :tags $ #{} :unit
+            %{} 'TestEntry (:name |ssh-port)
+              :code $ quote $ is=
+                Origin :address |ssh://git@git.jimeng.io:2222/jimengio/jimeng-io.git :upstream |jimengio/jimeng-io :host-kind :unknown
+                grab-upstream |ssh://git@git.jimeng.io:2222/jimengio/jimeng-io.git
+              :tags $ #{} :unit
+            %{} 'TestEntry (:name |https)
+              :code $ quote $ is= (Origin :address |https://github.com/jimengio/rebase-hell.git :upstream |jimengio/rebase-hell :host-kind :github) (grab-upstream |https://github.com/jimengio/rebase-hell.git)
+              :tags $ #{} :unit
+            %{} 'TestEntry (:name |reject-http)
+              :code $ quote $ is-throws (grab-upstream |http://github.com/jimengio/rebase-hell.git)
+              :tags $ #{} :unit
         'host-pattern $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def host-pattern (new js/RegExp |^[\w\d\@\:\.]+)
           :examples $ []
@@ -2910,7 +2913,9 @@
             :return $ :: 'List 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util
-          :require $ app.schema :refer $ Origin
+          :require
+            app.schema :refer $ Origin
+            calcit.test :refer $ is= is-throws
     'app.util.string $ %{} 'FileEntry
       :defs $ {}
         'default-branch? $ %{} 'CodeEntry (:doc |)

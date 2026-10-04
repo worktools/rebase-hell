@@ -124,3 +124,17 @@ upstream 监听不再把 get-in 的 Option 写进页面标题；统一将空 sto
 ### License
 
 MIT
+
+### 2026-10-05 发布依赖与旧测试迁移
+
+候选改用已发布 WS-EDN `0.0.33`、cumulo-util `0.0.24`；JS-FFI 对齐它们必需的
+`0.2.1-alpha.11`，不追随要求 Calcit 0.29 的后续 alpha。普通 Caps 安装与
+toolchain 校验、Yarn immutable 和完整服务入口严格检查 / JS 生成通过；传递
+依赖仍有版本冲突，因此不宣称 `caps --strict` 或完整前端升级通过。
+
+原未运行的 `cljs.test` 四项 URL 测试迁入 `grab-upstream` 的内置测试，期望值
+对应现在的 `Origin` Struct。修复原测试已要求但实现遗漏的 SSH scheme，保留
+Git SCP / HTTPS / 拒绝 HTTP 行为；原测试命名空间退役，代码可从 Git 恢复。
+CI 直接运行 `calcit test app.util/grab-upstream --require-match`，不新增测试文件
+或验证脚本。前端全可达图仍有 14 个共享模块直接错误（Respo、Markdown、Alerts），
+本候选尚不提交可部署 PR，不冒称真实 UI、Git 服务或 COS 上传已验收。
