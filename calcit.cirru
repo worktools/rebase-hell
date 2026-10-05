@@ -2220,22 +2220,6 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
-        'on-exit! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn on-exit! (code _) (persist-db!)
-            ; println "|exit code is:" $ pr-str code
-            js/process.exit
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'persist-db! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn persist-db! ()
-            ; let
-              (file-content (pr-str (assoc (:db @*reel) :sessions ({}))))
-                storage-path storage-file
-                backup-path $ get-backup-path!
-              write-mildly! storage-path file-content
-              write-mildly! backup-path file-content
-          :examples $ []
-          :schema $ :: 'Dynamic
         'read-wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-wd-file-path ()
             match (node/env-get |HOME)
@@ -2325,13 +2309,6 @@
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ []
             :features $ #{} :js-ffi
-        'storage-file $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def storage-file
-            path/join
-              dirname $ fileURLToPath js/import.meta.url
-              :storage-file config/site
-          :examples $ []
-          :schema $ :: 'Dynamic
         'sync-clients! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn sync-clients! (reel)
             wss-each! $ fn (sid socket)
@@ -2893,10 +2870,6 @@
             %{} 'TestEntry (:name |reject-http)
               :code $ quote $ is-throws (grab-upstream |http://github.com/jimengio/rebase-hell.git)
               :tags $ #{} :unit
-        'host-pattern $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def host-pattern (new js/RegExp |^[\w\d\@\:\.]+)
-          :examples $ []
-          :schema $ :: 'Dynamic
         'pos? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pos? (x) (&> x 0)
           :examples $ []

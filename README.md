@@ -138,3 +138,9 @@ Git SCP / HTTPS / 拒绝 HTTP 行为；原测试命名空间退役，代码可�
 CI 直接运行 `calcit test app.util/grab-upstream --require-match`，不新增测试文件
 或验证脚本。前端全可达图仍有 14 个共享模块直接错误（Respo、Markdown、Alerts），
 本候选尚不提交可部署 PR，不冒称真实 UI、Git 服务或 COS 上传已验收。
+
+四项原 URL 用例在 native 与实际生成 JS 上均通过。扩展服务公开定义检查发现
+四个已停用定义 `on-exit!`、`persist-db!`、`storage-file`、`host-pattern`，其引用
+仅存在于注释或彼此之间；已退役，可从 Git 恢复，不重新启用旧持久化 / 退出行为。
+上述七个服务 / 数据命名空间公开检查现为 49/49；这是选定命名空间的验收，
+不是整个应用类型清零。
