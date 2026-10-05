@@ -136,7 +136,8 @@ toolchain 校验、Yarn immutable 和完整服务入口严格检查 / JS 生成�
 对应现在的 `Origin` Struct。修复原测试已要求但实现遗漏的 SSH scheme，保留
 Git SCP / HTTPS / 拒绝 HTTP 行为；原测试命名空间退役，代码可从 Git 恢复。
 CI 直接运行 `calcit test app.util/grab-upstream --require-match`，不新增测试文件
-或验证脚本。前端全可达图仍有 14 个共享模块直接错误（Respo、Markdown、Alerts），
+或验证脚本。接入 Alerts 正式 `0.10.48` 后，前端全可达图的直接错误从 14 降到 12
+（剩余 Respo、Markdown）；EnumDef 错误已消除，但组件公开检查仍有 JS-FFI 宿主断言错误。
 本候选尚不提交可部署 PR，不冒称真实 UI、Git 服务或 COS 上传已验收。
 
 四项原 URL 用例在 native 与实际生成 JS 上均通过。扩展服务公开定义检查发现
@@ -144,3 +145,6 @@ CI 直接运行 `calcit test app.util/grab-upstream --require-match`，不新增
 仅存在于注释或彼此之间；已退役，可从 Git 恢复，不重新启用旧持久化 / 退出行为。
 上述七个服务 / 数据命名空间公开检查现为 49/49；这是选定命名空间的验收，
 不是整个应用类型清零。
+
+其余十个服务 / 数据命名空间公开检查也为 49/49；合计选定十七个命名空间
+98/98。五个客户端命名空间为 37/48，仍不通过，不以服务端通过替代前端验收。
