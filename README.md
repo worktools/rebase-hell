@@ -7,16 +7,20 @@ Rebase Hell is a tool to do rebase with clicks
 
 本分支使用正式配对的 Calcit / `@calcit/procs` 0.30.0-alpha.3，
 npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或旧的零等待配置。
-依赖固定到已发布版本；Markdown 的旧版本请求仍阻塞严格依赖图，
-完整应用类型、宿主与 Git 业务验收也尚未完成，当前候选不能用于生产部署。
+依赖固定到已发布版本；Markdown 使用 0.4.54、Reel 使用 0.0.53，
+原严格 Caps 安装和 14 个模块工具链验证通过。
+完整应用类型、宿主与 Git 业务验收尚未完成，当前候选不能用于生产部署。
 
 缺失 Option 值通过显式 `match` 保留原 nil 语义，不把 nil 当作具体 payload
 的默认值。状态色的定义 `:tests` 检查真实 Component/Element 样式输出，
 有颜色与缺失颜色均保持原行为；该测试带 `js` tag，使用 Respo 的 JS CSS 宿主，
-不能在 native 中运行。原四项 URL 定义测试在 native 通过，生成 JS 的五项
-定义测试全部通过；这些局部结果不代替整站或真实 Git 操作验收。
+不能在 native 中运行。原四项 URL 测试和成员投影测试在 native 通过，
+生成 JS 的八项定义测试全部通过；这些局部结果不代替整站或真实 Git 操作验收。
 服务端直接构造 `ReelState<Map<Tag, Dynamic>>`，初始化和 reader Ref 保留相同
 数据库参数，不再修改 `ReelState<Nil>` 空模板来伪装业务数据库。
+足迹与日志排序使用 `map-entries` 保留 key/value 类型；成员与进程投影复用
+现有类型化集合 API，不再先擦除为异构二元 List。测试检查过滤和排序后的真实
+组件 key、日志时间倒序、Number 进程 key，以及访客和缺失用户名的原空字符串行为。
 
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 

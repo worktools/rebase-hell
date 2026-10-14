@@ -555,57 +555,78 @@
           :code $ quote $ defcomp comp-footprints (footprints current)
             list->
               {} $ :style $ {} (:max-width 280)
-              -> footprints (.to-list)
-                .filter-pair $ fn (k v)
+              -> footprints map-entries
+                .filter $ fn (entry)
                   hint-fn $ {}
-                    :args $ [] 'String 'String
+                    :args $ [] $ :: 'MapEntry 'String 'String
                     :return 'Bool
-                  not $ = v current
-                .sort-by $ fn (pair)
+                  not $ = (:value entry) current
+                .sort-by $ fn (entry)
                   hint-fn $ {}
-                    :args $ [] $ :: 'List 'String
+                    :args $ [] $ :: 'MapEntry 'String 'String
                     :return 'String
                     :features $ #{} :js-ffi
                   decode-map-as
-                    .!toLowerCase $ option:unwrap-or (last pair) |
+                    .!toLowerCase $ :value entry
                     , 'String
-                .map-pair $ fn (k v)
+                .map $ fn (entry)
                   hint-fn $ {}
-                    :args $ [] 'String 'String
+                    :args $ [] $ :: 'MapEntry 'String 'String
                     :return $ :: 'List 'Dynamic
                     :features $ #{} :js-ffi
-                  [] k $ div
-                    {}
-                      :class-name $ str-spaced css/row |hoverable css-footprint
-                      :style $ {} $ :justify-content :flex-end
-                      :on-click $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/switch-path k
-                      :title k
-                      :tab-index 0
-                    <> v
-                    span
-                      {} $ :class-name style-close-icon
-                      comp-icon :x
-                        {} (:font-size 14)
-                          :color $ hsl 0 90 70
-                        fn (e d!)
+                  let
+                      k $ :key entry
+                      v $ :value entry
+                    [] k $ div
+                      {}
+                        :class-name $ str-spaced css/row |hoverable css-footprint
+                        :style $ {} $ :justify-content :flex-end
+                        :on-click $ fn (e d!)
                           hint-fn $ {}
                             :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
                               {}
                                 :args $ [] 'Enum
                                 :return 'Unit
                             :return 'Unit
-                          d! $ :: :session/drop-footprint k
+                          d! $ :: :effect/switch-path k
+                        :title k
+                        :tab-index 0
+                      <> v
+                      span
+                        {} $ :class-name style-close-icon
+                        comp-icon :x
+                          {} (:font-size 14)
+                            :color $ hsl 0 90 70
+                          fn (e d!)
+                            hint-fn $ {}
+                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                                {}
+                                  :args $ [] 'Enum
+                                  :return 'Unit
+                              :return 'Unit
+                            d! $ :: :session/drop-footprint k
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] (:: 'Map 'String 'String) 'String
             :features $ #{} :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |typed-entries-retain-filter-order-and-path-keys)
+            :code $ quote $ let
+                input $ {} (|/current |main) (|/z |Zoo) (|/a |apple) (|/b |Bee) (|/u "|中文")
+                children $ match
+                  :tree $ comp-footprints input |main
+                  (:some node)
+                    match node
+                      (:element element) (:children element)
+                      (:component _) (raise "|expected footprint list element")
+                  (:none) (raise "|missing footprint list element")
+                keys $ map children $ fn (child)
+                  hint-fn $ {}
+                    :args $ [] 'respo.schema/ChildPair
+                    :return 'Dynamic
+                  :key child
+              assert= ([] |/a |/b |/z |/u) keys
+              assert= 5 $ count input
+            :tags $ #{} :js :migration :unit
         'comp-home $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-home (states repo logs status footprints)
             let
@@ -798,60 +819,88 @@
                   =< 16 nil
                   list->
                     {} $ :class-name css/expand
-                    -> status (.to-list)
-                      .map-pair $ fn (pid command)
-                        hint-fn $ {}
-                          :args $ [] 'Dynamic 'String
-                          :return $ :: 'List 'Dynamic
-                        [] pid $ div
-                          {} $ :class-name css-command
-                          <> (str pid)
-                            {} $ :color $ hsl 0 0 80
-                          =< 4 nil
-                          comp-icon :x
-                            {} (:font-size 12)
-                              :color $ hsl 0 80 88
-                              :cursor :pointer
-                              :margin-top 4
-                            fn (e d!)
-                              hint-fn $ {}
-                                :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                                  {}
-                                    :args $ [] 'Enum
-                                    :return 'Unit
-                                :return 'Unit
-                              d! $ :: :effect/kill-process pid
-                          =< 12 nil
-                          div
-                            {} $ :class-name css/expand
-                            <> command
+                    map-list-kv status $ fn (pid command)
+                      hint-fn $ {}
+                        :args $ [] 'Dynamic 'String
+                        :return $ :: 'List 'Dynamic
+                      [] pid $ div
+                        {} $ :class-name css-command
+                        <> (str pid)
+                          {} $ :color $ hsl 0 0 80
+                        =< 4 nil
+                        comp-icon :x
+                          {} (:font-size 12)
+                            :color $ hsl 0 80 88
+                            :cursor :pointer
+                            :margin-top 4
+                          fn (e d!)
+                            hint-fn $ {}
+                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
+                                {}
+                                  :args $ [] 'Enum
+                                  :return 'Unit
+                              :return 'Unit
+                            d! $ :: :effect/kill-process pid
+                        =< 12 nil
+                        div
+                          {} $ :class-name css/expand
+                          <> command
               list->
                 {} (:class-name css/flex)
                   :style $ {} $ :overflow :auto
-                -> logs (.to-list)
-                  .sort-by $ fn (pair)
+                -> logs map-entries
+                  .sort-by $ fn (entry)
                     hint-fn $ {}
-                      :args $ [] $ :: 'List 'Dynamic
+                      :args $ [] $ :: 'MapEntry 'String (:: 'Map 'Tag 'Dynamic)
                       :return 'Number
                     let
-                        item $ decode-map-as
-                          option:unwrap-or (last pair) ({})
-                          :: 'Map 'Tag 'Dynamic
+                        item $ :value entry
                         time $ decode-map-as
                           option:unwrap-or (get item :time) 0
                           , 'Number
                       negate time
-                  .map-pair $ fn (id log)
+                  .map $ fn (entry)
                     hint-fn $ {}
-                      :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
+                      :args $ [] $ :: 'MapEntry 'String (:: 'Map 'Tag 'Dynamic)
                       :return $ :: 'List 'Dynamic
-                    [] id $ comp-log-chunk log
+                    let
+                        id $ :key entry
+                        log $ :value entry
+                      [] id $ comp-log-chunk log
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ []
               :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
               :: 'Map 'Dynamic 'String
             :features $ #{} :js-ffi
+          :tests $ [] $ %{} 'TestEntry
+            :name |typed-log-entries-retain-newest-first-and-numeric-status-key
+            :code $ quote $ let
+                logs $ {}
+                  |old $ {} (:text "|旧日志") (:time 1) (:kind :stdout)
+                  |new $ {} (:text "|新日志") (:time 2) (:kind :stdout)
+                component $ comp-logs logs $ {} (7 "|git status")
+                children-of $ fn (maybe-node)
+                  hint-fn $ {}
+                    :args $ [] $ :: 'Option 'respo.schema/RenderNode
+                    :return $ :: 'List 'respo.schema/ChildPair
+                  match maybe-node
+                    (:some node)
+                      match node
+                        (:element element) (:children element)
+                        (:component _) (raise "|expected log list element")
+                    (:none) (raise "|missing log list element")
+                root-children $ children-of $ :tree component
+                log-list $ .unwrap $ last root-children
+                items $ children-of $ :node log-list
+                keys $ map items $ fn (child)
+                  hint-fn $ {}
+                    :args $ [] 'respo.schema/ChildPair
+                    :return 'Dynamic
+                  :key child
+              assert= ([] |new |old) keys
+              assert= 2 $ count logs
+            :tags $ #{} :js :migration :unit
         'comp-new-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-new-branch (states)
             let
@@ -1293,17 +1342,16 @@
                 =< 8 nil
                 list->
                   {} $ :class-name css/row
-                  -> members (.to-list)
-                    .map-pair $ fn (k username)
-                      hint-fn $ {}
-                        :args $ [] 'String 'String
-                        :return $ :: 'List 'Dynamic
-                      [] k $ div
-                        {} $ :style $ {} (:padding "|0 8px")
-                          :border $ str "|1px solid " $ hsl 0 0 80
-                          :border-radius |16px
-                          :margin "|0 4px"
-                        <> username
+                  map-list-kv members $ fn (k username)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return $ :: 'List 'Dynamic
+                    [] k $ div
+                      {} $ :style $ {} (:padding "|0 8px")
+                        :border $ str "|1px solid " $ hsl 0 0 80
+                        :border-radius |16px
+                        :margin "|0 4px"
+                      <> username
               =< nil 48
               div ({})
                 button
@@ -2468,11 +2516,11 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'twig-members $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-members (sessions users)
-            .map-kv sessions $ fn (sid session)
+            .filter-map-kv sessions $ fn (sid session)
               hint-fn $ {}
                 :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
-                :return $ :: 'List 'Dynamic
-              [] sid $ match (session-user-id session)
+                :return $ :: 'MapEntryDecision 'String 'String
+              MapEntryDecision :keep sid $ match (session-user-id session)
                 (:none) |
                 (:some user-id)
                   decode-map-as
@@ -2486,6 +2534,24 @@
               :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
               :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
             :return $ :: 'Map 'String 'String
+          :tests $ [] $ %{} 'TestEntry (:name |typed-members-preserve-guests-and-unicode-names)
+            :code $ quote $ let
+                sessions $ {}
+                  |guest $ {} $ :user-id nil
+                  |named $ {} $ :user-id |u1
+                  |missing-name $ {} $ :user-id |u2
+                users $ {}
+                  |u1 $ {} $ :name "|中文 Ada"
+                  |u2 $ {}
+                result $ twig-members sessions users
+              assert-type result $ :: 'Map 'String 'String
+              assert=
+                {} (|guest |) (|named "|中文 Ada") (|missing-name |)
+                , result
+              assert= ({})
+                twig-members ({}) users
+              assert= 3 $ count sessions
+            :tags $ #{} :migration :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.container
           :require
