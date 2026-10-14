@@ -3,6 +3,19 @@
 Rebase Hell is a tool to do rebase with clicks
 ------
 
+### 当前工具链迁移候选
+
+本分支使用正式配对的 Calcit / `@calcit/procs` 0.30.0-alpha.3，
+npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或旧的零等待配置。
+依赖固定到已发布版本；Markdown 的旧版本请求仍阻塞严格依赖图，
+完整应用类型、宿主与 Git 业务验收也尚未完成，当前候选不能用于生产部署。
+
+缺失 Option 值通过显式 `match` 保留原 nil 语义，不把 nil 当作具体 payload
+的默认值。状态色的定义 `:tests` 检查真实 Component/Element 样式输出，
+有颜色与缺失颜色均保持原行为；该测试带 `js` tag，使用 Respo 的 JS CSS 宿主，
+不能在 native 中运行。原四项 URL 定义测试在 native 通过，生成 JS 的五项
+定义测试全部通过；这些局部结果不代替整站或真实 Git 操作验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage

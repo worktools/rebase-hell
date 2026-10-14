@@ -178,7 +178,9 @@
                     changes $ decode-map-as
                       option:unwrap-or (get message :data) ([])
                       :: 'List 'recollect.schema/change-op
-                    base $ option:unwrap-or (js-nullish->option @*store) nil
+                    base $ match (js-nullish->option @*store)
+                      (:some value) value
+                      (:none) nil
                     next-store $ patch-twig base changes
                   when config/dev? $ js/console.log |Changes changes
                   if (nil? next-store) (reset! *store nil)
@@ -397,10 +399,33 @@
               :style $ let
                   size 24
                 {} (:width size) (:height size)
-                  :background-color $ option:unwrap-or color nil
+                  :background-color $ match color
+                    (:some value) value
+                    (:none) nil
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] $ :: 'Option 'String
+          :tests $ [] $ %{} 'TestEntry (:name |preserves-present-and-missing-status-colors)
+            :code $ quote $ let
+                present $ comp-status-color $ Option :some |rebeccapurple
+                absent $ comp-status-color $ Option :none
+                style-of $ fn (component)
+                  hint-fn $ {}
+                    :args $ [] 'respo.schema/Component
+                    :return $ :: 'List $ :: 'List 'Dynamic
+                  match (:tree component)
+                    (:some node)
+                      match node
+                        (:element element) (:style element)
+                        (:component _) (raise "|unexpected nested component")
+                    (:none) (raise "|missing status-color element")
+              assert=
+                [] ([] :background-color |rebeccapurple) ([] :height 24) ([] :width 24)
+                style-of present
+              assert=
+                [] ([] :background-color nil) ([] :height 24) ([] :width 24)
+                style-of absent
+            :tags $ #{} :js :migration :unit
         'css-status-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-status-color
             {} $ |$0 $ {} (:position :absolute) (:bottom 60) (:left 8) (:border-radius |50%) (:opacity 0.6) (:pointer-events :none)
@@ -2324,7 +2349,9 @@
                       get-in db $ [] :sessions sid
                       {}
                     :: 'Map 'Tag 'Dynamic
-                  old-store $ option:unwrap-or (get @*client-caches sid) nil
+                  old-store $ match (get @*client-caches sid)
+                    (:some value) value
+                    (:none) nil
                   new-store $ twig-container db session records
                   changes $ diff-twig old-store new-store $ {} (:key :id)
                 when config/dev? $ println $ colorize :gray
