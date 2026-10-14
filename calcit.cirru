@@ -1997,7 +1997,7 @@
                 if found? (println "|Found local EDN data") (println "|Found no data")
               , schema/database
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *loop-trigger (%none)
           :examples $ []
@@ -2011,12 +2011,12 @@
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *reader-reel @*reel
           :examples $ []
-          :schema $ :: 'Ref 'cumulo-reel.core/ReelState
+          :schema $ :: 'Ref $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel
-            struct-with reel-schema (:base @*initial-db) (:db @*initial-db)
+          :code $ quote $ defref *reel
+            ReelState :base @*initial-db :db @*initial-db :records ([]) :merged? false
           :examples $ []
-          :schema $ :: 'Ref 'cumulo-reel.core/ReelState
+          :schema $ :: 'Ref $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
         'SignalProcessHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait SignalProcessHost
             .on-signal! $ :: 'Fn $ {}
@@ -2377,7 +2377,7 @@
         :code $ quote $ ns app.server
           :require (app.schema :as schema)
             app.updater :refer $ updater
-            cumulo-reel.core :refer $ reel-reducer refresh-reel reel-schema
+            cumulo-reel.core :refer $ reel-reducer refresh-reel ReelState
             |fs :as fs
             |path :as path
             |util :as util

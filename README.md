@@ -15,6 +15,8 @@ npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或�
 有颜色与缺失颜色均保持原行为；该测试带 `js` tag，使用 Respo 的 JS CSS 宿主，
 不能在 native 中运行。原四项 URL 定义测试在 native 通过，生成 JS 的五项
 定义测试全部通过；这些局部结果不代替整站或真实 Git 操作验收。
+服务端直接构造 `ReelState<Map<Tag, Dynamic>>`，初始化和 reader Ref 保留相同
+数据库参数，不再修改 `ReelState<Nil>` 空模板来伪装业务数据库。
 
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
