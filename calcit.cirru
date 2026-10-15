@@ -2231,7 +2231,7 @@
             :tags $ #{} :js :migration
         'latest-package-version $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn latest-package-version (package-name)
-            unsafe-coerce (latest-version package-name) PromiseHost
+            js-cast (latest-version package-name) 'PromiseHost
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ :: 'Fn $ {} (:return 'js-ffi.shared/PromiseHost)

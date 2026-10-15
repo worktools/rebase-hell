@@ -44,6 +44,12 @@ upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去�
 验证数据库、历史与原数据保留及错误字段拒绝；四项 updater/回放测试已在候选上
 通过 native/JS 同源回放，仍待正式配对重验。完整 reload 检查仍被其他 dispatch 边界阻塞。
 
+npm 版本查询使用已有 `js-cast` 检查 Promise 的 `then` / `catch` 宿主方法，
+替代未经检查的强转；仍返回同一个对象，不执行方法来猜测返回类型。
+正式配对的生成 JS 搭配仅限测试的 npm 查询替身，验证成功、拒绝、一次求值、
+非法形状拒绝和异常传播，没有实际访问 npm。此检查不验证 Promise payload，
+原有版本字符串校验仍保留，也不保证任意 thenable 满足完整 Promise 语义。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
