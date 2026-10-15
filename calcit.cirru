@@ -2594,8 +2594,8 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.style
           :require
-            [] respo-ui.core :refer $ [] hsl
-            [] respo-ui.core :as ui
+            respo-ui.core :refer $ hsl
+            respo-ui.core :as ui
     'app.twig.container $ %{} 'FileEntry
       :defs $ {}
         'session-user-id $ %{} 'CodeEntry (:doc |)
@@ -3158,7 +3158,7 @@
             :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.session
-          :require $ [] app.schema :as schema
+          :require $ app.schema :as schema
     'app.updater.user $ %{} 'FileEntry
       :defs $ {}
         'find-user $ %{} 'CodeEntry (:doc |)
@@ -3254,7 +3254,7 @@
             :return $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.user
-          :require ([] |md5 :default md5) (app.updater.session :as session)
+          :require (|md5 :default md5) (app.updater.session :as session)
     'app.util $ %{} 'FileEntry
       :defs $ {}
         'grab-upstream $ %{} 'CodeEntry (:doc |)
