@@ -69,6 +69,12 @@ key 都是 Tag；业务 repo、日志及其他字段保持具体合同，七个�
 Number 与同名 String 的区别；非 Map 输入仍被严格检查拒绝。这不宣称框架
 自身的开放 `>>` 返回已能静态保留 key 类型，也不代替完整浏览器业务验收。
 
+开发面板只在实际展示 Reel 时把开放长度字段校验为 Number，缺席仍按原值0
+处理；release 模式不消费该字段。离线页使用 Markdown 组件要求的显式空 options，
+原文与链接不变。相关五项 definition `:tests` 在 release/dev 两种模式的实际生成
+JS 上全部通过，前端三个命名空间的32个定义严格检查通过；不代替完整应用入口、
+正式升级后的配对验证或真实 DOM 交互验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage

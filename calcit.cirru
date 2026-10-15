@@ -355,7 +355,9 @@
                           :return 'Unit
                         d! $ :: :session/remove-message info
                     if dev? $ comp-reel
-                      option:unwrap-or (get store :reel-length) 0
+                      decode-map-as
+                        option:unwrap-or (get store :reel-length) 0
+                        , 'Number
                       {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -363,6 +365,27 @@
               :: 'Option $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
             :generics $ [] 'StateKey
+          :tests $ [] $ %{} 'TestEntry
+            :name |checks-reel-length-only-when-the-development-view-consumes-it
+            :code $ quote $ let
+                store $ {}
+                  :router $ {} $ :name :other
+                  :repo $ {} (:upstream |owner/repo) (:address |git@github.com:owner/repo.git) (:host-kind :github)
+                  :logged-in? false
+                  :count 1
+                  :session $ {} $ :messages ({})
+                  :reel-length 2
+                present $ comp-container ({}) (Option :some store)
+                absent $ comp-container ({})
+                  Option :some $ dissoc store :reel-length
+                bad $ assoc store :reel-length |wrong-number
+              assert= true $ .some? $ :tree present
+              assert= true $ .some? $ :tree absent
+              if dev?
+                calcit.test/is-throws $ comp-container ({}) (Option :some bad)
+                assert= true $ .some? $ :tree
+                  comp-container ({}) (Option :some bad)
+            :tags $ #{} :js :migration :unit
         'comp-offline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-offline ()
             div
@@ -389,11 +412,17 @@
                       :return 'Unit
                     d! $ :: :effect/connect
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
-                comp-md "|A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n"
+                comp-md "|A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n" $ {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ []
             :features $ #{} :js-ffi
+          :tests $ [] $ %{} 'TestEntry
+            :name |renders-description-with-explicit-default-markdown-options
+            :code $ quote $ let
+                component $ comp-offline
+              assert= true $ .some? $ :tree component
+            :tags $ #{} :js :migration :unit
         'comp-status-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-status-color (color)
             div $ {} (:class-name css-status-color)
