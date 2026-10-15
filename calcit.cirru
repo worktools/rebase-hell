@@ -343,8 +343,8 @@
                       _ $ <> $ str router
                     comp-status-color $ let
                         raw $ option:unwrap-or (get store :color) nil
-                      if (nil? raw) (%none)
-                        %some $ decode-map-as raw 'String
+                      if (nil? raw) (Option :none)
+                        Option :some $ decode-map-as raw 'String
                     when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
                     comp-messages
                       decode-map-as
@@ -518,7 +518,7 @@
                     {}
                       :background-color $ hsl 0 0 100
                       :border-radius |4px
-                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 (%some 0.1)
+                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 (Option :some 0.1)
                     {}
                   if remote?
                     {}
@@ -852,7 +852,7 @@
                       :style $ {} (:width 24) (:height 24) (:line-height |0px)
                     comp-icon :loader
                       &{} :font-size 24 :color
-                        hsl 0 0 0 $ %some 0.5
+                        hsl 0 0 0 $ Option :some 0.5
                         , :height 24
                       , nil
                   =< 16 nil
@@ -1208,7 +1208,7 @@
                 :background-color $ hsl 200 40 98
                 :transition-duration |200ms
               |&:hover $ {} $ :box-shadow
-                str "|1px 1px 4px " $ hsl 0 0 0 $ %some 0.2
+                str "|1px 1px 4px " $ hsl 0 0 0 $ Option :some 0.2
               |&:active $ {} (:transform "|scale(1.06)") (:transition-duration |0ms)
           :examples $ []
           :schema $ :: 'String
@@ -1246,10 +1246,10 @@
           :code $ quote $ defstyle css-remote
             {}
               |& $ {} (:font-family ui/font-fancy) (:cursor :pointer) (:font-size 12)
-                :color $ hsl 0 0 60 $ %some 0.4
+                :color $ hsl 0 0 60 $ Option :some 0.4
                 :transition-duration |200ms
               |&:hover $ {} $ :color
-                hsl 0 0 60 $ %some 0.8
+                hsl 0 0 60 $ Option :some 0.8
           :examples $ []
           :schema $ :: 'String
         'css-section-title $ %{} 'CodeEntry (:doc |)
@@ -1391,7 +1391,7 @@
             {} $ |$0 $ merge ui/row-center
               {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
                 :background-color $ hsl 0 0 98
-                :border-bottom $ str "|1px solid " $ hsl 0 0 50 (%some 0.1)
+                :border-bottom $ str "|1px solid " $ hsl 0 0 50 (Option :some 0.1)
           :examples $ []
           :schema $ :: 'String
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
