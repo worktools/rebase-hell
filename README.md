@@ -63,7 +63,7 @@ module.exports = {
 ## 源码开发
 
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
-指定的已发布 Calcit CLI；`package.json` 的 `@calcit/procs` 必须与 CLI 精确配对。
+指定的正式 Calcit 0.30.0；`package.json` 的 `@calcit/procs` 必须与 CLI 精确配对。
 模块版本以 `deps.cirru` 为准，npm 安装保留一小时的新包隔离策略。
 
 ```sh
@@ -129,7 +129,7 @@ corepack yarn watch-page
 
 ## 限制
 
-- 当前迁移候选的完整严格检查仍受依赖模块的服务端 options 合同阻塞，尚未完成可部署版本验收。
+- 当前迁移候选的完整严格检查仍受已锁定 WS-EDN 0.0.39 的服务端 options 合同阻塞。修复已正式发布为 0.0.40，但 Cumulo Reel 0.0.53 仍锁定旧版本；须先更新并发布一致的上游依赖图，不能用根版本冲突或修改缓存绕过。尚未完成可部署版本验收。
 - 完整业务验收还需检查真实 Git、浏览器与连接生命周期，宿主替身测试只证明其覆盖的合同。
 - native 定义测试不执行 JS-only 测试，browser 与 Node 的回放必须使用匹配入口。
 - Git URL 保留现有 SCP、HTTPS 与 SSH scheme 合同，不将普通 HTTP 当作已支持输入。
