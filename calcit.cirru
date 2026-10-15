@@ -2124,11 +2124,11 @@
     'app.server $ %{} 'FileEntry
       :defs $ {}
         '*client-caches $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *client-caches ({})
+          :code $ quote $ defref *client-caches ({})
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'String (:: 'Map 'Tag 'Dynamic)
         '*initial-db $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *initial-db
+          :code $ quote $ defref *initial-db
             do
               ; merge-local-edn! schema/database storage-file $ fn (found?)
                 if found? (println "|Found local EDN data") (println "|Found no data")
@@ -2136,17 +2136,17 @@
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *loop-trigger (Option :none)
+          :code $ quote $ defref *loop-trigger (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option 'js-ffi.node/NodeTimerHost
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *proxied-dispatch! dispatch!
+          :code $ quote $ defref *proxied-dispatch! dispatch!
           :examples $ []
           :schema $ :: 'Ref $ :: 'Fn
             {} (:return 'Unit)
               :args $ [] 'Enum 'String
         '*reader-reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reader-reel @*reel
+          :code $ quote $ defref *reader-reel @*reel
           :examples $ []
           :schema $ :: 'Ref $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
         '*reel $ %{} 'CodeEntry (:doc |)
