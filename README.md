@@ -50,6 +50,12 @@ npm 版本查询使用已有 `js-cast` 检查 Promise 的 `then` / `catch` 宿�
 非法形状拒绝和异常传播，没有实际访问 npm。此检查不验证 Promise payload，
 原有版本字符串校验仍保留，也不保证任意 thenable 满足完整 Promise 语义。
 
+开放 operation 的 Map/String payload 在进入原处理器前按其已有合同校验，
+不扩大数据库类型、改变 wire 格式或添加业务默认值。附带测试覆盖消息、路由、
+仓库、进程日志及足迹的正常更新、字段保留和错误输入拒绝。六项 updater/历史
+回放测试在候选上通过 native/JS 的数据断言；统一 runner 仍因原足迹日志中
+斜线字符串的 native/JS 展示差异失败，不把此结果记作完整跨后端通过。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage

@@ -2660,7 +2660,10 @@
                 session/remove-message db
                   decode-map-as data $ :: 'Map 'Tag 'Dynamic
                   , sid
-              (:session/add-message data) (session/add-message db data sid op-id)
+              (:session/add-message data)
+                session/add-message db
+                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                  , sid op-id
               (:user/log-in data)
                 user/log-in db
                   decode-map-as data $ :: 'List 'String
@@ -2670,16 +2673,26 @@
                   decode-map-as data $ :: 'List 'String
                   , sid op-id
               (:user/log-out) (user/log-out db sid)
-              (:router/change data) (router/change db data sid)
-              (:repo/set-branches data) (repo/set-repo db data)
-              (:repo/set-current data) (repo/set-current db data)
-              (:repo/set-upstream data) (repo/set-upstream db data)
-              (:process/start data) (process/start db data)
+              (:router/change data)
+                router/change db
+                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                  , sid
+              (:repo/set-branches data)
+                repo/set-repo db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              (:repo/set-current data)
+                repo/set-current db $ decode-map-as data 'String
+              (:repo/set-upstream data)
+                repo/set-upstream db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              (:process/start data)
+                process/start db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
               (:process/finish data) (process/finish db data)
-              (:process/log data) (process/log db data)
+              (:process/log data)
+                process/log db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
               (:process/clear-logs) (process/clear-logs db op-time)
-              (:session/track-footprint dirpath upstream) (session/track-footprint db dirpath upstream)
-              (:session/drop-footprint data) (session/drop-footprint db data)
+              (:session/track-footprint dirpath upstream)
+                session/track-footprint db (decode-map-as dirpath 'String) (decode-map-as upstream 'String)
+              (:session/drop-footprint data)
+                session/drop-footprint db $ decode-map-as data 'String
               _ $ do (println "|Unknown op:" op) db
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -2723,6 +2736,97 @@
                   , |session |operation 1
                 assert= (Option :some messages)
                   get-in db $ [] :sessions |session :messages
+              :tags $ #{} :migration :unit
+            %{} 'TestEntry
+              :name |open-operation-payloads-retain-existing-database-updates
+              :code $ quote $ let
+                  db $ {}
+                    :sessions $ {} $ |session
+                      {}
+                        :messages $ {}
+                        :router $ {}
+                    :repo $ {} $ :extra 23
+                    :logs $ {}
+                    :process-status $ {}
+                    :footprints $ {} $ |keep |owner/repo
+                    :untouched :stable
+                  message $ {} (:text "|你好") (:extra :preserved)
+                  added $ updater db (:: :session/add-message message) |session |operation 1
+                  router $ updater db
+                    :: :router/change $ {} (:name :home) (:extra 23)
+                    , |session |operation 1
+                  branches $ updater db
+                    :: :repo/set-branches $ {}
+                      :branches $ #{} |main
+                      :current |main
+                      :remote-branches $ [] |origin/main
+                    , |session |operation 1
+                  upstream $ updater db
+                    :: :repo/set-upstream $ {} (:upstream |owner/repo) (:host-kind :github) (:address |git@github.com:owner/repo.git)
+                    , |session |operation 1
+                  started $ updater db
+                    :: :process/start $ {} (:pid 42) (:command |build)
+                    , |session |operation 1
+                  logged $ updater db
+                    :: :process/log $ {} (:id |log) (:text "|完成") (:extra :preserved)
+                    , |session |operation 1
+                  tracked $ updater db (:: :session/track-footprint |new |other/repo) |session |operation 1
+                  dropped $ updater db (:: :session/drop-footprint |keep) |session |operation 1
+                assert=
+                  Option :some $ assoc message :id |operation
+                  get-in added $ [] :sessions |session :messages |operation
+                assert=
+                  Option :some $ {} (:name :home) (:extra 23)
+                  get-in router $ [] :sessions |session :router
+                assert= (Option :some 23)
+                  get-in branches $ [] :repo :extra
+                assert=
+                  Option :some $ [] |origin/main
+                  get-in branches $ [] :repo :remote-branches
+                assert= (Option :some |topic)
+                  get-in
+                    updater db (:: :repo/set-current |topic) |session |operation 1
+                    [] :repo :current
+                assert= (Option :some |owner/repo)
+                  get-in upstream $ [] :repo :upstream
+                assert= (Option :some |build)
+                  get-in started $ [] :process-status 42
+                assert= (Option :some :preserved)
+                  get-in logged $ [] :logs |log :extra
+                assert= (Option :some |other/repo)
+                  get-in tracked $ [] :footprints |new
+                assert= (Option :some |owner/repo)
+                  get-in tracked $ [] :footprints |keep
+                assert= (Option :none)
+                  get-in dropped $ [] :footprints |keep
+                assert= (Option :some :stable) (get added :untouched)
+                assert=
+                  Option :some $ {}
+                  get-in db $ [] :sessions |session :messages
+              :tags $ #{} :migration :unit
+            %{} 'TestEntry
+              :name |open-operation-payloads-reject-incompatible-values-at-consumption
+              :code $ quote $ let
+                  db $ {}
+                    :sessions $ {} $ |session
+                      {} $ :messages $ {}
+                    :repo $ {}
+                    :logs $ {}
+                    :process-status $ {}
+                    :footprints $ {}
+                calcit.test/is-throws $ updater db (:: :session/add-message 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :router/change 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :repo/set-branches 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :repo/set-current 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :repo/set-upstream 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :process/start 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :process/log 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :session/track-footprint 42 |owner/repo) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :session/track-footprint |path 42) |session |operation 1
+                calcit.test/is-throws $ updater db (:: :session/drop-footprint 42) |session |operation 1
+                assert=
+                  Option :some $ {}
+                  get db :footprints
               :tags $ #{} :migration :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
