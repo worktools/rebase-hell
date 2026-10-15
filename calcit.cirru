@@ -2338,7 +2338,7 @@
             :args $ []
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (println "|Code updated.") (clear-twig-caches!) (reset! *proxied-dispatch! dispatch!)
-            reset! *reel $ refresh-reel @*reel @*initial-db updater
+            reset! *reel $ refresh-reel @*reel @*initial-db replay-update
             match @*loop-trigger
               (:some handle) (node/clear-timeout! handle)
               (:none) &unit
@@ -2448,7 +2448,7 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'cumulo-reel.core/ReelState
+            :args $ [] $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
             :features $ #{} :js-ffi
         'wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def wd-file-path (read-wd-file-path)
@@ -2458,7 +2458,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.server
           :require (app.schema :as schema)
-            app.updater :refer $ updater
+            app.updater :refer $ updater replay-update
             cumulo-reel.core :refer $ reel-reducer refresh-reel ReelState
             |fs :as fs
             |path :as path
@@ -2602,8 +2602,56 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.user (:require)
     'app.updater $ %{} 'FileEntry
-      :defs $ {} $ 'updater
-        %{} 'CodeEntry (:doc |)
+      :defs $ {}
+        'replay-update $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn replay-update (db op sid op-id op-time)
+            if (enum? op)
+              updater db op (decode-map-as sid 'String) (decode-map-as op-id 'String) (decode-map-as op-time 'Number)
+              raise "|Expected an Enum operation in Reel history"
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic 'Dynamic 'Dynamic 'Dynamic
+            :return $ :: 'Map 'Tag 'Dynamic
+          :tests $ []
+            %{} 'TestEntry
+              :name |replays-the-published-history-contract-with-a-precise-database
+              :code $ quote $ let
+                  messages $ {}
+                    |remove $ {} (:id |remove) (:text "|删除")
+                    |keep $ {} (:id |keep) (:text "|保留")
+                  db $ assert-type
+                    {}
+                      :sessions $ {} $ |session
+                        {} $ :messages messages
+                      :untouched :stable
+                    :: 'Map 'Tag 'Dynamic
+                  records $ [] $ []
+                    :: :session/remove-message $ {} $ :id |remove
+                    , |session |operation 1
+                  reel $ cumulo-reel.core/ReelState :base db :db db :records records :merged? false
+                  refreshed $ cumulo-reel.core/refresh-reel reel db replay-update
+                assert= (Option :none)
+                  get-in (:db refreshed) ([] :sessions |session :messages |remove)
+                assert= (get messages |keep)
+                  get-in (:db refreshed) ([] :sessions |session :messages |keep)
+                assert= db $ :base refreshed
+                assert= records $ :records refreshed
+                assert= db $ :db reel
+              :tags $ #{} :migration :unit
+            %{} 'TestEntry
+              :name |rejects-invalid-history-fields-without-changing-the-database
+              :code $ quote $ let
+                  db $ assert-type
+                    {} $ :untouched :stable
+                    :: 'Map 'Tag 'Dynamic
+                  op $ :: :session/remove-message $ {} (:id |remove)
+                calcit.test/is-throws $ replay-update db :not-an-enum |session |operation 1
+                calcit.test/is-throws $ replay-update db op 42 |operation 1
+                calcit.test/is-throws $ replay-update db op |session 42 1
+                calcit.test/is-throws $ replay-update db op |session |operation |wrong-time
+                assert= (Option :some :stable) (get db :untouched)
+              :tags $ #{} :migration :unit
+        'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (db op sid op-id op-time)
             match op
               (:session/connect) (session/connect db sid)

@@ -38,6 +38,12 @@ upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去�
 它们在未发布编译器候选上通过 native/生成 JS 同源回放；正式 alpha.3 仍受
 已合并但尚未发布的 Map 前缀推断修复阻塞，须在下一正式配对 alpha 上重新验收。
 
+同步函数保留 `ReelState<Map<Tag,Dynamic>>` 的数据库参数。热更新回放使用独立的
+应用边界适配器，按框架实际的开放历史合同校验 Enum、session/id String 和 Number 时间，
+业务 updater 的严格签名保持不变。新增测试通过已发布 Reel 的真实 `refresh-reel`
+验证数据库、历史与原数据保留及错误字段拒绝；四项 updater/回放测试已在候选上
+通过 native/JS 同源回放，仍待正式配对重验。完整 reload 检查仍被其他 dispatch 边界阻塞。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
