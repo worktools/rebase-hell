@@ -2187,17 +2187,49 @@
         'find-git-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-git-path (dir) (; println "|searching dir:" dir)
             if
-              fs/existsSync $ path/join dir |.git/
-              , dir $ if
+              node/file-exists? $ node/path-join dir |.git/
+              Option :some dir
+              if
                 .includes? (.slice dir 1) |/
-                recur $ path/dirname dir
-                , nil
+                recur $ node/path-dirname dir
+                Option :none
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ :: 'Fn $ {}
             :args $ [] 'String
             :features $ #{} :js-ffi
-            :return $ :: 'JsNullish 'String
+            :return $ :: 'Option 'String
+          :tests $ [] $ %{} 'TestEntry
+            :name |typed-path-search-preserves-ancestors-absence-and-git-marker-kind
+            :code $ quote $ let
+                root $ node/make-temp-dir! $ node/path-join (node/env-or |TMPDIR |/tmp) |rebase-path-test-
+                marker $ node/path-join root |.git
+                child $ node/path-join root |child
+                nested $ node/path-join child |nested
+                nested-marker $ node/path-join nested |.git
+                leaf $ node/path-join nested |leaf
+                absent $ node/path-basename root
+              node/mkdir! marker
+              node/mkdir! child
+              node/mkdir! nested
+              node/mkdir! leaf
+              assert= (Option :some root) (find-git-path root)
+              assert= (Option :some root) (find-git-path child)
+              assert= (Option :some root) (find-git-path leaf)
+              node/write-text! nested-marker |gitdir:unused
+              assert= (Option :some root) (find-git-path leaf)
+              node/unlink! nested-marker
+              node/mkdir! nested-marker
+              assert= (Option :some nested) (find-git-path leaf)
+              assert= false $ node/file-exists? absent
+              assert= (Option :none) (find-git-path absent)
+              node/rmdir! leaf
+              node/rmdir! nested-marker
+              node/rmdir! nested
+              node/rmdir! child
+              node/rmdir! marker
+              node/rmdir! root
+            :tags $ #{} :js :migration
         'latest-package-version $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn latest-package-version (package-name)
             unsafe-coerce (latest-version package-name) PromiseHost
@@ -2278,15 +2310,18 @@
                 previous-port $ let
                     raw-port $ cp/execSync $ str "|lsof -ti tcp:" port "| -sTCP:LISTEN"
                   .trim $ unsafe-coerce (.!toString raw-port) String
-                git-path $ find-git-path $ node/cwd
-              when (js-nullish? git-path)
-                println $ colorize :red "|Missing .git/ folder, not a valid path!"
-                js/process.exit 1
-              fs/writeFileSync wd-file-path git-path
-              cp/execSync $ str "|kill -13 " previous-port
-              let
-                  upstream $ manager/get-upstream!
-                println "|Switching to" upstream |at git-path
+              match
+                find-git-path $ node/cwd
+                (:none)
+                  do
+                    println $ colorize :red "|Missing .git/ folder, not a valid path!"
+                    node/exit! 1
+                (:some git-path)
+                  do (fs/writeFileSync wd-file-path git-path)
+                    cp/execSync $ str "|kill -13 " previous-port
+                    let
+                        upstream $ manager/get-upstream!
+                      println "|Switching to" upstream |at git-path
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)

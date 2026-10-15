@@ -22,6 +22,12 @@ npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或�
 现有类型化集合 API，不再先擦除为异构二元 List。测试检查过滤和排序后的真实
 组件 key、日志时间倒序、Number 进程 key，以及访客和缺失用户名的原空字符串行为。
 
+内部仓库路径查找复用已发布的类型化 Node 文件/路径适配器，返回 `Option<String>`；
+唯一调用处显式处理有值与缺席，保留原提示、退出码和成功操作顺序，不再将
+内部缺席值冒充 JavaScript nullish 返回。附带的 JS 测试在独立临时目录验证当前路径、
+祖先和最近仓库、缺席结果，以及原先仅接受 `.git/` 目录而不接受 `.git` 文件的行为。
+该测试不执行 Git 命令；完整应用和切换命令业务验收仍待完成。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
