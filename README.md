@@ -33,6 +33,11 @@ upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去�
 命令与 UTF-8 参数、一次求值、非法宿主结果拒绝和原异常传播；命令执行已替换为 mock，
 没有运行真实 Git，不代表完整目录切换或信号监听验收。
 
+删除消息的开放 op payload 在进入既有 Map 合同前显式校验，不改正常删除逻辑。
+两项新增定义测试覆盖目标删除、邻居与原数据保留，以及错误 payload/id 拒绝。
+它们在未发布编译器候选上通过 native/生成 JS 同源回放；正式 alpha.3 仍受
+已合并但尚未发布的 Map 前缀推断修复阻塞，须在下一正式配对 alpha 上重新验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage

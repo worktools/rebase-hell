@@ -2608,7 +2608,10 @@
             match op
               (:session/connect) (session/connect db sid)
               (:session/disconnect) (session/disconnect db sid)
-              (:session/remove-message data) (session/remove-message db data sid)
+              (:session/remove-message data)
+                session/remove-message db
+                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                  , sid
               (:session/add-message data) (session/add-message db data sid op-id)
               (:user/log-in data)
                 user/log-in db
@@ -2634,6 +2637,45 @@
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'String 'Number
             :return $ :: 'Map 'Tag 'Dynamic
+          :tests $ []
+            %{} 'TestEntry
+              :name |remove-message-checks-the-map-payload-and-preserves-neighbors
+              :code $ quote $ let
+                  messages $ {}
+                    |remove $ {} (:id |remove) (:text "|删除")
+                    |keep $ {} (:id |keep) (:text "|保留")
+                  db $ {}
+                    :sessions $ {} $ |session
+                      {} (:messages messages) (:extra 23)
+                    :untouched :stable
+                  result $ updater db
+                    :: :session/remove-message $ {} $ :id |remove
+                    , |session |operation 1
+                assert= (Option :none)
+                  get-in result $ [] :sessions |session :messages |remove
+                assert= (get messages |keep)
+                  get-in result $ [] :sessions |session :messages |keep
+                assert= (Option :some 23)
+                  get-in result $ [] :sessions |session :extra
+                assert= (Option :some :stable) (get result :untouched)
+                assert= 2 $ count messages
+                assert= (Option :some messages)
+                  get-in db $ [] :sessions |session :messages
+              :tags $ #{} :migration :unit
+            %{} 'TestEntry
+              :name |remove-message-rejects-malformed-payload-before-changing-data
+              :code $ quote $ let
+                  messages $ {} $ |keep
+                    {} (:id |keep) (:text "|保留")
+                  db $ {} $ :sessions
+                    {} $ |session $ {} (:messages messages)
+                calcit.test/is-throws $ updater db (:: :session/remove-message 42) |session |operation 1
+                calcit.test/is-throws $ updater db
+                  :: :session/remove-message $ {} $ :id 42
+                  , |session |operation 1
+                assert= (Option :some messages)
+                  get-in db $ [] :sessions |session :messages
+              :tags $ #{} :migration :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require (app.updater.session :as session) (app.updater.user :as user) (app.updater.router :as router) (app.updater.repo :as repo) (app.updater.process :as process) (app.schema :as schema)
