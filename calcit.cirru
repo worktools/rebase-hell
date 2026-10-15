@@ -238,7 +238,11 @@
                   :: 'Map 'Tag 'Dynamic
                 if (js-nullish? @*store) (%none)
                   %some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
-              , dispatch!
+              fn (raw-op)
+                hint-fn $ {}
+                  :args $ [] 'Dynamic
+                  :return 'Unit
+                if (enum? raw-op) (dispatch! raw-op) (raise "|Expected an Enum operation from Respo")
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)

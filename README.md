@@ -75,6 +75,11 @@ Number 与同名 String 的区别；非 Map 输入仍被严格检查拒绝。这
 JS 上全部通过，前端三个命名空间的32个定义严格检查通过；不代替完整应用入口、
 正式升级后的配对验证或真实 DOM 交互验收。
 
+渲染入口在 Respo 的开放 callback 边界先检查 operation 为 Enum，再调用原有
+严格的业务派发器；业务派发器仍只接收 Enum，不扩大为 Dynamic。原 callback
+AST 的隔离宿主测试验证 Enum 身份/payload 不变、一次派发、非法值在进入业务前
+拒绝及下游异常原样传播；不操作 DOM、socket 或 storage，不代替完整渲染验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
