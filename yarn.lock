@@ -12,15 +12,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcit/procs@npm:0.30.0-alpha.3":
-  version: 0.30.0-alpha.3
-  resolution: "@calcit/procs@npm:0.30.0-alpha.3"
+"@calcit/procs@npm:0.30.0-alpha.4":
+  version: 0.30.0-alpha.4
+  resolution: "@calcit/procs@npm:0.30.0-alpha.4"
   dependencies:
     "@calcit/finger-vec": "npm:0.1.1"
     "@calcit/ternary-tree": "npm:0.0.26"
     "@cirru/parser.ts": "npm:0.0.10"
     "@cirru/writer.ts": "npm:^0.1.9"
-  checksum: 10c0/02ab938f03a2e79b4bdac0e2b982b6cafed57795881c5c9d69d39559cc8624d412d7b9d863813d24d158bc4d922af789ef1b67ff7c2cf86c174279ff19040e71
+  checksum: 10c0/8915f95b4c582942259a0b5b2a8284a8d37e72baa5a4676c622d0d7c832fe86e03f75c2de137d08b91fd642aa343f006af4896d8f57310831e015b8ecb910f70
   languageName: node
   linkType: hard
 
@@ -204,7 +204,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@worktools/rebase-hell@workspace:."
   dependencies:
-    "@calcit/procs": "npm:0.30.0-alpha.3"
+    "@calcit/procs": "npm:0.30.0-alpha.4"
     axios: "npm:^1.9.0"
     bottom-tip: "npm:^0.1.5"
     chalk: "npm:^5.4.1"

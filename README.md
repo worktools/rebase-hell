@@ -5,7 +5,7 @@ Rebase Hell is a tool to do rebase with clicks
 
 ### 当前工具链迁移候选
 
-本分支使用正式配对的 Calcit / `@calcit/procs` 0.30.0-alpha.3，
+本分支使用正式配对的 Calcit / `@calcit/procs` 0.30.0-alpha.4，
 npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或旧的零等待配置。
 依赖固定到已发布版本；Markdown 使用 0.4.54、Reel 使用 0.0.53，
 原严格 Caps 安装和 14 个模块工具链验证通过。
@@ -35,8 +35,8 @@ upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去�
 
 删除消息的开放 op payload 在进入既有 Map 合同前显式校验，不改正常删除逻辑。
 两项新增定义测试覆盖目标删除、邻居与原数据保留，以及错误 payload/id 拒绝。
-它们在编译器候选上通过 native/生成 JS 同源回放；本项目仍锁定的 alpha.3
-缺少 Map 前缀推断修复，须正常升级正式配对后重新验收。
+它们在正式配对 alpha.4 上通过 native/生成 JS 的数据断言；共享回放的日志
+展示差异仍待后续正式配对修复，不把局部断言通过当作完整跨后端验收。
 
 同步函数保留 `ReelState<Map<Tag,Dynamic>>` 的数据库参数。热更新回放使用独立的
 应用边界适配器，按框架实际的开放历史合同校验 Enum、session/id String 和 Number 时间，
