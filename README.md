@@ -28,6 +28,11 @@ npm 新包安装隔离期为一小时，不保留全仓库 Git 依赖批准或�
 祖先和最近仓库、缺席结果，以及原先仅接受 `.git/` 目录而不接受 `.git` 文件的行为。
 该测试不执行 Git 命令；完整应用和切换命令业务验收仍待完成。
 
+upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去掉一次未经检查的
+强转，之后仍用方法调用 `.trim`。正式配对的隔离回放验证三种 URL 的空白处理、
+命令与 UTF-8 参数、一次求值、非法宿主结果拒绝和原异常传播；命令执行已替换为 mock，
+没有运行真实 Git，不代表完整目录切换或信号监听验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage

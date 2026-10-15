@@ -1631,9 +1631,8 @@
         'get-upstream! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-upstream! ()
             let
-                remote-url $ .trim $ unsafe-coerce
+                remote-url $ .trim $ contract/expect-string "|execSync upstream output"
                   cp/execSync "|git ls-remote --get-url origin" $ js-object $ :encoding |utf8
-                  , String
                 origin $ grab-upstream remote-url
               {}
                 :address $ :address origin
