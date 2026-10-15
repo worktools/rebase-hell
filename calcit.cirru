@@ -173,9 +173,8 @@
           :code $ quote $ defn on-server-data (data)
             let
                 message $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
-              case-default
+              match
                 option:unwrap-or (get message :kind) nil
-                println "|unknown server data kind:" data
                 :patch $ let
                     changes $ decode-map-as
                       option:unwrap-or (get message :data) ([])
@@ -187,6 +186,7 @@
                   when config/dev? $ js/console.log |Changes changes
                   if (nil? next-store) (reset! *store nil)
                     reset! *store $ decode-map-as next-store $ :: 'Map 'Tag 'Dynamic
+                _ $ println "|unknown server data kind:" data
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
@@ -323,9 +323,8 @@
                   div
                     {} $ :class-name $ str-spaced css/global css/fullscreen css/column
                     comp-navigation (>> states :nav) logged-in? member-count repo
-                    case-default
+                    match
                       option:unwrap-or (get router :name) nil
-                      <> $ str router
                       :home $ comp-home (>> states :home) repo
                         decode-map-as
                           option:unwrap-or (get store :logs) ({})
@@ -341,6 +340,7 @@
                           option:unwrap-or (get store :user) ({})
                           :: 'Map 'Tag 'Dynamic
                         decode-map-as router-data $ :: 'Map 'String 'String
+                      _ $ <> $ str router
                     comp-status-color $ let
                         raw $ option:unwrap-or (get store :color) nil
                       if (nil? raw) (%none)
@@ -1312,12 +1312,12 @@
                 address $ decode-map-as
                   option:unwrap-or (get repo :address) |
                   , 'String
-                git-url $ case-default
+                git-url $ match
                   decode-map-as
                     option:unwrap-or (get repo :host-kind) :unknown
                     , 'Tag
-                  if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
                   :github $ str |https://github.com/ upstream
+                  _ $ if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
               div
                 {} $ :class-name css-navigation
                 div ({})
@@ -1582,8 +1582,9 @@
                   true |0.0.0
                 use-current? $ or (= current tag-version) (current-version-marker? tag-version)
                 target-version $ if use-current? current tag-version
-                web-url $ case-default host-kind (str |https://github.com/ upstream |/releases/new?tag= target-version)
+                web-url $ match host-kind
                   :github $ str |https://github.com/ upstream |/releases/new?tag= target-version
+                  _ $ str |https://github.com/ upstream |/releases/new?tag= target-version
               println "|host kind" host-kind |from current |to target-version
               if use-current?
                 run-command! (str "|git tag " current "| && git push origin " current "| && echo " web-url) d! $ {}
@@ -2055,11 +2056,12 @@
           :code $ quote $ defn colorize (color text)
             let
                 host $ unsafe-coerce chalk ChalkHost
-              case-default color (raise "|Unsupported terminal color")
+              match color
                 :red $ host .red text
                 :blue $ host .blue text
                 :yellow $ host .yellow text
                 :gray $ host .gray text
+                _ $ raise "|Unsupported terminal color"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ :: 'Fn $ {} (:return 'String)
@@ -2630,15 +2632,15 @@
                       (:none) nil
                       (:some user)
                         twig-user $ decode-map-as user $ :: 'Map 'Tag 'Dynamic
-                :router $ assoc router :data $ case-default
+                :router $ assoc router :data $ match
                   match (get router :name)
                     (:none) nil
                     (:some name) (decode-map-as name 'Tag)
-                  {}
                   :home $ option:unwrap-or (get db :pages) {}
                   :profile $ twig-members sessions $ decode-map-as
                     option:unwrap-or (get db :users) ({})
                     :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  _ $ {}
                 :count $ count sessions
                 ; :color $ color/randomColor
                 :repo $ option:unwrap-or (get db :repo) {}
