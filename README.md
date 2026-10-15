@@ -99,7 +99,7 @@ corepack yarn release-page
 ```
 
 测试保存在对应定义的 `:tests` 中。纯数据测试可在 native 执行；
-JS 组件测试标记 `js`，Node 路径测试同时标记 `node`。
+JS 组件测试标记 `js`，Node 路径及终端颜色宿主测试同时标记 `node`。
 跨后端验证复用 Calcit 仓库的统一回放运行器，按原 entry 和宿主标签选择测试；
 通用用例同时比较 native/JS 的原日志，不通过改预期或排除项隐藏差异。
 `calcit test --list` 可查看当前定义测试。

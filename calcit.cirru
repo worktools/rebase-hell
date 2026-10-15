@@ -2067,6 +2067,24 @@
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'Tag 'String
             :features $ #{} :js-ffi
+          :tests $ []
+            %{} 'TestEntry
+              :name |preserves-string-and-unicode-for-supported-colors
+              :code $ quote $ assert= ([] true true true true)
+                ([] :red :blue :yellow :gray) .map $ fn (color)
+                  let
+                      input "|Calcit 类型😀"
+                      output $ colorize color input
+                    and
+                      &= :string $ type-of output
+                      output .includes? input
+              :tags $ #{} :js :node
+            %{} 'TestEntry
+              :name |rejects-unsupported-colors-with-original-message
+              :code $ quote $ assert= "|Unsupported terminal color"
+                try (colorize :unsupported |Calcit)
+                  fn (message) message
+              :tags $ #{} :js :node
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.node.chalk
           :require $ |chalk :default chalk
