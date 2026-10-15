@@ -1310,9 +1310,7 @@
                   option:unwrap-or (get repo :upstream) |
                   , 'String
                 address $ decode-map-as
-                  option:unwrap-or
-                    get (wo-js-log repo) :address
-                    , |
+                  option:unwrap-or (get repo :address) |
                   , 'String
                 git-url $ case-default
                   decode-map-as
