@@ -238,8 +238,8 @@
                 decode-map-as
                   option:unwrap-or (get @*states :states) ({})
                   :: 'Map 'Tag 'Dynamic
-                if (js-nullish? @*store) (%none)
-                  %some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
+                if (js-nullish? @*store) (Option :none)
+                  Option :some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
               fn (raw-op)
                 hint-fn $ {}
                   :args $ [] 'Dynamic
@@ -268,14 +268,14 @@
         'store-upstream $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn store-upstream (store)
             match (js-nullish->option store)
-              (:none) (%none)
+              (:none) (Option :none)
               (:some data)
                 match
                   get-in data $ [] :repo :upstream
-                  (:none) (%none)
+                  (:none) (Option :none)
                   (:some value)
-                    if (nil? value) (%none)
-                      %some $ decode-map-as value 'String
+                    if (nil? value) (Option :none)
+                      Option :some $ decode-map-as value 'String
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
           :schema $ :: 'Fn $ {}
@@ -2136,7 +2136,7 @@
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *loop-trigger (%none)
+          :code $ quote $ defatom *loop-trigger (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option 'js-ffi.node/NodeTimerHost
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
@@ -2459,7 +2459,7 @@
               not $ identical? @*reader-reel @*reel
               reset! *reader-reel @*reel
               sync-clients! @*reader-reel
-            reset! *loop $ %some $ node/set-timeout!
+            reset! *loop $ Option :some $ node/set-timeout!
               fn ()
                 hint-fn $ {}
                   :args $ []
@@ -2605,8 +2605,8 @@
           :code $ quote $ defn session-user-id (session)
             let
                 raw $ option:unwrap-or (get session :user-id) nil
-              if (nil? raw) (%none)
-                %some $ decode-map-as raw 'String
+              if (nil? raw) (Option :none)
+                Option :some $ decode-map-as raw 'String
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] $ :: 'Map 'Tag 'Dynamic
