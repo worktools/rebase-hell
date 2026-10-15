@@ -126,7 +126,9 @@
                   new-upstream $ store-upstream new-store
                   old-upstream $ store-upstream old-store
                 when (not= new-upstream old-upstream)
-                  println "|switching to" $ option:unwrap-or new-upstream nil
+                  println "|switching to" $ match new-upstream
+                    (:none) nil
+                    (:some upstream) upstream
                   set! js/document.title $ if (js-nullish? new-store) "|(offline)" $ option:unwrap-or new-upstream |
               , &unit
             on-page-touch $ fn ()
@@ -154,7 +156,7 @@
           :code $ quote $ def mount-target (read-mount-target!)
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'js-ffi.browser/DomElementHost
+          :schema $ :: 'respo.dom/DomElement
         'on-keydown $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-keydown (event)
             when
@@ -193,17 +195,17 @@
             :features $ #{} :js-ffi
         'read-mount-target! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-mount-target! ()
-            match (browser/query-selector |.app)
+            match (dom/query-selector |.app)
               (:some element) element
               (:none) (raise "|Missing .app mount element")
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
+          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
             :args $ []
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if
-              or (some? client-errors) (some? server-errors)
+              or (non-nil? client-errors) (non-nil? server-errors)
               hud! |error $ str client-errors &newline server-errors
               do (hud! |ok~ nil) (remove-watch! *store :changes) (remove-watch! *states :changes) (clear-cache!) (render-app!)
                 add-watch! *store :changes $ fn (store prev)
@@ -296,6 +298,7 @@
             |./calcit.build-errors :default client-errors
             |../js-out/calcit.build-errors :default server-errors
             js-ffi.browser :as browser
+            respo.ffi.browser :as dom
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)

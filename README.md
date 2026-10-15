@@ -80,6 +80,13 @@ JS 上全部通过，前端三个命名空间的32个定义严格检查通过；
 AST 的隔离宿主测试验证 Enum 身份/payload 不变、一次派发、非法值在进入业务前
 拒绝及下游异常原样传播；不操作 DOM、socket 或 storage，不代替完整渲染验收。
 
+挂载查询复用已发布的 `respo.ffi.browser/query-selector`，返回 Respo 自己的 DOM
+类型，不在应用中强转 JS-FFI 的另一套 host 类型。缺少 `.app` 时仍抛出原提示，
+查询宿主错误继续传播。upstream 日志显式解包 Option，保留缺席时的 nil；reload
+使用现行 `non-nil?`。client 的15个定义严格检查通过，原 reader/upstream/watcher
+AST 的宿主替身回放验证身份、单次查询、缺席/异常、离线标题、未变化值和非法字段
+拒绝；这些局部验证不代替真实浏览器的启动、热更新和连接生命周期。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
