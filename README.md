@@ -35,8 +35,8 @@ upstream 查询在原始 `execSync` 边界复用 `contract/expect-string`，去�
 
 删除消息的开放 op payload 在进入既有 Map 合同前显式校验，不改正常删除逻辑。
 两项新增定义测试覆盖目标删除、邻居与原数据保留，以及错误 payload/id 拒绝。
-它们在未发布编译器候选上通过 native/生成 JS 同源回放；正式 alpha.3 仍受
-已合并但尚未发布的 Map 前缀推断修复阻塞，须在下一正式配对 alpha 上重新验收。
+它们在编译器候选上通过 native/生成 JS 同源回放；本项目仍锁定的 alpha.3
+缺少 Map 前缀推断修复，须正常升级正式配对后重新验收。
 
 同步函数保留 `ReelState<Map<Tag,Dynamic>>` 的数据库参数。热更新回放使用独立的
 应用边界适配器，按框架实际的开放历史合同校验 Enum、session/id String 和 Number 时间，
@@ -55,6 +55,13 @@ npm 版本查询使用已有 `js-cast` 检查 Promise 的 `then` / `catch` 宿�
 仓库、进程日志及足迹的正常更新、字段保留和错误输入拒绝。六项 updater/历史
 回放测试在候选上通过 native/JS 的数据断言；统一 runner 仍因原足迹日志中
 斜线字符串的 native/JS 展示差异失败，不把此结果记作完整跨后端通过。
+
+服务端派发只在具体效果分支消费开放字段时检查既有 String/Tag/Number 合同，
+不在启动时提前要求 current/upstream 必须存在。正式 alpha.3 配对的隔离宿主回放
+使用原 dispatch 的函数体、schema 和 FFI，替换效果与业务 updater 为测试替身，
+保留已发布 Reel reducer；验证21个效果路由、17个错误参数拒绝、缺席启动字段、
+递归回调的 session 及既有 try 的错误消息行为。没有执行真实 Git、进程或网络，
+也不代表完整服务入口或真实业务 updater 已验收。
 
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 

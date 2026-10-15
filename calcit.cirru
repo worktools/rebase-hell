@@ -2145,26 +2145,39 @@
                 match op
                   (:effect/persist) (;nil persist-db!)
                   (:effect/read-branches) (manager/read-branches! d!)
-                  (:effect/switch-branch data) (manager/switch-branch! current data d!)
-                  (:effect/switch-remote-branch data) (manager/switch-remote-branch! data d!)
-                  (:effect/switch-path data) (manager/switch-path data dispatch! sid)
-                  (:effect/new-branch data) (manager/new-branch! data d!)
+                  (:effect/switch-branch data)
+                    manager/switch-branch! (decode-map-as current 'String) (decode-map-as data 'String) d!
+                  (:effect/switch-remote-branch data)
+                    manager/switch-remote-branch! (decode-map-as data 'String) d!
+                  (:effect/switch-path data)
+                    manager/switch-path (decode-map-as data 'String) dispatch! sid
+                  (:effect/new-branch data)
+                    manager/new-branch! (decode-map-as data 'String) d!
                   (:effect/fetch-origin) (manager/fetch-origin! d!)
                   (:effect/pull-current) (manager/pull-current! d!)
-                  (:effect/push-current) (manager/push-current! current d!)
-                  (:effect/finish-branch) (manager/finish-current! current main-branch d!)
-                  (:effect/rm-remote) (manager/remove-remote! current d!)
+                  (:effect/push-current)
+                    manager/push-current! (decode-map-as current 'String) d!
+                  (:effect/finish-branch)
+                    manager/finish-current! (decode-map-as current 'String) main-branch d!
+                  (:effect/rm-remote)
+                    manager/remove-remote! (decode-map-as current 'String) d!
                   (:effect/rebase-master) (manager/rebase-master! main-branch d!)
                   (:effect/status) (manager/display-status! d!)
                   (:effect/stash) (manager/run-stash! d!)
                   (:effect/stash-apply) (manager/apply-stash! d!)
-                  (:effect/force-push) (manager/force-push! current d!)
-                  (:effect/remove-branch data) (manager/remove-branch! data d!)
-                  (:effect/commit data) (manager/commit! current data d!)
-                  (:effect/add-tag data) (manager/add-tag! data upstream host-kind main-branch d!)
+                  (:effect/force-push)
+                    manager/force-push! (decode-map-as current 'String) d!
+                  (:effect/remove-branch data)
+                    manager/remove-branch! (decode-map-as data 'String) d!
+                  (:effect/commit data)
+                    manager/commit! (decode-map-as current 'String) (decode-map-as data 'String) d!
+                  (:effect/add-tag data)
+                    manager/add-tag! (decode-map-as data 'String) (decode-map-as upstream 'String) (decode-map-as host-kind 'Tag) main-branch d!
                   (:effect/show-version data) (manager/show-version d!)
-                  (:effect/kill-process data) (manager/kill-process! data)
-                  (:effect/edit-with command) (manager/edit-with command d!)
+                  (:effect/kill-process data)
+                    manager/kill-process! $ decode-map-as data 'Number
+                  (:effect/edit-with command)
+                    manager/edit-with (decode-map-as command 'String) d!
                   _ $ reset! *reel $ reel-reducer @*reel updater op sid op-id op-time config/dev?
                 fn (error) (js/console.error "|Dispatch error:" error)
               , &unit
