@@ -3171,7 +3171,7 @@
                   option:unwrap-or (get db :users) ({})
                   :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
               find
-                .to-list $ vals users
+                .to-list $ calcit.core/distinct-values users
                 fn (user)
                   hint-fn $ {}
                     :args $ [] $ :: 'Map 'Tag 'Dynamic
