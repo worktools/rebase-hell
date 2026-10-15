@@ -657,12 +657,12 @@
                       (:element element) (:children element)
                       (:component _) (raise "|expected footprint list element")
                   (:none) (raise "|missing footprint list element")
-                keys $ map children $ fn (child)
+                entry-keys $ map children $ fn (child)
                   hint-fn $ {}
                     :args $ [] 'respo.schema/ChildPair
                     :return 'Dynamic
                   :key child
-              assert= ([] |/a |/b |/z |/u) keys
+              assert= ([] |/a |/b |/z |/u) entry-keys
               assert= 5 $ count input
             :tags $ #{} :js :migration :unit
         'comp-home $ %{} 'CodeEntry (:doc |)
@@ -932,12 +932,12 @@
                 root-children $ children-of $ :tree component
                 log-list $ .unwrap $ last root-children
                 items $ children-of $ :node log-list
-                keys $ map items $ fn (child)
+                entry-keys $ map items $ fn (child)
                   hint-fn $ {}
                     :args $ [] 'respo.schema/ChildPair
                     :return 'Dynamic
                   :key child
-              assert= ([] |new |old) keys
+              assert= ([] |new |old) entry-keys
               assert= 2 $ count logs
             :tags $ #{} :js :migration :unit
         'comp-new-branch $ %{} 'CodeEntry (:doc |)
@@ -2331,7 +2331,7 @@
               node/rmdir! child
               node/rmdir! marker
               node/rmdir! root
-            :tags $ #{} :js :migration
+            :tags $ #{} :js :migration :node
         'latest-package-version $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn latest-package-version (package-name)
             js-cast (latest-version package-name) 'PromiseHost
