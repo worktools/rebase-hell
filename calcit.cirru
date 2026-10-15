@@ -359,9 +359,10 @@
                       {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic)
+            :args $ [] (:: 'Map 'StateKey 'Dynamic)
               :: 'Option $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
+            :generics $ [] 'StateKey
         'comp-offline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-offline ()
             div
@@ -550,7 +551,8 @@
                 .render commit-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
+            :args $ [] (:: 'Map 'StateKey 'Dynamic) 'String
+            :generics $ [] 'StateKey
         'comp-footprints $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-footprints (footprints current)
             list->
@@ -723,11 +725,12 @@
                 .render menu-branch
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :args $ [] (:: 'Map 'StateKey 'Dynamic) (:: 'Map 'Tag 'Dynamic)
               :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
               :: 'Map 'Dynamic 'String
               :: 'Map 'String 'String
             :features $ #{} :js-ffi
+            :generics $ [] 'StateKey
         'comp-log-chunk $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-log-chunk (log)
             let
@@ -935,7 +938,31 @@
                   .render branch-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :args $ [] $ :: 'Map 'StateKey 'Dynamic
+            :generics $ [] 'StateKey
+          :tests $ [] $ %{} 'TestEntry (:name |builds-branch-controls-with-generic-state-keys)
+            :code $ quote $ let
+                baseline $ comp-new-branch $ {}
+                tagged $ comp-new-branch $ {} (:unused 1)
+                string-keyed $ comp-new-branch $ {} (|row 1)
+                number-keyed $ comp-new-branch $ {} (7 1)
+                mixed $ {}
+                  :cursor $ [] :root |row 7
+                  :new-branch $ {} $ 7
+                    {} $ :data |number-key
+                mixed-control $ comp-new-branch mixed
+              assert= (:name baseline) (:name tagged)
+              assert= (:name baseline) (:name string-keyed)
+              assert= (:name baseline) (:name number-keyed)
+              assert= (:name baseline) (:name mixed-control)
+              assert= true $ .some? $ :tree mixed-control
+              assert=
+                Option :some $ [] :root |row 7
+                get mixed :cursor
+              assert=
+                Option :some $ {} $ :data |number-key
+                get-in mixed $ [] :new-branch 7
+            :tags $ #{} :js :migration :unit
         'comp-operations $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-operations (states repo)
             let
@@ -1037,7 +1064,8 @@
                     d! $ :: :effect/edit-with |subl
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :args $ [] (:: 'Map 'StateKey 'Dynamic) (:: 'Map 'Tag 'Dynamic)
+            :generics $ [] 'StateKey
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quick-ops (states)
             let
@@ -1113,8 +1141,9 @@
                 .render tag-plugin
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :args $ [] $ :: 'Map 'StateKey 'Dynamic
             :features $ #{} :js-ffi
+            :generics $ [] 'StateKey
         'comp-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-thin-divider ()
             div $ {} $ :class-name css-thin-divider
@@ -1280,7 +1309,32 @@
                   <> count-members
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Bool 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] (:: 'Map 'StateKey 'Dynamic) 'Bool 'Number $ :: 'Map 'Tag 'Dynamic
+            :generics $ [] 'StateKey
+          :tests $ [] $ %{} 'TestEntry
+            :name |accepts-state-maps-without-assuming-tag-only-keys
+            :code $ quote $ let
+                repo $ {} (:upstream |owner/repo) (:address |git@github.com:owner/repo.git) (:host-kind :github)
+                baseline $ comp-navigation ({}) false 1 repo
+                mixed $ {}
+                  :cursor $ [] :root |row 7
+                  |row $ {}
+                  7 $ {} $ :data |number-key
+              assert= baseline $ comp-navigation
+                {} $ :unused 1
+                , false 1 repo
+              assert= baseline $ comp-navigation
+                {} $ |row 1
+                , false 1 repo
+              assert= baseline $ comp-navigation
+                {} $ 7 1
+                , false 1 repo
+              assert= baseline $ comp-navigation mixed false 1 repo
+              assert=
+                Option :some $ {} $ :data |number-key
+                get mixed 7
+              assert= (Option :none) (get mixed |7)
+            :tags $ #{} :js :migration :unit
         'css-nav-label $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-nav-label
             {} $ |$0 $ {}

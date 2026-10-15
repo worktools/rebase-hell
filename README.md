@@ -63,6 +63,12 @@ npm 版本查询使用已有 `js-cast` 检查 Promise 的 `then` / `catch` 宿�
 递归回调的 session 及既有 try 的错误消息行为。没有执行真实 Git、进程或网络，
 也不代表完整服务入口或真实业务 updater 已验收。
 
+仅转交状态树的组件参数使用 `Map<StateKey, Dynamic>` 泛型，不再假定框架所有
+key 都是 Tag；业务 repo、日志及其他字段保持具体合同，七个组件的函数体不变。
+附带 JS 测试验证真实导航/分支组件接受 Tag、String、Number 和混合 key，保留
+Number 与同名 String 的区别；非 Map 输入仍被严格检查拒绝。这不宣称框架
+自身的开放 `>>` 返回已能静态保留 key 类型，也不代替完整浏览器业务验收。
+
 ![rebase-hell on npm](https://img.shields.io/npm/v/@worktools/rebase-hell.svg)
 
 ### Usage
