@@ -65,6 +65,9 @@ module.exports = {
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
 指定的正式 Calcit 0.30.0；`package.json` 的 `@calcit/procs` 必须与 CLI 精确配对。
 模块版本以 `deps.cirru` 为准，npm 安装保留一小时的新包隔离策略。
+实时协作依赖同步正式 Cumulo Reel 0.0.54、Recollect 0.0.61、WS-EDN 0.0.40
+及 Respo Message 0.0.35，避免根依赖与传递版本冲突。前后端部署路径不变，
+依赖更新不代表已发布的 npm CLI 已更新，也不自动启动本机服务。
 
 ```sh
 caps --strict --ci
@@ -85,6 +88,10 @@ calcit query context app.client/main! --format edn
 框架状态树的 key 保留泛型，业务字段在实际消费处检查，
 内部路径查询明确返回 `Option<String>`，DOM 查询返回 Respo 自己的元素类型。
 开放的 wire 数据不因升级而强转成具体业务值。
+接收 patch 时调用已发布的 `recollect.schema/decode-changes`，还原 EDN 中的
+名义 change-op，再调用原 patch-twig；不把通用类型断言当成 wire decoder。
+远程分支沿真实 Git 查询结果使用 `List<String>`，初值与缺失 fallback 同为
+空 List，仍按原规则过滤并排序；不再误将实际 List 解码成 Set。
 
 ## 验证与构建
 
@@ -92,6 +99,7 @@ calcit query context app.client/main! --format edn
 calcit edit format
 calcit --entry server --check-only --warn-dyn-method
 calcit --check-only --warn-dyn-method
+calcit fix --workflow strict --verify --format edn
 calcit test --exclude-tag js --require-match --summary-only --format edn
 corepack yarn compile-server
 corepack yarn compile-page
@@ -129,8 +137,14 @@ corepack yarn watch-page
 
 ## 限制
 
-- 当前迁移候选的完整严格检查仍受已锁定 WS-EDN 0.0.39 的服务端 options 合同阻塞。修复已正式发布为 0.0.40，但 Cumulo Reel 0.0.53 仍锁定旧版本；须先更新并发布一致的上游依赖图，不能用根版本冲突或修改缓存绕过。尚未完成可部署版本验收。
+- 本轮使用一致的正式协作依赖图，不通过根版本冲突、修改共享缓存或锁定 alpha 绕过检查。尚未完成可部署版本验收，0.30.1 也尚未正式发布；本轮不宣称整个依赖图兼容 0.30.1。
 - 完整业务验收还需检查真实 Git、浏览器与连接生命周期，宿主替身测试只证明其覆盖的合同。
+- 本轮已在独立合成 Git 仓库完成真实浏览器冷启动、分支显示、Status stdout、
+  刷新重连和回放，无最终 JS error；另验证实际生成 manager 的查询及自有合成
+  进程取消/退出。未执行真实仓库的切分支、commit、push、rebase 或用户进程操作，
+  不将这些未覆盖的写操作称为验收完成。
+- 浏览器副本只隔离工作目录文件、端口和 storage key，并禁用外网版本查询；
+  因此不把此回放当成 npm 版本通知或真实用户凭据流程的验收。
 - native 定义测试不执行 JS-only 测试，browser 与 Node 的回放必须使用匹配入口。
 - Git URL 保留现有 SCP、HTTPS 与 SSH scheme 合同，不将普通 HTTP 当作已支持输入。
 - 服务可执行真实 Git 与进程操作，只应向可信用户开放控制端口。

@@ -176,9 +176,7 @@
               match
                 option:unwrap-or (get message :kind) nil
                 :patch $ let
-                    changes $ decode-map-as
-                      option:unwrap-or (get message :data) ([])
-                      :: 'List 'recollect.schema/change-op
+                    changes $ decode-changes $ option:unwrap-or (get message :data) ([])
                     base $ match (js-nullish->option @*store)
                       (:some value) value
                       (:none) nil
@@ -299,6 +297,7 @@
             |../js-out/calcit.build-errors :default server-errors
             js-ffi.browser :as browser
             respo.ffi.browser :as dom
+            recollect.schema :refer $ decode-changes
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)
@@ -676,8 +675,8 @@
                   :: 'Set 'String
                 remote-branches $ ->
                   decode-map-as
-                    option:unwrap-or (get repo :remote-branches) (#{})
-                    :: 'Set 'String
+                    option:unwrap-or (get repo :remote-branches) ([])
+                    :: 'List 'String
                   filter $ fn (branch-path)
                     hint-fn $ {}
                       :args $ [] 'String
@@ -689,7 +688,6 @@
                       and
                         not $ contains? branches short-name
                         not= short-name |HEAD
-                  .to-list
                   sort &compare
                   map $ fn (branch)
                     hint-fn $ {}
@@ -2102,7 +2100,7 @@
               :repo $ {} (:upstream nil) (:host-kind :unknown)
                 :branches $ #{}
                 :current |main
-                :remote-branches $ #{}
+                :remote-branches $ []
               :logs $ do log $ {}
               :process-status $ {}
               :footprints $ {}
