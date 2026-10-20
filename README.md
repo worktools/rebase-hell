@@ -131,7 +131,8 @@ corepack yarn watch-page
 默认站点路径保留为 `https://cos-sh.tiye.me/worktools/rebase-hell/`；
 原服务器的 web-assets 路径也保持不变。
 
-同仓库 PR 使用独立的 PR/run/attempt 前缀；fork PR 只检查和构建。
+同仓库普通 PR 使用独立的 PR/run/attempt 前缀；fork 和 Dependabot PR 只检查和构建，
+不尝试使用不可用的部署 secrets；Calcit 类型检查、原测试和前后端构建不因此跳过。
 只有当前 main revision 部署生产路径。npm release 工作流构建并发布 CLI，
 不重复部署前端；COS Action 使用明确的正式版本和构建后的 URL 校验。
 
