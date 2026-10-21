@@ -79,7 +79,7 @@ jobs:
             echo "::notice::Skip stale production revision ${GITHUB_SHA}; current main is ${current_sha}."
           fi
       - name: Upload and verify frontend
-        if: steps.production.outputs.current == 'true' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+        if: steps.production.outputs.current == 'true' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]')
         timeout-minutes: 10
         uses: worktools/cos-upload-action@v1.2.0
         with:
