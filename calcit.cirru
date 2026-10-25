@@ -38,9 +38,9 @@
         'connect! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn connect! ()
             let
-                url-obj $ unsafe-coerce
+                url-obj $ js-cast
                   url-parse (browser/location-href) true
-                  , UrlParseResult
+                  , 'app.client/UrlParseResult
                 query $ url-obj :query
                 port $ .unwrap-or
                   js-nullish->option $ query :port
@@ -662,7 +662,7 @@
                     :return 'Dynamic
                   :key child
               assert= ([] |/a |/b |/z |/u) entry-keys
-              assert= 5 $ count input
+              assert= 5 $ .len input
             :tags $ #{} :js :migration :unit
         'comp-home $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-home (states repo logs status footprints)
@@ -936,7 +936,7 @@
                     :return 'Dynamic
                   :key child
               assert= ([] |new |old) entry-keys
-              assert= 2 $ count logs
+              assert= 2 $ .len logs
             :tags $ #{} :js :migration :unit
         'comp-new-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-new-branch (states)
@@ -1552,6 +1552,9 @@
                   :args $ [] 'String
                   :return 'Unit
               :return 'app.manager/CommandStreamHost
+            .set-encoding! $ :: 'Fn $ {}
+              :args $ [] 'app.manager/CommandStreamHost 'String
+              :return 'app.manager/CommandStreamHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} $ :on-data! |on
@@ -1612,7 +1615,7 @@
                 :args $ [] 'Enum
         'command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn command-output! (command)
-            unsafe-coerce
+            js-cast
               new js/Promise $ fn (resolve _reject)
                 hint-fn $ {}
                   :args $ []
@@ -1658,7 +1661,7 @@
         'current-version-marker? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn current-version-marker? (text)
             let
-                pattern $ unsafe-coerce (new js/RegExp |^\.{2,}$) VersionPatternHost
+                pattern $ js-cast (new js/RegExp |^\.{2,}$) 'app.manager/VersionPatternHost
               pattern .test? text
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
@@ -1743,7 +1746,12 @@
             :features $ #{} :js-ffi
         'listen-command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-command-output! (stream callback)
-            if (js-present? stream) (stream .on-data! |data callback) (raise "|Command output stream is unavailable")
+            if (js-present? stream)
+              let
+                  host $ js-cast stream 'app.manager/CommandStreamHost
+                host .set-encoding! |utf8
+                host .on-data! |data callback
+              raise "|Command output stream is unavailable"
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
@@ -1857,9 +1865,9 @@
         'run-command! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-command! (command d! options)
             let
-                proc $ unsafe-coerce
+                proc $ js-cast
                   cp/exec command $ js-object $ :cwd js/process.env.CWD
-                  , CommandProcessHost
+                  , 'app.manager/CommandProcessHost
                 stdout $ js-get proc :stdout
                 stderr $ js-get proc :stderr
               d! $ :: :process/start $ {}
@@ -2359,7 +2367,7 @@
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
             let
-                host $ unsafe-coerce js/process SignalProcessHost
+                host $ js-cast js/process 'app.server/SignalProcessHost
               host .on-signal! |SIGHUP $ fn (_signal)
                 hint-fn $ {}
                   :args $ [] 'String
@@ -2556,7 +2564,7 @@
                   new-store $ twig-container db session records
                   changes $ diff-twig old-store new-store $ {} (:key :id)
                 when config/dev? $ println $ colorize :gray
-                  str "|Changes for " sid "|: " $ count records
+                  str "|Changes for " sid "|: " $ .len records
                 if
                   not $ empty? changes
                   do
@@ -2630,7 +2638,7 @@
         'twig-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-container (db session records)
             let
-                logged-in? $ option:some? $ session-user-id session
+                logged-in? $ .some? $ session-user-id session
                 router $ decode-map-as
                   .unwrap-or (get session :router) ({})
                   :: 'Map 'Tag 'Dynamic
@@ -2638,7 +2646,7 @@
                   .unwrap-or (get db :sessions) ({})
                   :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                 base-data $ {} (:logged-in? logged-in?) (:session session)
-                  :reel-length $ count records
+                  :reel-length $ .len records
               merge base-data $ {}
                 :user $ match (session-user-id session)
                   (:none) nil
@@ -2657,7 +2665,7 @@
                     .unwrap-or (get db :users) ({})
                     :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   _ $ {}
-                :count $ count sessions
+                :count $ .len sessions
                 ; :color $ color/randomColor
                 :repo $ .unwrap-or (get db :repo) {}
                 :logs $ .unwrap-or (get db :logs) {}
@@ -2703,7 +2711,7 @@
                 , result
               assert= ({})
                 twig-members ({}) users
-              assert= 3 $ count sessions
+              assert= 3 $ .len sessions
             :tags $ #{} :migration :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.container
@@ -2838,7 +2846,7 @@
                 assert= (Option :some 23)
                   get-in result $ [] :sessions |session :extra
                 assert= (Option :some :stable) (get result :untouched)
-                assert= 2 $ count messages
+                assert= 2 $ .len messages
                 assert= (Option :some messages)
                   get-in db $ [] :sessions |session :messages
               :tags $ #{} :migration :unit
