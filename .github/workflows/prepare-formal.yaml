@@ -1,0 +1,99 @@
+name: Prepare protected Rebase Hell formal migration
+on:
+  push:
+    branches: [prepare/rebase-hell-formal-0301]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: |
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+          node prepare-source.mjs pair
+      - uses: calcit-lang/setup-calcit@v1.5.0
+        with:
+          tools: calcit,caps
+          caps-version: "0.1.1"
+          deps-file: deps.cirru
+      - name: Resolve unchanged published module graph
+        run: |
+          set -euo pipefail
+          caps --strict --ci
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+          yarn install --immutable
+          caps verify --toolchain
+      - name: Apply exact reviewed Option call migration
+        run: node prepare-source.mjs apply
+      - name: Original canonical guard
+        id: canonical
+        continue-on-error: true
+        run: |
+          before_blob="$(git hash-object calcit.cirru)"
+          calcit edit format
+          test "$(git hash-object calcit.cirru)" = "$before_blob"
+      - name: Original native tests
+        id: tests
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          calcit test --exclude-tag js --require-match --summary-only --format json | tee acceptance/tests.json
+      - name: Original server entry check
+        id: server
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          calcit --entry server --check-only --warn-dyn-method --format json | tee acceptance/server.json
+      - name: Original browser entry check
+        id: client
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          calcit --check-only --warn-dyn-method --format json | tee acceptance/client.json
+      - name: Original complete strict workflow
+        id: strict
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          calcit fix --workflow strict --verify --format json | tee acceptance/strict.json
+      - name: Original server and browser compilation plus frontend build
+        id: build
+        continue-on-error: true
+        env:
+          VITE_BASE_URL: ./
+        run: |
+          set -euo pipefail
+          (yarn compile-server && yarn compile-page && yarn release-page) 2>&1 | tee acceptance/build.log
+      - name: Verify complete source and dependency transaction
+        id: source
+        if: always()
+        continue-on-error: true
+        run: node prepare-source.mjs verify
+      - name: Enforce every original outcome
+        if: always()
+        env:
+          CANONICAL: ${{ steps.canonical.outcome }}
+          TESTS: ${{ steps.tests.outcome }}
+          SERVER: ${{ steps.server.outcome }}
+          CLIENT: ${{ steps.client.outcome }}
+          STRICT: ${{ steps.strict.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+          SOURCE: ${{ steps.source.outcome }}
+        run: |
+          node --input-type=module -e 'import assert from "node:assert/strict";const names=["CANONICAL","TESTS","SERVER","CLIENT","STRICT","BUILD","SOURCE"];for(const name of names)console.log(name,process.env[name]);for(const name of names)assert.equal(process.env[name],"success",name+" must pass");'
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: rebase-hell-formal-diagnostics
+          path: acceptance
+          if-no-files-found: error
+          retention-days: 30
