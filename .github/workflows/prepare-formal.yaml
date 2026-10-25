@@ -91,6 +91,17 @@ jobs:
         run: |
           node --input-type=module -e 'import assert from "node:assert/strict";const names=["CANONICAL","TESTS","SERVER","CLIENT","STRICT","BUILD","SOURCE"];for(const name of names)console.log(name,process.env[name]);for(const name of names)assert.equal(process.env[name],"success",name+" must pass");'
       - uses: actions/upload-artifact@v7.0.2
+        if: success()
+        with:
+          name: rebase-hell-formal-accepted-source
+          path: |
+            calcit.cirru
+            deps.cirru
+            package.json
+            yarn.lock
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: rebase-hell-formal-diagnostics
