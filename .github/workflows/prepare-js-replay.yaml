@@ -1,0 +1,95 @@
+name: Protected formal Rebase Hell original JS replay
+on:
+  push:
+    branches: [prepare/rebase-hell-formal-replay]
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: |
+          corepack enable
+          corepack prepare yarn@4.18.0 --activate
+          test "$(git hash-object calcit.cirru)" = '0b4df3d44cc2e389f6434c9837a2666c5f217071'
+      - uses: calcit-lang/setup-calcit@v1.5.0
+        with:
+          tools: calcit,caps
+          caps-version: "0.1.1"
+          deps-file: deps.cirru
+      - run: |
+          set -euo pipefail
+          caps --strict --ci
+          yarn install --immutable
+          caps verify --toolchain
+          test "$(calcit -v)" = '0.30.1'
+          mkdir -p acceptance
+      - name: Load published shared runner without copying it into the project
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: calcit-lang/calcit
+          ref: 0.30.1
+          path: .calcit/core-test-tools
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/run-core-tests.mjs
+            /scripts/core-test-protocol.mjs
+            /scripts/core-tests-exclusions.cirru
+            /docs/installation/wasm-support.md
+      - name: Replay original shared tests on native and JS
+        run: |
+          set -euo pipefail
+          export CALCIT_BIN="$(command -v calcit)"
+          node .calcit/core-test-tools/scripts/run-core-tests.mjs \
+            --snapshot calcit.cirru --entry default --backend native,js --exclude-tag js \
+            --exclusions .calcit/core-test-tools/scripts/core-tests-exclusions.cirru \
+            --support-matrix .calcit/core-test-tools/docs/installation/wasm-support.md \
+            --results-json acceptance/shared.json 2>&1 | tee acceptance/shared.log
+      - name: Replay original browser component tests in generated JS
+        run: |
+          set -euo pipefail
+          export CALCIT_BIN="$(command -v calcit)"
+          node .calcit/core-test-tools/scripts/run-core-tests.mjs \
+            --snapshot calcit.cirru --entry default --backend js --tag js --exclude-tag node \
+            --exclusions .calcit/core-test-tools/scripts/core-tests-exclusions.cirru \
+            --support-matrix .calcit/core-test-tools/docs/installation/wasm-support.md \
+            --results-json acceptance/browser-components.json 2>&1 | tee acceptance/browser-components.log
+      - name: Replay original Node color and temporary path tests
+        run: |
+          set -euo pipefail
+          export CALCIT_BIN="$(command -v calcit)"
+          node .calcit/core-test-tools/scripts/run-core-tests.mjs \
+            --snapshot calcit.cirru --entry server --backend js --tag node \
+            --exclusions .calcit/core-test-tools/scripts/core-tests-exclusions.cirru \
+            --support-matrix .calcit/core-test-tools/docs/installation/wasm-support.md \
+            --results-json acceptance/node.json 2>&1 | tee acceptance/node.log
+      - name: Require every original test and unchanged source
+        run: |
+          set -euo pipefail
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import {readFileSync} from "node:fs";
+            for(const [name,count,backends] of [["shared",11,["native","js"]],["browser-components",7,["js"]],["node",3,["js"]]]){
+              const rows=Object.values(JSON.parse(readFileSync("acceptance/"+name+".json")));
+              assert.equal(rows.length,count,name+" test coverage");
+              for(const row of rows)for(const backend of backends)assert.equal(row[backend]?.status,"pass",name+" "+backend);
+              console.log(name,count,"all original tests passed without backend exclusions");
+            }'
+          test "$(git hash-object calcit.cirru)" = '0b4df3d44cc2e389f6434c9837a2666c5f217071'
+          git diff --quiet
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: rebase-hell-original-replay-results
+          path: acceptance
+          if-no-files-found: error
+          retention-days: 30
