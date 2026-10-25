@@ -25,7 +25,7 @@ jobs:
           tools: calcit,caps
           caps-version: "0.1.1"
           deps-file: deps.cirru
-      - name: Resolve unchanged published module graph
+      - name: Resolve compatible formally published module graph
         run: |
           set -euo pipefail
           caps --strict --ci
@@ -52,13 +52,13 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          calcit --entry server --check-only --warn-dyn-method --format json | tee acceptance/server.json
+          calcit --entry server --check-only --keep-going --warn-dyn-method --format json | tee acceptance/server.json
       - name: Original browser entry check
         id: client
         continue-on-error: true
         run: |
           set -euo pipefail
-          calcit --check-only --warn-dyn-method --format json | tee acceptance/client.json
+          calcit --check-only --keep-going --warn-dyn-method --format json | tee acceptance/client.json
       - name: Original complete strict workflow
         id: strict
         continue-on-error: true

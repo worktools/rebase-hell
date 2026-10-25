@@ -6,6 +6,25 @@ const run=(name,args)=>execFileSync(name,args,{encoding:'utf8',maxBuffer:64e6,st
 const norm=v=>Array.isArray(v)?v.map(norm):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,k==='__edn_set'?x.map(norm).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))):norm(x)])):v;
 const query=(...args)=>{const r=JSON.parse(run(cli,['calcit.cirru','query',...args,'--format','json']));assert.ok(!r.diagnostics?.some(d=>d.severity==='error'));return norm(r.data);};
 const blob=()=>run('git',['hash-object','calcit.cirru']).trim();
+const modules=[
+ ['Cumulo/cumulo-reel.calcit','0.0.54','0.0.61'],
+ ['Cumulo/cumulo-util.calcit','0.0.28','0.0.31'],
+ ['Respo/alerts.calcit','0.10.52','0.10.57'],
+ ['Respo/respo-feather.calcit','0.4.26','0.4.30'],
+ ['Respo/respo-markdown.calcit','0.4.54','0.4.59'],
+ ['Respo/respo-message.calcit','0.0.35','0.0.38'],
+ ['Respo/respo-ui.calcit','0.7.39','0.8.0'],
+ ['Respo/respo.calcit','0.16.120','0.16.124'],
+ ['calcit-lang/js-ffi','0.2.3','0.2.5'],
+ ['calcit-lang/recollect','0.0.61','0.0.67'],
+ ['mvc-works/ws-edn.calcit','0.0.40','0.0.47']
+];
+function pairedDeps(before){
+ assert.equal(before.split(':calcit-version |0.30.0').length,2);
+ let after=before.replace(':calcit-version |0.30.0',':calcit-version |0.30.1');
+ for(const[id,old,next]of modules){const from='|'+id+' |'+old;assert.equal(after.split(from).length,2,id);after=after.replace(from,'|'+id+' |'+next);}
+ return after;
+}
 function views(){
  const ns=[],defs=[];
  for(const n of query('ns').namespaces){
@@ -47,8 +66,7 @@ if(mode==='inventory'){
  mkdirSync('acceptance',{recursive:true});
  if(mode==='pair'){
   assert.equal(blob(),p.blob);for(const[f,s]of Object.entries(p.manifests))assert.equal(readFileSync(f,'utf8'),s);
-  assert.equal(p.manifests['deps.cirru'].split(':calcit-version |0.30.0').length,2);
-  writeFileSync('deps.cirru',p.manifests['deps.cirru'].replace(':calcit-version |0.30.0',':calcit-version |0.30.1'));
+  writeFileSync('deps.cirru',pairedDeps(p.manifests['deps.cirru']));
   const pkg=JSON.parse(p.manifests['package.json']);assert.equal(pkg.dependencies['@calcit/procs'],'0.30.0');pkg.dependencies['@calcit/procs']='0.30.1';writeFileSync('package.json',JSON.stringify(pkg,null,2)+'\n');
  }else if(mode==='apply'){
   assert.equal(run(cli,['-v']).trim(),'0.30.1');assert.equal(blob(),p.blob);assert.deepEqual(views(),p.before);
@@ -60,7 +78,7 @@ if(mode==='inventory'){
   assert.deepEqual(views(),migration.after);writeFileSync('acceptance/modified-blob.txt',blob());
  }else{
   assert.equal(mode,'verify');assert.equal(run(cli,['-v']).trim(),'0.30.1');assert.deepEqual(views(),p.migration.after);assert.equal(blob(),readFileSync('acceptance/modified-blob.txt','utf8'));
-  assert.equal(readFileSync('deps.cirru','utf8'),p.manifests['deps.cirru'].replace(':calcit-version |0.30.0',':calcit-version |0.30.1'));
+  assert.equal(readFileSync('deps.cirru','utf8'),pairedDeps(p.manifests['deps.cirru']));
   const pkg=JSON.parse(p.manifests['package.json']);pkg.dependencies['@calcit/procs']='0.30.1';assert.deepEqual(JSON.parse(readFileSync('package.json')),pkg);
   assert.equal(readFileSync('.yarnrc.yml','utf8'),p.manifests['.yarnrc.yml']);
   const lock=s=>s.split('\n\n').map(b=>b.startsWith('"@calcit/procs@npm:')?b.replace(/^  checksum:.*$/m,'  checksum: runtime-checksum'):b).join('\n\n');
