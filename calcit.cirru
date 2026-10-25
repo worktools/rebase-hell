@@ -42,10 +42,10 @@
                   url-parse (browser/location-href) true
                   , UrlParseResult
                 query $ url-obj :query
-                port $ option:unwrap-or
+                port $ .unwrap-or
                   js-nullish->option $ query :port
                   str $ :port config/site
-                host $ option:unwrap-or
+                host $ .unwrap-or
                   js-nullish->option $ query :host
                   :ws-host config/site
               ws-connect! (str |ws:// host |: port)
@@ -129,7 +129,7 @@
                   println "|switching to" $ match new-upstream
                     (:none) nil
                     (:some upstream) upstream
-                  set! js/document.title $ if (js-nullish? new-store) "|(offline)" $ option:unwrap-or new-upstream |
+                  set! js/document.title $ if (js-nullish? new-store) "|(offline)" $ .unwrap-or new-upstream |
               , &unit
             on-page-touch $ fn ()
               hint-fn $ {}
@@ -174,9 +174,9 @@
             let
                 message $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
               match
-                option:unwrap-or (get message :kind) nil
+                .unwrap-or (get message :kind) nil
                 :patch $ let
-                    changes $ decode-changes $ option:unwrap-or (get message :data) ([])
+                    changes $ decode-changes $ .unwrap-or (get message :data) ([])
                     base $ match (js-nullish->option @*store)
                       (:some value) value
                       (:none) nil
@@ -234,7 +234,7 @@
             render! mount-target
               comp-container
                 decode-map-as
-                  option:unwrap-or (get @*states :states) ({})
+                  .unwrap-or (get @*states :states) ({})
                   :: 'Map 'Tag 'Dynamic
                 if (js-nullish? @*store) (Option :none)
                   Option :some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
@@ -307,47 +307,47 @@
               (:some store)
                 let
                     router $ decode-map-as
-                      option:unwrap-or (get store :router) {}
+                      .unwrap-or (get store :router) {}
                       :: 'Map 'Tag 'Dynamic
-                    router-data $ option:unwrap-or (get router :data) {}
+                    router-data $ .unwrap-or (get router :data) {}
                     repo $ decode-map-as
-                      option:unwrap-or (get store :repo) {}
+                      .unwrap-or (get store :repo) {}
                       :: 'Map 'Tag 'Dynamic
                     logged-in? $ decode-map-as
-                      option:unwrap-or (get store :logged-in?) false
+                      .unwrap-or (get store :logged-in?) false
                       , 'Bool
                     member-count $ decode-map-as
-                      option:unwrap-or (get store :count) 0
+                      .unwrap-or (get store :count) 0
                       , 'Number
                   div
                     {} $ :class-name $ str-spaced css/global css/fullscreen css/column
                     comp-navigation (>> states :nav) logged-in? member-count repo
                     match
-                      option:unwrap-or (get router :name) nil
+                      .unwrap-or (get router :name) nil
                       :home $ comp-home (>> states :home) repo
                         decode-map-as
-                          option:unwrap-or (get store :logs) ({})
+                          .unwrap-or (get store :logs) ({})
                           :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                         decode-map-as
-                          option:unwrap-or (get store :process-status) ({})
+                          .unwrap-or (get store :process-status) ({})
                           :: 'Map 'Dynamic 'String
                         decode-map-as
-                          option:unwrap-or (get store :footprints) ({})
+                          .unwrap-or (get store :footprints) ({})
                           :: 'Map 'String 'String
                       :profile $ comp-profile
                         decode-map-as
-                          option:unwrap-or (get store :user) ({})
+                          .unwrap-or (get store :user) ({})
                           :: 'Map 'Tag 'Dynamic
                         decode-map-as router-data $ :: 'Map 'String 'String
                       _ $ <> $ str router
                     comp-status-color $ let
-                        raw $ option:unwrap-or (get store :color) nil
+                        raw $ .unwrap-or (get store :color) nil
                       if (nil? raw) (Option :none)
                         Option :some $ decode-map-as raw 'String
                     when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
                     comp-messages
                       decode-map-as
-                        option:unwrap-or
+                        .unwrap-or
                           get-in store $ [] :session :messages
                           {}
                         :: 'Map 'String 'Dynamic
@@ -362,7 +362,7 @@
                         d! $ :: :session/remove-message info
                     if dev? $ comp-reel
                       decode-map-as
-                        option:unwrap-or (get store :reel-length) 0
+                        .unwrap-or (get store :reel-length) 0
                         , 'Number
                       {}
           :examples $ []
@@ -500,7 +500,7 @@
               if (nil? matched) | $ let
                   parts $ decode-map-as matched $ :: 'List 'String
                 str
-                  option:unwrap-or (first parts) |
+                  .unwrap-or (first parts) |
                   , "| "
           :examples $ []
           :ffi $ {} $ :backend :js
@@ -533,7 +533,7 @@
                         :return 'Unit
                     :return 'Unit
                   if remote?
-                    d! $ :: :effect/switch-remote-branch $ option:unwrap-or
+                    d! $ :: :effect/switch-remote-branch $ .unwrap-or
                       last $ .split branch |/
                       , |
                     d! $ :: :effect/switch-branch branch
@@ -668,21 +668,21 @@
           :code $ quote $ defcomp comp-home (states repo logs status footprints)
             let
                 current-branch $ decode-map-as
-                  option:unwrap-or (get repo :current) |
+                  .unwrap-or (get repo :current) |
                   , 'String
                 branches $ decode-map-as
-                  option:unwrap-or (get repo :branches) (#{})
+                  .unwrap-or (get repo :branches) (#{})
                   :: 'Set 'String
                 remote-branches $ ->
                   decode-map-as
-                    option:unwrap-or (get repo :remote-branches) ([])
+                    .unwrap-or (get repo :remote-branches) ([])
                     :: 'List 'String
                   filter $ fn (branch-path)
                     hint-fn $ {}
                       :args $ [] 'String
                       :return 'Bool
                     let
-                        short-name $ option:unwrap-or
+                        short-name $ .unwrap-or
                           last $ .split branch-path |/
                           , |
                       and
@@ -750,7 +750,7 @@
                       =< nil 12
                       div $ {} $ :class-name css/expand
                       comp-footprints footprints $ decode-map-as
-                        option:unwrap-or (get repo :upstream) |
+                        .unwrap-or (get repo :upstream) |
                         , 'String
                     comp-thin-divider
                     comp-operations (>> states :operations) repo
@@ -769,9 +769,9 @@
           :code $ quote $ defcomp comp-log-chunk (log)
             let
                 text $ decode-map-as
-                  option:unwrap-or (get log :text) |
+                  .unwrap-or (get log :text) |
                   , 'String
-                kind $ option:unwrap-or (get log :kind) nil
+                kind $ .unwrap-or (get log :kind) nil
                 urls $ let
                     matched $ to-calcit-data $ js/String.prototype.match.call text (new js/RegExp |https?://\S+)
                   decode-map-as
@@ -893,7 +893,7 @@
                     let
                         item $ :value entry
                         time $ decode-map-as
-                          option:unwrap-or (get item :time) 0
+                          .unwrap-or (get item :time) 0
                           , 'Number
                       negate time
                   .map $ fn (entry)
@@ -1001,7 +1001,7 @@
           :code $ quote $ defcomp comp-operations (states repo)
             let
                 current $ decode-map-as
-                  option:unwrap-or (get repo :current) |
+                  .unwrap-or (get repo :current) |
                   , 'String
               div
                 {} $ :class-name $ str-spaced css/flex css/column
@@ -1305,14 +1305,14 @@
           :code $ quote $ defcomp comp-navigation (states logged-in? count-members repo)
             let
                 upstream $ decode-map-as
-                  option:unwrap-or (get repo :upstream) |
+                  .unwrap-or (get repo :upstream) |
                   , 'String
                 address $ decode-map-as
-                  option:unwrap-or (get repo :address) |
+                  .unwrap-or (get repo :address) |
                   , 'String
                 git-url $ match
                   decode-map-as
-                    option:unwrap-or (get repo :host-kind) :unknown
+                    .unwrap-or (get repo :host-kind) :unknown
                     , 'Tag
                   :github $ str |https://github.com/ upstream
                   _ $ if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
@@ -1419,7 +1419,7 @@
               div
                 {} $ :style $ {} (:font-family ui/font-fancy) (:font-size 32) (:font-weight 100)
                 <> $ str "|Hello! " $ decode-map-as
-                  option:unwrap-or (get user :name) |
+                  .unwrap-or (get user :name) |
                   , 'String
               =< nil 16
               div
@@ -1496,7 +1496,7 @@
           :schema $ :: 'StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -1512,7 +1512,7 @@
           :code $ quote $ def run-mode
             if
               =
-                option:unwrap-or (node/argv-at 2) |
+                .unwrap-or (node/argv-at 2) |
                 , |switch
               , :switch :server
           :examples $ []
@@ -1973,7 +1973,7 @@
               dispatch! (:: :repo/set-upstream upstream) |system
               dispatch! (:: :effect/read-branches) |system
               dispatch!
-                :: :session/track-footprint new-path $ option:unwrap-or (get upstream :upstream) nil
+                :: :session/track-footprint new-path $ .unwrap-or (get upstream :upstream) nil
                 , |system
               println "|Switching to" new-path
               dispatch!
@@ -2232,17 +2232,17 @@
                   dispatch! op' sid
                   , &unit
                 db $ decode-map-as (:db @*reel) (:: 'Map 'Tag 'Dynamic)
-                current $ option:unwrap-or
+                current $ .unwrap-or
                   get-in db $ [] :repo :current
                   , nil
-                upstream $ option:unwrap-or
+                upstream $ .unwrap-or
                   get-in db $ [] :repo :upstream
                   , nil
-                host-kind $ option:unwrap-or
+                host-kind $ .unwrap-or
                   get-in db $ [] :repo :host-kind
                   , nil
                 main-branch $ detects-main $ decode-map-as
-                  option:unwrap-or
+                  .unwrap-or
                     get-in db $ [] :repo :branches
                     #{}
                   :: 'Set 'String
@@ -2374,7 +2374,7 @@
                     dispatch! (:: :effect/read-branches) |system
                     dispatch!
                       :: :session/track-footprint new-path $ decode-map-as
-                        option:unwrap-or (get upstream :upstream) nil
+                        .unwrap-or (get upstream :upstream) nil
                         , 'String
                       , |system
                     println "|Switching to" new-path
@@ -2410,7 +2410,7 @@
               dispatch!
                 :: :session/track-footprint (node/cwd)
                   decode-map-as
-                    option:unwrap-or (get upstream :upstream) nil
+                    .unwrap-or (get upstream :upstream) nil
                     , 'String
                 , |system
             listen-to-switching!
@@ -2546,7 +2546,7 @@
                   db $ decode-map-as (:db reel) (:: 'Map 'Tag 'Dynamic)
                   records $ :records reel
                   session $ decode-map-as
-                    option:unwrap-or
+                    .unwrap-or
                       get-in db $ [] :sessions sid
                       {}
                     :: 'Map 'Tag 'Dynamic
@@ -2620,7 +2620,7 @@
         'session-user-id $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn session-user-id (session)
             let
-                raw $ option:unwrap-or (get session :user-id) nil
+                raw $ .unwrap-or (get session :user-id) nil
               if (nil? raw) (Option :none)
                 Option :some $ decode-map-as raw 'String
           :examples $ []
@@ -2632,10 +2632,10 @@
             let
                 logged-in? $ option:some? $ session-user-id session
                 router $ decode-map-as
-                  option:unwrap-or (get session :router) ({})
+                  .unwrap-or (get session :router) ({})
                   :: 'Map 'Tag 'Dynamic
                 sessions $ decode-map-as
-                  option:unwrap-or (get db :sessions) ({})
+                  .unwrap-or (get db :sessions) ({})
                   :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                 base-data $ {} (:logged-in? logged-in?) (:session session)
                   :reel-length $ count records
@@ -2652,17 +2652,17 @@
                   match (get router :name)
                     (:none) nil
                     (:some name) (decode-map-as name 'Tag)
-                  :home $ option:unwrap-or (get db :pages) {}
+                  :home $ .unwrap-or (get db :pages) {}
                   :profile $ twig-members sessions $ decode-map-as
-                    option:unwrap-or (get db :users) ({})
+                    .unwrap-or (get db :users) ({})
                     :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   _ $ {}
                 :count $ count sessions
                 ; :color $ color/randomColor
-                :repo $ option:unwrap-or (get db :repo) {}
-                :logs $ option:unwrap-or (get db :logs) {}
-                :process-status $ option:unwrap-or (get db :process-status) {}
-                :footprints $ option:unwrap-or (get db :footprints) {}
+                :repo $ .unwrap-or (get db :repo) {}
+                :logs $ .unwrap-or (get db :logs) {}
+                :process-status $ .unwrap-or (get db :process-status) {}
+                :footprints $ .unwrap-or (get db :footprints) {}
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
@@ -2677,7 +2677,7 @@
                 (:none) |
                 (:some user-id)
                   decode-map-as
-                    option:unwrap-or
+                    .unwrap-or
                       get-in users $ [] user-id :name
                       , |
                     , 'String
@@ -2967,7 +2967,7 @@
                     :return 'Bool
                   >
                     decode-map-as
-                      option:unwrap-or (get log :time) 0
+                      .unwrap-or (get log :time) 0
                       , 'Number
                     - op-time 600
           :examples $ []
@@ -2993,11 +2993,11 @@
           :code $ quote $ defn log (db op-data)
             let
                 text $ decode-map-as
-                  option:unwrap-or (get op-data :text) |
+                  .unwrap-or (get op-data :text) |
                   , 'String
               if (.blank? text) db $ assoc-in db
                 [] :logs $ decode-map-as
-                  option:unwrap-or (get op-data :id) nil
+                  .unwrap-or (get op-data :id) nil
                   , 'String
                 , op-data
           :examples $ []
@@ -3007,10 +3007,10 @@
         'start $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn start (db op-data)
             let
-                raw-pid $ option:unwrap-or (get op-data :pid) nil
+                raw-pid $ .unwrap-or (get op-data :pid) nil
                 pid $ if (nil? raw-pid) nil $ decode-map-as raw-pid 'Number
                 command $ decode-map-as
-                  option:unwrap-or (get op-data :command) |
+                  .unwrap-or (get op-data :command) |
                   , 'String
               assoc-in db ([] :process-status pid) command
           :examples $ []
@@ -3032,13 +3032,13 @@
           :code $ quote $ defn set-repo (db op-data)
             let
                 branches $ decode-map-as
-                  option:unwrap-or (get op-data :branches) nil
+                  .unwrap-or (get op-data :branches) nil
                   :: 'Set 'String
                 current $ decode-map-as
-                  option:unwrap-or (get op-data :current) nil
+                  .unwrap-or (get op-data :current) nil
                   , 'String
                 remote-branches $ decode-map-as
-                  option:unwrap-or (get op-data :remote-branches) nil
+                  .unwrap-or (get op-data :remote-branches) nil
                   :: 'List 'String
                 payload $ -> op-data (assoc :branches branches) (assoc :current current) (assoc :remote-branches remote-branches)
               update db :repo $ fn (repo)
@@ -3056,13 +3056,13 @@
           :code $ quote $ defn set-upstream (db op-data)
             let
                 upstream $ decode-map-as
-                  option:unwrap-or (get op-data :upstream) nil
+                  .unwrap-or (get op-data :upstream) nil
                   , 'String
                 host-kind $ decode-map-as
-                  option:unwrap-or (get op-data :host-kind) nil
+                  .unwrap-or (get op-data :host-kind) nil
                   , 'Tag
                 address $ decode-map-as
-                  option:unwrap-or (get op-data :address) nil
+                  .unwrap-or (get op-data :address) nil
                   , 'String
               -> db
                 assoc-in ([] :repo :upstream) upstream
@@ -3080,7 +3080,7 @@
           :code $ quote $ defn change (db op-data sid)
             let
                 name $ decode-map-as
-                  option:unwrap-or (get op-data :name) nil
+                  .unwrap-or (get op-data :name) nil
                   , 'Tag
               assoc-in db ([] :sessions sid :router) (assoc op-data :name name)
           :examples $ []
@@ -3100,7 +3100,7 @@
                   :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                 assoc
                   decode-map-as
-                    option:unwrap-or messages $ {}
+                    .unwrap-or messages $ {}
                     :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   , op-id $ merge op-data $ {} (:id op-id)
           :examples $ []
@@ -3146,7 +3146,7 @@
           :code $ quote $ defn remove-message (db op-data sid)
             let
                 id $ decode-map-as
-                  option:unwrap-or (get op-data :id) nil
+                  .unwrap-or (get op-data :id) nil
                   , 'String
               update-in db ([] :sessions sid :messages)
                 fn (messages)
@@ -3155,7 +3155,7 @@
                     :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   dissoc
                     decode-map-as
-                      option:unwrap-or messages $ {}
+                      .unwrap-or messages $ {}
                       :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                     , id
           :examples $ []
@@ -3184,7 +3184,7 @@
           :code $ quote $ defn find-user (db username)
             let
                 users $ decode-map-as
-                  option:unwrap-or (get db :users) ({})
+                  .unwrap-or (get db :users) ({})
                   :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
               find
                 .to-list $ calcit.core/distinct-values users
@@ -3193,7 +3193,7 @@
                     :args $ [] $ :: 'Map 'Tag 'Dynamic
                     :return 'Bool
                   = username $ decode-map-as
-                    option:unwrap-or (get user :name) |
+                    .unwrap-or (get user :name) |
                     , 'String
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3204,7 +3204,7 @@
             let[] (username password) credentials $ let
                 maybe-user $ find-user db username
                 session $ decode-map-as
-                  option:unwrap-or
+                  .unwrap-or
                     get-in db $ [] :sessions sid
                     {} $ :user-id nil
                   :: 'Map 'Tag 'Dynamic
@@ -3213,11 +3213,11 @@
                   if
                     = (password-digest password)
                       decode-map-as
-                        option:unwrap-or (get user :password) |
+                        .unwrap-or (get user :password) |
                         , 'String
                     assoc-in db ([] :sessions sid)
                       assoc session :user-id $ decode-map-as
-                        option:unwrap-or (get user :id) nil
+                        .unwrap-or (get user :id) nil
                         , 'String
                     session/add-message
                       assoc-in db ([] :sessions sid) session
