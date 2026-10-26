@@ -43,8 +43,9 @@ jobs:
       - name: Check canonical Calcit and types
         run: |
           set -euo pipefail
+          snapshot_before="$(git hash-object calcit.cirru)"
           calcit edit format
-          git diff --exit-code -- calcit.cirru
+          test "$snapshot_before" = "$(git hash-object calcit.cirru)"
           calcit test --exclude-tag js --require-match --summary-only
           calcit --entry server --check-only --warn-dyn-method
           calcit --check-only --warn-dyn-method
