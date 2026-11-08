@@ -5,9 +5,9 @@
 Node 服务运行在拥有仓库访问权限的本机，浏览器显示服务同步的数据并发送操作。
 已发布 CLI 与本分支的工具链迁移候选分别验收；候选的当前约束见文末“限制”。
 
-当前源码使用正式 Calcit 0.30.1 和配套正式模块；本轮继续迁移旧调用并修正命令输出流的 String 合同。
-Git 操作、存档／wire 合同和前后端部署路径不变；此 PR 不更新 npm 上已发布的 CLI，
-也不启动本机服务。依赖安装仍保留原一小时新包隔离策略。
+当前源码使用正式 Calcit 0.38.0。更新本地服务时需同步重新构建网页并刷新页面。
+WebSocket 报文、存档和部署路径继续沿用原格式，页面仍使用 HUD 显示构建错误。
+已发布的 npm CLI 随 npm release 更新。依赖安装继续保留一小时的新包隔离。
 
 [发布包](https://www.npmjs.com/package/@worktools/rebase-hell) ·
 [网页入口](https://r.tiye.me/worktools/rebase-hell/) ·
@@ -67,12 +67,13 @@ module.exports = {
 ## 源码开发
 
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
-指定的正式 Calcit 0.30.1；`package.json` 的 `@calcit/procs` 必须与 CLI 精确配对。
-模块版本以 `deps.cirru` 为准，npm 安装保留一小时的新包隔离策略。
-实时协作依赖同步正式 Cumulo Reel 0.0.61、Recollect 0.0.67、WS-EDN 0.0.47
-及 Respo Message 0.0.38；UI 图使用 Respo 0.16.124、UI 0.8.0、JS FFI 0.2.5，
-并配套 Feather 0.4.30、Alerts 0.10.57 和 Markdown 0.4.59，避免根依赖与传递版本冲突。前后端部署路径不变，
-依赖更新不代表已发布的 npm CLI 已更新，也不自动启动本机服务。
+指定的正式 Calcit 0.38.0，CLI 和 `@calcit/procs` 需要精确配对。
+模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.2、Recollect 0.3.4、
+WS-EDN 0.1.1 和 Respo 0.19.5。
+
+浏览器应用事件使用 `UiOp`，Node 端使用 `ServerOp = DomainOp | EffectOp`。
+Reel 仅记录 `DomainOp`，旧记录经过同一解码入口回放。Alerts 的匿名状态事件
+在视图边界适配，已有开放 Map 的额外字段继续保留。
 
 ```sh
 caps --strict --ci
@@ -141,11 +142,20 @@ corepack yarn watch-page
 只有当前 main revision 部署生产路径。npm release 工作流构建并发布 CLI，
 不重复部署前端；COS Action 使用明确的正式版本和构建后的 URL 校验。
 
-## 限制
+## Calcit 0.38.0 验证范围
 
-### 本轮集合、宿主与流合同清理
+完整 strict、浏览器和 Node 入口、前后端构建均通过。原 21 项定义测试及新增报文测试
+均按各自后端回放。隔离浏览器验证旧补丁、Status 和新建分支弹窗发出的报文。
+只绑定回环地址的 Node 副本在临时 Git 仓库验证了真实 `git status` 和输出回传。
 
-- 命令 stdout/stderr 原回调声明 String，但默认 Node 流实际给出 Buffer。本轮在注册回调前检查真实流的
+真实仓库写操作、生产服务重启、生产数据恢复与 npm 发布仍需单独验收。
+服务可执行真实 Git 与进程操作，只应向可信用户开放控制端口。
+
+## 历史迁移记录
+
+### Calcit 0.30.1 集合、宿主与流合同清理
+
+- 命令 stdout/stderr 原回调声明 String，但默认 Node 流实际给出 Buffer。0.30.1 迁移在注册回调前检查真实流的
   `on`/`setEncoding` 方法并设置 `utf8`，避免中文/emoji 被分块破坏或 Buffer 混入文字日志。
   不完整字符会在流中等待后续字节，chunk 边界、日志条目数量与时点可能改变；不承诺原始二进制日志或跨 stdout/stderr 交错完全等价。
   现有 `CommandStreamHost` 增加实际的 `setEncoding` 成员；只带 `on` 的非标准替身现在会明确被拒绝，原缺失流错误保留。
@@ -166,10 +176,10 @@ corepack yarn watch-page
   两个原工作流只把格式化文本 diff 改为 blob 哈希相等检查，原门禁、发布/生产条件与部署路径不变。
   临时准备 CI/事务/回放与生成代码不进入最终 PR；没有合并、生产部署、Git tag、GitHub Release 或 npm 发版。
 
-### 前次正式版迁移及历史验收
+### 早期 Calcit 0.30 系列迁移及验收
 
-- 本轮使用一致的正式 0.30.1 协作依赖图，不通过根版本冲突、修改共享缓存或锁定 alpha 绕过检查。74 处 `option:unwrap-or` 调用头改为 `.unwrap-or`，原默认值、参数顺序、schema、21 项附带测试及 HUD 保持。
-- 官方 Linux 准备 CI 已通过严格依赖解析、完整 strict、原 11 项非 JS 测试、两个入口检查及前后端编译／Vite 构建。复用正式 0.30.1 统一回放器执行原测试：共享用例 native／JS 各 11/11、浏览器组件 JS 7/7、Node 颜色／隔离临时路径 JS 3/3，均无后端排除，合计原 21 项 JS 测试全部通过。真实浏览器 DOM／Git 服务操作仍未在本轮重放；Node 中的组件测试不代表该端到端验收。临时准备工作流和脚本不进入本项目。
+- 当时使用一致的正式 0.30.1 协作依赖图，不通过根版本冲突、修改共享缓存或锁定 alpha 绕过检查。74 处 `option:unwrap-or` 调用头改为 `.unwrap-or`，原默认值、参数顺序、schema、21 项附带测试及 HUD 保持。
+- 官方 Linux 准备 CI 已通过严格依赖解析、完整 strict、原 11 项非 JS 测试、两个入口检查及前后端编译／Vite 构建。复用正式 0.30.1 统一回放器执行原测试：共享用例 native／JS 各 11/11、浏览器组件 JS 7/7、Node 颜色／隔离临时路径 JS 3/3，均无后端排除，合计原 21 项 JS 测试全部通过。这次 0.30.1 验收未重放真实浏览器 DOM／Git 服务操作；Node 中的组件测试不代表该端到端验收。临时准备工作流和脚本不进入本项目。
 - 完整业务验收还需检查真实 Git、浏览器与连接生命周期，宿主替身测试只证明其覆盖的合同。
 - 上一轮 0.30.0 候选已在独立合成 Git 仓库完成真实浏览器冷启动、分支显示、Status stdout、
   刷新重连和回放，无最终 JS error；另验证实际生成 manager 的查询及自有合成
@@ -179,7 +189,6 @@ corepack yarn watch-page
   因此不把此回放当成 npm 版本通知或真实用户凭据流程的验收。
 - native 定义测试不执行 JS-only 测试，browser 与 Node 的回放必须使用匹配入口。
 - Git URL 保留现有 SCP、HTTPS 与 SSH scheme 合同，不将普通 HTTP 当作已支持输入。
-- 服务可执行真实 Git 与进程操作，只应向可信用户开放控制端口。
 - 正式 Action tag 仍可能被上游改指，部署守卫不替代供应链审查。
 
 ## 参考
