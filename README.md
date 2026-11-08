@@ -5,9 +5,9 @@
 Node 服务运行在拥有仓库访问权限的本机，浏览器显示服务同步的数据并发送操作。
 已发布 CLI 与本分支的工具链迁移候选分别验收；候选的当前约束见文末“限制”。
 
-当前源码使用正式 Calcit 0.30.1 和配套正式模块；本轮继续迁移旧调用并修正命令输出流的 String 合同。
-Git 操作、存档／wire 合同和前后端部署路径不变；此 PR 不更新 npm 上已发布的 CLI，
-也不启动本机服务。依赖安装仍保留原一小时新包隔离策略。
+当前源码使用正式 Calcit 0.38.0。更新本地服务时需同步重新构建网页并刷新页面。
+WebSocket 报文、存档和部署路径继续沿用原格式，页面仍使用 HUD 显示构建错误。
+已发布的 npm CLI 随 npm release 更新。依赖安装继续保留一小时的新包隔离。
 
 [发布包](https://www.npmjs.com/package/@worktools/rebase-hell) ·
 [网页入口](https://r.tiye.me/worktools/rebase-hell/) ·
@@ -67,12 +67,13 @@ module.exports = {
 ## 源码开发
 
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
-指定的正式 Calcit 0.30.1；`package.json` 的 `@calcit/procs` 必须与 CLI 精确配对。
-模块版本以 `deps.cirru` 为准，npm 安装保留一小时的新包隔离策略。
-实时协作依赖同步正式 Cumulo Reel 0.0.61、Recollect 0.0.67、WS-EDN 0.0.47
-及 Respo Message 0.0.38；UI 图使用 Respo 0.16.124、UI 0.8.0、JS FFI 0.2.5，
-并配套 Feather 0.4.30、Alerts 0.10.57 和 Markdown 0.4.59，避免根依赖与传递版本冲突。前后端部署路径不变，
-依赖更新不代表已发布的 npm CLI 已更新，也不自动启动本机服务。
+指定的正式 Calcit 0.38.0，CLI 和 `@calcit/procs` 需要精确配对。
+模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.2、Recollect 0.3.4、
+WS-EDN 0.1.1 和 Respo 0.19.5。
+
+浏览器应用事件使用 `UiOp`，Node 端使用 `ServerOp = DomainOp | EffectOp`。
+Reel 仅记录 `DomainOp`，旧记录经过同一解码入口回放。Alerts 的匿名状态事件
+在视图边界适配，已有开放 Map 的额外字段继续保留。
 
 ```sh
 caps --strict --ci

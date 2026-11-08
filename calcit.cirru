@@ -6,7 +6,7 @@
     :default $ {} (:description |) (:init-fn 'app.client/main!) (:mode :js) (:reload-fn 'app.client/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |recollect/ |respo-ui.calcit/ |ws-edn.calcit/ |cumulo-util.calcit/ |respo-message.calcit/ |respo-markdown.calcit/ |alerts.calcit/ |respo-feather.calcit/ |cumulo-reel.calcit/ |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op 'app.schema/ViewDispatch
     :server $ {} (:description |) (:init-fn 'app.server/main!) (:mode :js) (:reload-fn 'app.server/reload!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |recollect/ |ws-edn.calcit/ |cumulo-util.calcit/ |cumulo-reel.calcit/
@@ -18,23 +18,24 @@
           :code $ quote $ defref *states
             {} $ :states $ {}
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Ref (Map Tag Dynamic)
         '*store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *store nil
           :examples $ []
-          :schema $ :: 'Ref $ :: 'JsNullish (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            JsNullish $ Map Tag Dynamic
         'UrlParseQuery $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait UrlParseQuery
-            :host $ :: 'JsNullish 'String
-            :port $ :: 'JsNullish 'String
+            :host $ JsNullish String
+            :port $ JsNullish String
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'UrlParseResult $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait UrlParseResult (:query 'app.client/UrlParseQuery)
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'connect! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn connect! ()
             let
@@ -51,18 +52,12 @@
               ws-connect! (str |ws:// host |: port)
                 {}
                   :on-open $ fn (_event)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic
-                      :return 'Unit
-                      :features $ #{} :js-ffi
+                    hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
                     simulate-login!
-                    dispatch! $ :: :effect/read-branches
+                    dispatch! $ app.schema/EffectOp :effect/read-branches
                     , &unit
                   :on-close $ fn (_event)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic
-                      :return 'Unit
-                      :features $ #{} :js-ffi
+                    hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
                     reset! *store nil
                     js/console.error "|Lost connection!"
                     , &unit
@@ -70,29 +65,40 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
-            when
-              and config/dev? $ not= (&enum:nth op 0) :states
-              println |Dispatch op
             match op
-              (:states cursor s)
-                reset! *states $ decode-map-as
-                  update-states @*states
-                    decode-map-as cursor $ :: 'List 'Dynamic
-                    , s
-                  :: 'Map 'Tag 'Dynamic
-              (:effect/connect) (connect!)
-              _ $ ws-send! op
+              (app.schema/LocalOp action)
+                match action
+                  (:states cursor s)
+                    reset! *states $ decode-map-as (update-states @*states cursor s) (Map Tag Dynamic)
+                  (:effect/connect) (connect!)
+              (app.schema/DomainOp action)
+                ws-send! $ app.schema/server-op-to-wire action
+              (app.schema/EffectOp action)
+                ws-send! $ app.schema/server-op-to-wire action
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn app.schema/UiOp (-> Unit) (:features :js-ffi)
+        'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-from-view! (raw)
+            cond
+                = (enum-definition raw) (Option :some app.schema/LocalOp)
+                dispatch! $ decode-map-as raw 'app.schema/LocalOp
+              (= (enum-definition raw) (Option :some app.schema/DomainOp))
+                dispatch! $ decode-map-as raw 'app.schema/DomainOp
+              (= (enum-definition raw) (Option :some app.schema/EffectOp))
+                dispatch! $ decode-map-as raw 'app.schema/EffectOp
+              true $ match raw
+                (:states cursor state)
+                  dispatch! $ app.schema/LocalOp :states
+                    decode-map-as cursor $ List respo.schema/CoordKey
+                    , state
+                _ $ raise "|Unknown Rebase Hell view operation"
+          :examples $ []
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi) (:open :reflect)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -100,97 +106,77 @@
             render-app!
             connect!
             add-watch! *store :changes $ fn (s p)
-              hint-fn $ {}
-                :args $ []
-                  :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                  :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn
+                JsNullish $ Map Tag Dynamic
+                JsNullish $ Map Tag Dynamic
+                -> Unit
+                :features :js-ffi
               render-app!
               , &unit
             add-watch! *states :changes $ fn (s p)
-              hint-fn $ {}
-                :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn (Map Tag Dynamic) (Map Tag Dynamic) (-> Unit) (:features :js-ffi)
               render-app!
               , &unit
             add-watch! *store :upstream $ fn (new-store old-store)
-              hint-fn $ {}
-                :args $ []
-                  :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                  :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn
+                JsNullish $ Map Tag Dynamic
+                JsNullish $ Map Tag Dynamic
+                -> Unit
+                :features :js-ffi
               let
                   new-upstream $ store-upstream new-store
                   old-upstream $ store-upstream old-store
                 when (not= new-upstream old-upstream)
-                  println "|switching to" $ match new-upstream
-                    (:none) nil
-                    (:some upstream) upstream
+                  println "|switching to" $ .unwrap-or new-upstream |
                   set! js/document.title $ if (js-nullish? new-store) "|(offline)" $ .unwrap-or new-upstream |
               , &unit
             on-page-touch $ fn ()
-              hint-fn $ {}
-                :args $ []
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn (-> Unit) (:features :js-ffi)
               if (js-nullish? @*store) (connect!)
-                dispatch! $ :: :effect/read-branches
+                dispatch! $ app.schema/EffectOp :effect/read-branches
               , &unit
             js/window.addEventListener |keydown $ fn (event)
-              hint-fn $ {}
-                :args $ [] 'Dynamic
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
               on-keydown $ browser/keyboard-event-host event
               , &unit
             println "|App started!"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target (read-mount-target!)
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'respo.dom/DomElement
+          :schema $ quote respo.dom/DomElement
         'on-keydown $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-keydown (event)
             when
               and (event :meta-key?)
                 = |k $ event :key
-              dispatch! $ :: :process/clear-logs
+              dispatch! $ app.schema/DomainOp :process/clear-logs
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'js-ffi.browser/KeyboardEventHost
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn js-ffi.browser/KeyboardEventHost (-> Unit) (:features :js-ffi)
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
             let
-                message $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                message $ decode-map-as data $ Map Tag Dynamic
               match
-                .unwrap-or (get message :kind) nil
+                .unwrap-or (get message :kind) :unknown
                 :patch $ let
                     changes $ decode-changes $ .unwrap-or (get message :data) ([])
-                    base $ match (js-nullish->option @*store)
-                      (:some value) value
-                      (:none) nil
-                    next-store $ patch-twig base changes
+                    next-store $ match (js-nullish->option @*store)
+                      (:some value) (patch-twig value changes)
+                      (:none) (patch-twig nil changes)
                   when config/dev? $ js/console.log |Changes changes
                   if (nil? next-store) (reset! *store nil)
-                    reset! *store $ decode-map-as next-store $ :: 'Map 'Tag 'Dynamic
+                    reset! *store $ decode-map-as next-store $ Map Tag Dynamic
                 _ $ println "|unknown server data kind:" data
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
         'read-mount-target! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-mount-target! ()
             match (dom/query-selector |.app)
@@ -198,8 +184,7 @@
               (:none) (raise "|Missing .app mount element")
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
-            :args $ []
+          :schema $ quote $ Fn (-> respo.dom/DomElement)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if
@@ -207,62 +192,48 @@
               hud! |error $ str client-errors &newline server-errors
               do (hud! |ok~ nil) (remove-watch! *store :changes) (remove-watch! *states :changes) (clear-cache!) (render-app!)
                 add-watch! *store :changes $ fn (store prev)
-                  hint-fn $ {}
-                    :args $ []
-                      :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                      :: 'JsNullish $ :: 'Map 'Tag 'Dynamic
-                    :return 'Unit
-                    :features $ #{} :js-ffi
+                  hint-fn $ Fn
+                    JsNullish $ Map Tag Dynamic
+                    JsNullish $ Map Tag Dynamic
+                    -> Unit
+                    :features :js-ffi
                   render-app!
                   , &unit
                 add-watch! *states :changes $ fn (states prev)
-                  hint-fn $ {}
-                    :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-                    :return 'Unit
-                    :features $ #{} :js-ffi
+                  hint-fn $ Fn (Map Tag Dynamic) (Map Tag Dynamic) (-> Unit) (:features :js-ffi)
                   render-app!
                   , &unit
                 println "|Code updated."
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target
-              comp-container
+            render-with! mount-target
+              fn () $ comp-container
                 decode-map-as
                   .unwrap-or (get @*states :states) ({})
-                  :: 'Map 'Tag 'Dynamic
+                  Map Tag Dynamic
                 if (js-nullish? @*store) (Option :none)
-                  Option :some $ decode-map-as @*store $ :: 'Map 'Tag 'Dynamic
-              fn (raw-op)
-                hint-fn $ {}
-                  :args $ [] 'Dynamic
-                  :return 'Unit
-                if (enum? raw-op) (dispatch! raw-op) (raise "|Expected an Enum operation from Respo")
+                  Option :some $ decode-map-as @*store $ Map Tag Dynamic
+              , dispatch-from-view!
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'simulate-login! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn simulate-login! ()
             match
               browser/storage-get $ :storage-key config/site
               (:some raw)
                 do (println "|Found storage.")
-                  dispatch! $ :: :user/log-in $ parse-cirru-edn raw
+                  dispatch! $ app.schema/DomainOp :user/log-in $ decode-map-as (parse-cirru-edn raw) (List String)
               (:none) (println "|Found no storage.")
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'store-upstream $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn store-upstream (store)
             match (js-nullish->option store)
@@ -270,20 +241,20 @@
               (:some data)
                 match
                   get-in data $ [] :repo :upstream
-                  (:none) (Option :none)
-                  (:some value)
+                  (:err _) (Option :none)
+                  (:ok value)
                     if (nil? value) (Option :none)
                       Option :some $ decode-map-as value 'String
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {}
-            :args $ [] $ :: 'JsNullish (:: 'Map 'Tag 'Dynamic)
-            :features $ #{} :js-ffi
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn
+            JsNullish $ Map Tag Dynamic
+            -> $ Option String
+            :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.client
           :require
-            respo.core :refer $ render! clear-cache! realize-ssr!
+            respo.core :refer $ render-with! clear-cache! realize-ssr!
             respo.cursor :refer $ update-states
             app.comp.container :refer $ comp-container
             app.schema :as schema
@@ -308,11 +279,11 @@
                 let
                     router $ decode-map-as
                       .unwrap-or (get store :router) {}
-                      :: 'Map 'Tag 'Dynamic
+                      Map Tag Dynamic
                     router-data $ .unwrap-or (get router :data) {}
                     repo $ decode-map-as
                       .unwrap-or (get store :repo) {}
-                      :: 'Map 'Tag 'Dynamic
+                      Map Tag Dynamic
                     logged-in? $ decode-map-as
                       .unwrap-or (get store :logged-in?) false
                       , 'Bool
@@ -323,54 +294,56 @@
                     {} $ :class-name $ str-spaced css/global css/fullscreen css/column
                     comp-navigation (>> states :nav) logged-in? member-count repo
                     match
-                      .unwrap-or (get router :name) nil
+                      .unwrap-or (get router :name) :unknown
                       :home $ comp-home (>> states :home) repo
                         decode-map-as
                           .unwrap-or (get store :logs) ({})
-                          :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                          Map String $ Map Tag Dynamic
                         decode-map-as
                           .unwrap-or (get store :process-status) ({})
-                          :: 'Map 'Dynamic 'String
+                          Map Dynamic String
                         decode-map-as
                           .unwrap-or (get store :footprints) ({})
-                          :: 'Map 'String 'String
+                          Map String String
                       :profile $ comp-profile
                         decode-map-as
                           .unwrap-or (get store :user) ({})
-                          :: 'Map 'Tag 'Dynamic
-                        decode-map-as router-data $ :: 'Map 'String 'String
+                          Map Tag Dynamic
+                        decode-map-as router-data $ Map String String
                       _ $ <> $ str router
-                    comp-status-color $ let
-                        raw $ .unwrap-or (get store :color) nil
-                      if (nil? raw) (Option :none)
-                        Option :some $ decode-map-as raw 'String
-                    when dev? $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
+                    comp-status-color $ match (get store :color)
+                      (:none) (Option :none)
+                      (:some raw)
+                        if (nil? raw) (Option :none)
+                          Option :some $ decode-map-as raw 'String
+                    if dev?
+                      Option :some $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
+                      Option :none
                     comp-messages
                       decode-map-as
                         .unwrap-or
                           get-in store $ [] :session :messages
                           {}
-                        :: 'Map 'String 'Dynamic
+                        Map String Dynamic
                       {}
                       fn (info d!)
-                        hint-fn $ {}
-                          :args $ [] (:: 'Map 'Tag 'Dynamic)
-                            :: 'Fn $ {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :session/remove-message info
-                    if dev? $ comp-reel
-                      decode-map-as
-                        .unwrap-or (get store :reel-length) 0
-                        , 'Number
-                      {}
+                        hint-fn $ Fn (Map Tag Dynamic)
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/DomainOp :session/remove-message info
+                    if dev?
+                      Option :some $ comp-reel
+                        decode-map-as
+                          .unwrap-or (get store :reel-length) 0
+                          , 'Number
+                        {}
+                      Option :none
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'StateKey 'Dynamic)
-              :: 'Option $ :: 'Map 'Tag 'Dynamic
-            :features $ #{} :js-ffi
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic)
+            Option $ Map Tag Dynamic
+            -> respo.schema/Component
+            :generics StateKey
+            :features :js-ffi
           :tests $ [] $ %{} 'TestEntry
             :name |checks-reel-length-only-when-the-development-view-consumes-it
             :code $ quote $ let
@@ -410,19 +383,14 @@
                 {} (:class-name css/center)
                   :style $ {} (:cursor :pointer) (:line-height |32px)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/connect
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/LocalOp :effect/connect
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
                 comp-md "|A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n" $ {}
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> respo.schema/Component) (:features :js-ffi)
           :tests $ [] $ %{} 'TestEntry
             :name |renders-description-with-explicit-default-markdown-options
             :code $ quote $ let
@@ -434,21 +402,20 @@
             div $ {} (:class-name css-status-color)
               :style $ let
                   size 24
-                {} (:width size) (:height size)
-                  :background-color $ match color
-                    (:some value) value
-                    (:none) nil
+                match color
+                  (:some value)
+                    {} (:width size) (:height size) (:background-color value)
+                  (:none)
+                    {} (:width size) (:height size)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Option 'String
+          :schema $ quote $ Fn (Option String) (-> respo.schema/Component)
           :tests $ [] $ %{} 'TestEntry (:name |preserves-present-and-missing-status-colors)
             :code $ quote $ let
                 present $ comp-status-color $ Option :some |rebeccapurple
                 absent $ comp-status-color $ Option :none
                 style-of $ fn (component)
-                  hint-fn $ {}
-                    :args $ [] 'respo.schema/Component
-                    :return $ :: 'List $ :: 'List 'Dynamic
+                  hint-fn $ Fn respo.schema/Component $ ->
+                    List $ Tuple respo.schema/StyleKey respo.schema/CssValue
                   match (:tree component)
                     (:some node)
                       match node
@@ -459,19 +426,19 @@
                 [] ([] :background-color |rebeccapurple) ([] :height 24) ([] :width 24)
                 style-of present
               assert=
-                [] ([] :background-color nil) ([] :height 24) ([] :width 24)
+                [] ([] :height 24) ([] :width 24)
                 style-of absent
             :tags $ #{} :js :migration :unit
         'css-status-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-status-color
             {} $ |$0 $ {} (:position :absolute) (:bottom 60) (:left 8) (:border-radius |50%) (:opacity 0.6) (:pointer-events :none)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-body $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-body
             {} $ :padding "|8px 16px"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -498,15 +465,13 @@
             let
                 matched $ to-calcit-data $ js/String.prototype.match.call current (new js/RegExp "|\\w+-\\d+(?=-)")
               if (nil? matched) | $ let
-                  parts $ decode-map-as matched $ :: 'List 'String
+                  parts $ decode-map-as matched $ List String
                 str
                   .unwrap-or (first parts) |
                   , "| "
           :examples $ []
           :ffi $ {} $ :backend :js
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'comp-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-branch (branch current remote?)
             div
@@ -526,35 +491,29 @@
                       :font-size 13
                     {}
                 :on-click $ fn (e d!)
-                  hint-fn $ {}
-                    :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                      {}
-                        :args $ [] 'Enum
-                        :return 'Unit
-                    :return 'Unit
+                  hint-fn $ Fn respo.schema/RespoEvent
+                    Fn AnyEnum (-> Unit) (:open :reflect)
+                    -> Unit
                   if remote?
-                    d! $ :: :effect/switch-remote-branch $ .unwrap-or
+                    d! $ app.schema/EffectOp :effect/switch-remote-branch $ .unwrap-or
                       last $ .split branch |/
                       , |
-                    d! $ :: :effect/switch-branch branch
-              <> branch nil
+                    d! $ app.schema/EffectOp :effect/switch-branch branch
+              <> branch
               if
                 and (not= current branch)
                   not $ default-branch? branch
                   not remote?
-                a
+                Option :some $ a
                   {} $ :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/remove-branch branch
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/remove-branch branch
                   comp-i :x 14 $ hsl 20 80 80
+                Option :none
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String 'String 'Bool
+          :schema $ quote $ Fn String String Bool (-> respo.schema/Component)
         'comp-commit $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-commit (states current)
             let
@@ -567,50 +526,37 @@
                 {} $ :style $ {} (:display :inline-block)
                 span
                   {} $ :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
                     .show commit-plugin d! $ fn (result)
-                      hint-fn $ {}
-                        :args $ [] 'String
-                        :return 'Unit
+                      hint-fn $ Fn String $ -> Unit
                       if
                         not $ .blank? result
-                        d! $ :: :effect/commit result
+                        d! $ app.schema/EffectOp :effect/commit result
                       , &unit
                     , &unit
                   render-button |Commit false nil
                 .render commit-plugin
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'StateKey 'Dynamic) 'String
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey)
         'comp-footprints $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-footprints (footprints current)
             list->
               {} $ :style $ {} (:max-width 280)
               -> footprints map-entries
                 .filter $ fn (entry)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'MapEntry 'String 'String
-                    :return 'Bool
+                  hint-fn $ Fn (MapEntry String String) (-> Bool)
                   not $ = (:value entry) current
                 .sort-by $ fn (entry)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'MapEntry 'String 'String
-                    :return 'String
-                    :features $ #{} :js-ffi
+                  hint-fn $ Fn (MapEntry String String) (-> String) (:features :js-ffi)
                   decode-map-as
                     .!toLowerCase $ :value entry
                     , 'String
                 .map $ fn (entry)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'MapEntry 'String 'String
-                    :return $ :: 'List 'Dynamic
-                    :features $ #{} :js-ffi
+                  hint-fn $ Fn (MapEntry String String)
+                    -> $ List Dynamic
+                    :features :js-ffi
                   let
                       k $ :key entry
                       v $ :value entry
@@ -619,13 +565,10 @@
                         :class-name $ str-spaced css/row |hoverable css-footprint
                         :style $ {} $ :justify-content :flex-end
                         :on-click $ fn (e d!)
-                          hint-fn $ {}
-                            :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                              {}
-                                :args $ [] 'Enum
-                                :return 'Unit
-                            :return 'Unit
-                          d! $ :: :effect/switch-path k
+                          hint-fn $ Fn respo.schema/RespoEvent
+                            Fn AnyEnum (-> Unit) (:open :reflect)
+                            -> Unit
+                          d! $ app.schema/EffectOp :effect/switch-path k
                         :title k
                         :tab-index 0
                       <> v
@@ -635,17 +578,12 @@
                           {} (:font-size 14)
                             :color $ hsl 0 90 70
                           fn (e d!)
-                            hint-fn $ {}
-                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                                {}
-                                  :args $ [] 'Enum
-                                  :return 'Unit
-                              :return 'Unit
-                            d! $ :: :session/drop-footprint k
+                            hint-fn $ Fn respo.schema/RespoEvent
+                              Fn AnyEnum (-> Unit) (:open :reflect)
+                              -> Unit
+                            d! $ app.schema/DomainOp :session/drop-footprint k
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'String 'String) 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map String String) String (-> respo.schema/Component) (:features :js-ffi)
           :tests $ [] $ %{} 'TestEntry (:name |typed-entries-retain-filter-order-and-path-keys)
             :code $ quote $ let
                 input $ {} (|/current |main) (|/z |Zoo) (|/a |apple) (|/b |Bee) (|/u "|中文")
@@ -657,9 +595,7 @@
                       (:component _) (raise "|expected footprint list element")
                   (:none) (raise "|missing footprint list element")
                 entry-keys $ map children $ fn (child)
-                  hint-fn $ {}
-                    :args $ [] 'respo.schema/ChildPair
-                    :return 'Dynamic
+                  hint-fn $ Fn respo.schema/ChildPair $ -> Dynamic
                   :key child
               assert= ([] |/a |/b |/z |/u) entry-keys
               assert= 5 $ .len input
@@ -672,15 +608,13 @@
                   , 'String
                 branches $ decode-map-as
                   .unwrap-or (get repo :branches) (#{})
-                  :: 'Set 'String
+                  Set String
                 remote-branches $ ->
                   decode-map-as
                     .unwrap-or (get repo :remote-branches) ([])
-                    :: 'List 'String
+                    List String
                   filter $ fn (branch-path)
-                    hint-fn $ {}
-                      :args $ [] 'String
-                      :return 'Bool
+                    hint-fn $ Fn String $ -> Bool
                     let
                         short-name $ .unwrap-or
                           last $ .split branch-path |/
@@ -690,27 +624,22 @@
                         not= short-name |HEAD
                   sort &compare
                   map $ fn (branch)
-                    hint-fn $ {}
-                      :args $ [] 'String
-                      :return 'Enum
+                    hint-fn $ Fn String (-> AnyEnum) (:open :reflect)
                     :: :item branch branch
                 menu-branch $ use-modal-menu (>> states :remote-branches)
                   {} (:title |Demo)
                     :style $ {} $ :width 300
                     :items remote-branches
                     :on-result $ fn (result d!)
-                      hint-fn $ {}
-                        :args $ [] 'Dynamic $ :: 'Fn
-                          {}
-                            :args $ [] 'Enum
-                            :return 'Unit
-                        :return 'Unit
+                      hint-fn $ Fn Dynamic
+                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        -> Unit
                       when-not (nil? result)
                         match result $
                           :item raw-value _label
                           let
                               value $ decode-map-as raw-value 'String
-                            d! $ :: :effect/switch-remote-branch $ .join-string
+                            d! $ app.schema/EffectOp :effect/switch-remote-branch $ .join-string
                               rest $ .split value |/
                               , |/
                       , &unit
@@ -729,21 +658,16 @@
                       list-> ({})
                         -> branches .to-list (sort &compare)
                           map $ fn (branch)
-                            hint-fn $ {}
-                              :args $ [] 'String
-                              :return $ :: 'List 'Dynamic
+                            hint-fn $ Fn String $ -> (List Dynamic)
                             [] branch $ comp-branch branch current-branch false
                       =< nil 4
                       div
                         {}
                           :style $ {} $ :padding-left 4
                           :on-click $ fn (e d!)
-                            hint-fn $ {}
-                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                                {}
-                                  :args $ [] 'Enum
-                                  :return 'Unit
-                              :return 'Unit
+                            hint-fn $ Fn respo.schema/RespoEvent
+                              Fn AnyEnum (-> Unit) (:open :reflect)
+                              -> Unit
                             .show menu-branch d!
                             , &unit
                         <> "|Remote branches" css-remote
@@ -758,57 +682,52 @@
                 comp-logs logs status
                 .render menu-branch
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'StateKey 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
-              :: 'Map 'Dynamic 'String
-              :: 'Map 'String 'String
-            :features $ #{} :js-ffi
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic)
+            Map String $ Map Tag Dynamic
+            Map Dynamic String
+            Map String String
+            -> respo.schema/Component
+            :generics StateKey
+            :features :js-ffi
         'comp-log-chunk $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-log-chunk (log)
             let
                 text $ decode-map-as
                   .unwrap-or (get log :text) |
                   , 'String
-                kind $ .unwrap-or (get log :kind) nil
+                kind $ .unwrap-or (get log :kind) :unknown
                 urls $ let
                     matched $ to-calcit-data $ js/String.prototype.match.call text (new js/RegExp |https?://\S+)
                   decode-map-as
                     if (nil? matched) ([]) matched
-                    :: 'List 'String
+                    List String
               div
                 {} $ :style $ {} (:position :relative)
                 pre $ {} (:class-name css-log) (:inner-text text)
                 if-not (empty? urls)
-                  list-> ({})
+                  Option :some $ list-> ({})
                     -> urls $ map $ fn (url)
-                      hint-fn $ {}
-                        :args $ [] 'String
-                        :return $ :: 'List 'Dynamic
+                      hint-fn $ Fn String $ -> (List Dynamic)
                       [] url $ a $ {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
                         :style $ {} (:line-height |16px) (:height |16px)
+                  Option :none
                 if (= :command kind)
-                  div
+                  Option :some $ div
                     {} $ :style $ {} (:position :absolute) (:top 12) (:right 12)
                     comp-icon :copy
                       {} (:font-size 16)
                         :color $ hsl 200 80 64
                         :cursor :pointer
                       fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
                         copy! text
                         , &unit
+                  Option :none
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) (-> respo.schema/Component) (:features :js-ffi)
         'comp-logs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-logs (logs status)
             div
@@ -820,28 +739,23 @@
                 =< 16 nil
                 button $ {} (:class-name css-button) (:inner-text |Status)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/status
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/status
                 =< 16 nil
                 if
                   not $ empty? logs
-                  button $ {} (:class-name css-button) (:inner-text |Clear)
+                  Option :some $ button $ {} (:class-name css-button) (:inner-text |Clear)
                     :on-click $ fn (e d!)
-                      hint-fn $ {}
-                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                          {}
-                            :args $ [] 'Enum
-                            :return 'Unit
-                        :return 'Unit
-                      d! $ :: :process/clear-logs
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        -> Unit
+                      d! $ app.schema/DomainOp :process/clear-logs
+                  Option :none
               if
                 not $ empty? status
-                div
+                Option :some $ div
                   {} (:class-name css/row-middle)
                     :style $ {} $ :padding 16
                   span
@@ -857,9 +771,7 @@
                   list->
                     {} $ :class-name css/expand
                     map-list-kv status $ fn (pid command)
-                      hint-fn $ {}
-                        :args $ [] 'Dynamic 'String
-                        :return $ :: 'List 'Dynamic
+                      hint-fn $ Fn Dynamic String $ -> (List Dynamic)
                       [] pid $ div
                         {} $ :class-name css-command
                         <> (str pid)
@@ -871,25 +783,23 @@
                             :cursor :pointer
                             :margin-top 4
                           fn (e d!)
-                            hint-fn $ {}
-                              :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                                {}
-                                  :args $ [] 'Enum
-                                  :return 'Unit
-                              :return 'Unit
-                            d! $ :: :effect/kill-process pid
+                            hint-fn $ Fn respo.schema/RespoEvent
+                              Fn AnyEnum (-> Unit) (:open :reflect)
+                              -> Unit
+                            d! $ app.schema/EffectOp :effect/kill-process $ decode-map-as pid 'Number
                         =< 12 nil
                         div
                           {} $ :class-name css/expand
                           <> command
+                Option :none
               list->
                 {} (:class-name css/flex)
                   :style $ {} $ :overflow :auto
                 -> logs map-entries
                   .sort-by $ fn (entry)
-                    hint-fn $ {}
-                      :args $ [] $ :: 'MapEntry 'String (:: 'Map 'Tag 'Dynamic)
-                      :return 'Number
+                    hint-fn $ Fn
+                      MapEntry String $ Map Tag Dynamic
+                      -> Number
                     let
                         item $ :value entry
                         time $ decode-map-as
@@ -897,19 +807,19 @@
                           , 'Number
                       negate time
                   .map $ fn (entry)
-                    hint-fn $ {}
-                      :args $ [] $ :: 'MapEntry 'String (:: 'Map 'Tag 'Dynamic)
-                      :return $ :: 'List 'Dynamic
+                    hint-fn $ Fn
+                      MapEntry String $ Map Tag Dynamic
+                      -> $ List Dynamic
                     let
                         id $ :key entry
                         log $ :value entry
                       [] id $ comp-log-chunk log
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ []
-              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
-              :: 'Map 'Dynamic 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            Map String $ Map Tag Dynamic
+            Map Dynamic String
+            -> respo.schema/Component
+            :features :js-ffi
           :tests $ [] $ %{} 'TestEntry
             :name |typed-log-entries-retain-newest-first-and-numeric-status-key
             :code $ quote $ let
@@ -918,9 +828,8 @@
                   |new $ {} (:text "|新日志") (:time 2) (:kind :stdout)
                 component $ comp-logs logs $ {} (7 "|git status")
                 children-of $ fn (maybe-node)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'Option 'respo.schema/RenderNode
-                    :return $ :: 'List 'respo.schema/ChildPair
+                  hint-fn $ Fn (Option respo.schema/RenderNode)
+                    -> $ List respo.schema/ChildPair
                   match maybe-node
                     (:some node)
                       match node
@@ -931,9 +840,7 @@
                 log-list $ .unwrap $ last root-children
                 items $ children-of $ :node log-list
                 entry-keys $ map items $ fn (child)
-                  hint-fn $ {}
-                    :args $ [] 'respo.schema/ChildPair
-                    :return 'Dynamic
+                  hint-fn $ Fn respo.schema/ChildPair $ -> Dynamic
                   :key child
               assert= ([] |new |old) entry-keys
               assert= 2 $ .len logs
@@ -945,35 +852,26 @@
                   {} (:initial |) (:text "|Branch name")
                     :style-trigger $ {} (:margin "|0 8px") (:display :inline-block)
                     :validator $ fn (x)
-                      hint-fn $ {}
-                        :args $ [] 'String
-                        :return 'String
+                      hint-fn $ Fn String $ -> String
                       if (.includes? x "| ") "|text with blanks is not a branch name!" |
               div
                 {} $ :style $ {} (:display :inline-block)
                 span
                   {} $ :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
                     .show branch-plugin d! $ fn (result)
-                      hint-fn $ {}
-                        :args $ [] 'String
-                        :return 'Unit
+                      hint-fn $ Fn String $ -> Unit
                       if
                         not $ .blank? result
-                        d! $ :: :effect/new-branch result
+                        d! $ app.schema/EffectOp :effect/new-branch result
                       , &unit
                     , &unit
                   render-button "|New Branch" false nil
                   .render branch-plugin
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'StateKey 'Dynamic
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey)
           :tests $ [] $ %{} 'TestEntry (:name |builds-branch-controls-with-generic-state-keys)
             :code $ quote $ let
                 baseline $ comp-new-branch $ {}
@@ -994,7 +892,7 @@
                 Option :some $ [] :root |row 7
                 get mixed :cursor
               assert=
-                Option :some $ {} $ :data |number-key
+                Result :ok $ {} $ :data |number-key
                 get-in mixed $ [] :new-branch 7
             :tags $ #{} :js :migration :unit
         'comp-operations $ %{} 'CodeEntry (:doc |)
@@ -1010,13 +908,10 @@
                     div
                       {} $ :class-name css/row
                       render-button |Pull false $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/pull-current
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/pull-current
                     comp-title |Others
                     div
                       {} $ :class-name css/row
@@ -1024,37 +919,25 @@
                   div ({}) (comp-title |Basic)
                     div ({})
                       render-button |Push false $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/push-current
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/push-current
                       render-button |Pull false $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/pull-current
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/pull-current
                       render-button |Finish false $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/finish-branch
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/finish-branch
                       render-button |RmRemote false $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/rm-remote
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/rm-remote
                     comp-title |Other
                     div ({})
                       comp-new-branch $ >> states :branch
@@ -1062,44 +945,30 @@
                     comp-title |Forced
                     div ({})
                       render-button "|Rebase main" true $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/rebase-master
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/rebase-master
                       render-button "|Force push" true $ fn (e d!)
-                        hint-fn $ {}
-                          :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                            {}
-                              :args $ [] 'Enum
-                              :return 'Unit
-                          :return 'Unit
-                        d! $ :: :effect/force-push
+                        hint-fn $ Fn respo.schema/RespoEvent
+                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          -> Unit
+                        d! $ app.schema/EffectOp :effect/force-push
                 =< nil 24
                 comp-title |Editor
                 div ({})
                   render-button "|code ./" false $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/edit-with |code
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/edit-with |code
                   render-button "|subl ./" false $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/edit-with |subl
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/edit-with |subl
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'StateKey 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quick-ops (states)
             let
@@ -1114,89 +983,67 @@
                   :style $ {} (:cursor :pointer) (:font-family ui/font-fancy)
                   :inner-text |Branches
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/read-branches
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/read-branches
                 =< 24 nil
                 button $ {} (:class-name css-button) (:inner-text |Fetch)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/fetch-origin
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/fetch-origin
                 =< 16 nil
                 button $ {} (:inner-text |Stash) (:class-name css-button)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/stash
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/stash
                 =< 16 nil
                 button $ {} (:inner-text "|Stash Apply") (:class-name css-button)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/stash-apply
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/stash-apply
                 =< 16 nil
                 button $ {} (:class-name css-button) (:inner-text |Tag)
                   :on-click $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                        {}
-                          :args $ [] 'Enum
-                          :return 'Unit
-                      :return 'Unit
-                    d! $ :: :effect/show-version
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      -> Unit
+                    d! $ app.schema/EffectOp :effect/show-version
                     .show tag-plugin d! $ fn (result)
-                      hint-fn $ {}
-                        :args $ [] 'String
-                        :return 'Unit
+                      hint-fn $ Fn String $ -> Unit
                       if-not (.blank? result)
                         let
                             tag $ .trim result
                           when-not (.blank? tag)
-                            d! $ :: :effect/add-tag tag
+                            d! $ app.schema/EffectOp :effect/add-tag tag
                       , &unit
                     , &unit
                 .render tag-plugin
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'StateKey 'Dynamic
-            :features $ #{} :js-ffi
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :js-ffi)
         'comp-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-thin-divider ()
             div $ {} $ :class-name css-thin-divider
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ []
+          :schema $ quote $ Fn (-> respo.schema/Element)
         'comp-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-title (title)
             div
               {} $ :class-name css-section-title
               <> title
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> respo.schema/Component)
         'css-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-branch
             {} $ |$0 $ {} (:cursor :pointer) (:line-height |32px) (:padding "|0 8px") (:min-width 200) (:font-family ui/font-code)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-button
             {}
@@ -1209,13 +1056,13 @@
                 str "|1px 1px 4px " $ hsl 0 0 0 $ Option :some 0.2
               |&:active $ {} (:transform "|scale(1.06)") (:transition-duration |0ms)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-command
             {} $ |$0 $ merge ui/row
               {} (:font-family ui/font-code) (:font-size 13) (:line-height |20px)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-footprint $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-footprint
             {}
@@ -1226,7 +1073,7 @@
               |&:hover $ {} $ :color :black
               |&:active $ {} $ :color :black
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-log
             {} $ |$0 $ {} (:line-height |20px) (:font-size 13)
@@ -1239,7 +1086,7 @@
               :white-space :pre-line
               :margin-bottom 4
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-remote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-remote
             {}
@@ -1249,18 +1096,18 @@
               |&:hover $ {} $ :color
                 hsl 0 0 60 $ Option :some 0.8
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-section-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-section-title
             {} $ |$0 $ {} (:font-family ui/font-fancy) (:margin "|8px 0 4px 0")
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-thin-divider
             {} $ |$0 $ {} (:height |80%) (:width 1) (:margin "|auto 12px")
               :background-color $ hsl 0 0 92
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'render-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-button (text danger? on-click)
             button $ {} (:class-name css-button)
@@ -1270,12 +1117,7 @@
               :inner-text text
               :on-click on-click
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] 'String 'Bool $ :: 'JsNullish
-              :: 'Fn $ {} (:return 'Unit)
-                :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                  {} (:return 'Unit)
-                    :args $ [] 'Enum
+          :schema $ quote $ Fn String Bool (JsNullish respo.schema/EventHandler) (-> respo.schema/Element)
         'style-close-icon $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-close-icon
             {}
@@ -1285,7 +1127,7 @@
               (str |. css-footprint "|:hover &")
                 {} $ :opacity 0.5
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.home
           :require
@@ -1326,11 +1168,12 @@
                   a $ {} (:class-name css-nav-title) (:inner-text upstream) (:href git-url) (:target |_blank)
                   =< 16 nil
                   if (.includes? git-url |nevint)
-                    a $ {} (:inner-text "|Fx⤴")
+                    Option :some $ a $ {} (:inner-text "|Fx⤴")
                       :style $ {} $ :font-size 13
                       :class-name $ str-spaced css/font-fancy css-nav-title
                       :target |_blank
                       :href $ str |https://fx.nioint.com/?jumpGitRepo= git-url
+                    Option :none
                 ; div
                   {}
                     :style $ {} $ :cursor |pointer
@@ -1340,9 +1183,7 @@
                   =< 8 nil
                   <> count-members
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'StateKey 'Dynamic) 'Bool 'Number $ :: 'Map 'Tag 'Dynamic
-            :generics $ [] 'StateKey
+          :schema $ quote $ Fn (Map StateKey Dynamic) Bool Number (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
           :tests $ [] $ %{} 'TestEntry
             :name |accepts-state-maps-without-assuming-tag-only-keys
             :code $ quote $ let
@@ -1374,7 +1215,7 @@
               :font-family ui/font-code
               :font-size 14
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-nav-title $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-nav-title
             {} $ |$0 $ {}
@@ -1383,7 +1224,7 @@
               :font-family ui/font-fancy
               :text-decoration :none
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'css-navigation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-navigation
             {} $ |$0 $ merge ui/row-center
@@ -1391,13 +1232,12 @@
                 :background-color $ hsl 0 0 98
                 :border-bottom $ str "|1px solid " $ hsl 0 0 50 (Option :some 0.1)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-git-at-url (address)
             -> address (.replace |git@ |https://) (.replace |.com: |.com/)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.navigation
           :require
@@ -1429,9 +1269,7 @@
                 list->
                   {} $ :class-name css/row
                   map-list-kv members $ fn (k username)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return $ :: 'List 'Dynamic
+                    hint-fn $ Fn String String $ -> (List Dynamic)
                     [] k $ div
                       {} $ :style $ {} (:padding "|0 8px")
                         :border $ str "|1px solid " $ hsl 0 0 80
@@ -1443,13 +1281,10 @@
                 button
                   {} (:class-name css/button)
                     :on-click $ fn (_e _d!)
-                      hint-fn $ {}
-                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                          {}
-                            :args $ [] 'Enum
-                            :return 'Unit
-                        :return 'Unit
-                        :features $ #{} :js-ffi
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        -> Unit
+                        :features :js-ffi
                       browser/location-replace! $ str
                           browser/location-host
                           , :origin
@@ -1460,22 +1295,17 @@
                   {} (:class-name css/button)
                     :style $ {} (:color :red) (:border-color :red)
                     :on-click $ fn (_e dispatch!)
-                      hint-fn $ {}
-                        :args $ [] 'respo.schema/RespoEvent $ :: 'Fn
-                          {}
-                            :args $ [] 'Enum
-                            :return 'Unit
-                        :return 'Unit
-                        :features $ #{} :js-ffi
-                      dispatch! $ :: :user/log-out
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        -> Unit
+                        :features :js-ffi
+                      dispatch! $ app.schema/DomainOp :user/log-out
                       (browser/window-local-storage) .remove-item! $ :storage-key config/site
                       , &unit
                   <> "|Log out"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'String 'String)
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map String String) (-> respo.schema/Component) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.profile
           :require
@@ -1491,19 +1321,19 @@
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'Site $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Site (:port 'Number) (:title 'String) (:ws-host 'String) (:icon 'String) (:dev-ui 'String) (:release-ui 'String) (:cdn-url 'String) (:theme 'String) (:storage-key 'String) (:storage-file 'String)
+          :code $ quote $ defstruct Site (:port Number) (:title String) (:ws-host String) (:icon String) (:dev-ui String) (:release-ui String) (:cdn-url String) (:theme String) (:storage-key String) (:storage-file String)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             Site :port 8009 :title "|Rebase Hell" :ws-host |localhost :icon |https://cdn.tiye.me/logo/rebase-hell.png :dev-ui |http://localhost:8100/main.css :release-ui |https://cdn.tiye.me/favored-fonts/main.css :cdn-url |https://cdn.tiye.me/rebase-hell/ :theme |#eeeeff :storage-key |rebase-hell-storage :storage-file |storage.edn
           :examples $ []
-          :schema $ :: 'app.config/Site
+          :schema $ quote app.config/Site
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.env $ %{} 'FileEntry
@@ -1517,7 +1347,7 @@
               , :switch :server
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Tag
+          :schema $ quote Tag
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.env
           :require $ js-ffi.node :as node
@@ -1525,55 +1355,36 @@
       :defs $ {}
         'CommandProcessHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait CommandProcessHost
-            :pid $ :: 'JsNullish 'Number
+            :pid $ JsNullish Number
             :stdout 'app.manager/CommandStreamHost
             :stderr 'app.manager/CommandStreamHost
-            .on-exit! $ :: 'Fn $ {}
-              :args $ [] 'app.manager/CommandProcessHost 'String $ :: 'Fn
-                {}
-                  :args $ [] (:: 'JsNullish 'Number) (:: 'JsNullish 'String)
-                  :return 'Unit
-              :return 'app.manager/CommandProcessHost
-            .on-error! $ :: 'Fn $ {}
-              :args $ [] 'app.manager/CommandProcessHost 'String $ :: 'Fn
-                {}
-                  :args $ [] 'JsObject
-                  :return 'Unit
-              :return 'app.manager/CommandProcessHost
+            .on-exit! $ Fn app.manager/CommandProcessHost String
+              Fn (JsNullish Number) (JsNullish String) (-> Unit)
+              -> app.manager/CommandProcessHost
+            .on-error! $ Fn app.manager/CommandProcessHost String
+              Fn JsObject $ -> Unit
+              -> app.manager/CommandProcessHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} (:on-error! |on) (:on-exit! |on)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'CommandStreamHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait CommandStreamHost
-            .on-data! $ :: 'Fn $ {}
-              :args $ [] 'app.manager/CommandStreamHost 'String $ :: 'Fn
-                {}
-                  :args $ [] 'String
-                  :return 'Unit
-              :return 'app.manager/CommandStreamHost
-            .set-encoding! $ :: 'Fn $ {}
-              :args $ [] 'app.manager/CommandStreamHost 'String
-              :return 'app.manager/CommandStreamHost
+            .on-data! $ Fn app.manager/CommandStreamHost String
+              Fn String $ -> Unit
+              -> app.manager/CommandStreamHost
+            .set-encoding! $ Fn app.manager/CommandStreamHost String $ -> app.manager/CommandStreamHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} $ :on-data! |on
-          :schema $ :: 'Trait
-        'PackageJsonHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait PackageJsonHost (:version 'String)
-          :examples $ []
-          :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
-            :writable $ #{} :version
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'VersionPatternHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait VersionPatternHost
-            .test? $ :: 'Fn $ {}
-              :args $ [] 'app.manager/VersionPatternHost 'String
-              :return 'Bool
+            .test? $ Fn app.manager/VersionPatternHost String $ -> Bool
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} $ :test? |test
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'add-tag! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn add-tag! (tag-version upstream host-kind main-branch d!)
             let
@@ -1599,20 +1410,18 @@
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String 'String 'Tag 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String String Tag String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
+            :features :js-ffi
         'apply-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn apply-stash! (d!)
             run-command! "|git stash apply" d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn command-output! (command)
             js-cast
@@ -1637,27 +1446,24 @@
               , 'js-ffi.shared/PromiseHost
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'js-ffi.shared/PromiseHost)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> js-ffi.shared/PromiseHost) (:features :js-ffi)
         'commit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn commit! (current message d!)
             cond
                 .starts-with? current |release-
-                d! $ :: :session/add-message $ {} (:text "|Can't commit to release branch!")
+                d! $ app.schema/DomainOp :session/add-message $ {} (:text "|Can't commit to release branch!")
               (default-branch? current)
-                d! $ :: :session/add-message $ {} (:text "|Can't commit to main branch!")
+                d! $ app.schema/DomainOp :session/add-message $ {} (:text "|Can't commit to main branch!")
               true $ run-command!
                 str "|git add . && \\\ngit commit -m " $ js/JSON.stringify message
                 , d! $ {}
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
+            :features :js-ffi
         'current-version-marker? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn current-version-marker? (text)
             let
@@ -1665,75 +1471,59 @@
               pattern .test? text
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'display-status! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn display-status! (d!)
             run-command! "|git status" d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'edit-with $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn edit-with (command d!)
             run-command! (str command "| ./") d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'fetch-origin! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-origin! (d!)
             run-command! "|git fetch origin --prune" d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'finish-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn finish-current! (branch-name main-branch d!)
             run-command! (str "|git fetch --prune && git checkout " main-branch "| && git merge origin/" main-branch "| && git branch -d " branch-name) d! $ {} $ :on-finish
               fn ()
-                hint-fn $ {}
-                  :args $ []
-                  :return 'Unit
-                d! $ :: :effect/read-branches
+                hint-fn $ Fn $ -> Unit
+                d! $ app.schema/EffectOp :effect/read-branches
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'force-push! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn force-push! (branch d!)
             run-command! (str "|git push origin " branch "| -f") d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'get-upstream! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get-upstream! ()
             let
                 remote-url $ .trim $ contract/expect-string "|execSync upstream output"
                   cp/execSync "|git ls-remote --get-url origin" $ js-object $ :encoding |utf8
-                origin $ grab-upstream remote-url
-              {}
-                :address $ :address origin
-                :upstream $ :upstream origin
-                :host-kind $ :host-kind origin
+              grab-upstream remote-url
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {}
-            :args $ []
-            :features $ #{} :js-ffi
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (-> app.schema/Origin) (:features :js-ffi)
         'kill-process! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn kill-process! (pid)
             println $ colorize :red $ str "|kill " pid
@@ -1741,9 +1531,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (-> Unit) (:features :js-ffi)
         'listen-command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-command-output! (stream callback)
             if (js-present? stream)
@@ -1755,48 +1543,42 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] (:: 'JsNullish 'app.manager/CommandStreamHost)
-              :: 'Fn $ {} (:return 'Unit)
-                :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (JsNullish app.manager/CommandStreamHost)
+            Fn String $ -> Unit
+            -> Unit
+            :features :js-ffi
         'new-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn new-branch! (branch-name d!)
             run-command! (str "|git checkout -b " branch-name) d! $ {} $ :on-finish
               fn ()
-                hint-fn $ {}
-                  :args $ []
-                  :return 'Unit
-                d! $ :: :effect/read-branches
+                hint-fn $ Fn $ -> Unit
+                d! $ app.schema/EffectOp :effect/read-branches
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'pull-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pull-current! (d!)
             run-command! "|git pull" d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'push-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn push-current! (current d!)
             cond
                 .starts-with? current |release-
-                d! $ :: :session/add-message $ {} (:text "|Can't push to release branch!")
+                d! $ app.schema/DomainOp :session/add-message $ {} (:text "|Can't push to release branch!")
               (default-branch? current)
-                d! $ :: :session/add-message $ {} (:text "|Can't push to main branch!")
+                d! $ app.schema/DomainOp :session/add-message $ {} (:text "|Can't push to main branch!")
               true $ run-command! (str "|git push origin " current) d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'read-branches! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-branches! (d!)
             let
@@ -1808,15 +1590,15 @@
                     decode-map-as (js-await ch-branches) 'String
                   current $ .trim $ decode-map-as (js-await ch-current) 'String
                   remote-branches $ read-items $ decode-map-as (js-await ch-remote) 'String
-                d! $ :: :repo/set-branches $ {} (:branches branches) (:current current) (:remote-branches remote-branches)
+                d! $ app.schema/DomainOp :repo/set-branches $ {} (:branches branches) (:current current) (:remote-branches remote-branches)
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:async true) (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
+            :features :js-ffi
+            :async
         'read-package-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-package-version! ()
             contract/expect-string |package.json.version $ contract/object-field |package.json
@@ -1824,44 +1606,37 @@
               , |version
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> String) (:features :js-ffi)
         'rebase-master! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rebase-master! (main-branch d!)
             run-command! (str "|git rebase origin/" main-branch) d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'remove-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-branch! (branch d!)
             run-command! (str "|git branch -d " branch) d! $ {} $ :on-finish
               fn ()
-                hint-fn $ {}
-                  :args $ []
-                  :return 'Unit
-                d! $ :: :effect/read-branches
+                hint-fn $ Fn $ -> Unit
+                d! $ app.schema/EffectOp :effect/read-branches
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'remove-remote! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-remote! (current d!)
             cond
                 default-branch? current
-                d! $ :: :session/add-message $ {} (:text "|Can't remove a main branch!")
+                d! $ app.schema/DomainOp :session/add-message $ {} (:text "|Can't remove a main branch!")
               true $ run-command! (str "|git push origin :" current) d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'run-command! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-command! (command d! options)
             let
@@ -1870,75 +1645,63 @@
                   , 'app.manager/CommandProcessHost
                 stdout $ js-get proc :stdout
                 stderr $ js-get proc :stderr
-              d! $ :: :process/start $ {}
+              d! $ app.schema/DomainOp :process/start $ {}
                 :pid $ js-get proc :pid
                 :command command
               listen-command-output! stdout $ fn (chunk)
-                hint-fn $ {}
-                  :args $ [] 'String
-                  :return 'Unit
-                d! $ :: :process/log $ {}
+                hint-fn $ Fn String $ -> Unit
+                d! $ app.schema/DomainOp :process/log $ {}
                   :id $ nanoid
                   :time $ js/Date.now
                   :text chunk
                   :kind :log
                 , &unit
               listen-command-output! stderr $ fn (chunk)
-                hint-fn $ {}
-                  :args $ [] 'String
-                  :return 'Unit
-                d! $ :: :process/log $ {}
+                hint-fn $ Fn String $ -> Unit
+                d! $ app.schema/DomainOp :process/log $ {}
                   :id $ nanoid
                   :time $ js/Date.now
                   :text chunk
                   :kind :error
                 , &unit
               proc .on-exit! |exit $ fn (event _)
-                hint-fn $ {}
-                  :args $ [] (:: 'JsNullish 'Number) (:: 'JsNullish 'String)
-                  :return 'Unit
-                d! $ :: :process/finish $ js-get proc :pid
+                hint-fn $ Fn (JsNullish Number) (JsNullish String) (-> Unit)
+                d! $ app.schema/DomainOp :process/finish $ .map
+                  js-nullish->option $ js-get proc :pid
+                  fn (value) (decode-map-as value 'Number)
                 match (get options :on-finish)
                   (:some on-finish) (on-finish)
                   (:none) &unit
                 , &unit
               proc .on-error! |error $ fn (error)
-                hint-fn $ {}
-                  :args $ [] 'JsObject
-                  :return 'Unit
-                  :features $ #{} :js-ffi
+                hint-fn $ Fn JsObject (-> Unit) (:features :js-ffi)
                 js/console.error error
                 , &unit
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-              :: 'Fn $ {} (:return 'Unit)
-                :args $ [] 'Enum
-              :: 'Map 'Tag $ :: 'Fn $ {} (:return 'Unit)
-                :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            Map Tag $ Fn $ -> Unit
+            -> Unit
+            :features :js-ffi
         'run-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-stash! (d!)
             run-command! "|git stash" d! $ {}
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'show-version $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn show-version (d!)
             let
                 files $ decode-map-as
                   to-calcit-data $ fs/readdirSync |.
-                  :: 'List 'String
+                  List String
                 maybe-nimble $ first $ filter files
                   fn (x)
-                    hint-fn $ {}
-                      :args $ [] 'String
-                      :return 'Bool
+                    hint-fn $ Fn String $ -> Bool
                     .ends-with? x |.nimble
               cond
                   includes? files |package.json
@@ -1954,38 +1717,34 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
+            :features :js-ffi
         'switch-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-branch! (current branch-name d!)
             when (not= current branch-name)
               run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
                 fn ()
-                  hint-fn $ {}
-                    :args $ []
-                    :return 'Unit
-                  d! $ :: :repo/set-current branch-name
+                  hint-fn $ Fn $ -> Unit
+                  d! $ app.schema/DomainOp :repo/set-current branch-name
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'switch-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-path (new-path dispatch! sid) (js/process.chdir new-path)
             let
                 upstream $ get-upstream!
-              dispatch! (:: :repo/set-upstream upstream) |system
-              dispatch! (:: :effect/read-branches) |system
+              dispatch! (app.schema/DomainOp :repo/set-upstream upstream) |system
+              dispatch! (app.schema/EffectOp :effect/read-branches) |system
               dispatch!
-                :: :session/track-footprint new-path $ .unwrap-or (get upstream :upstream) nil
+                app.schema/DomainOp :session/track-footprint new-path $ :upstream upstream
                 , |system
               println "|Switching to" new-path
               dispatch!
-                :: :process/log $ {}
+                app.schema/DomainOp :process/log $ {}
                   :id $ nanoid
                   :time $ js/Date.now
                   :text $ str "|Switched to: " new-path
@@ -1994,40 +1753,30 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-              :: 'Fn $ {} (:return 'Unit)
-                :args $ [] 'Enum 'String
-              , 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp String $ -> Unit
+            , String (-> Unit) (:features :js-ffi)
         'switch-remote-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-remote-branch! (branch-name d!)
             run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
               fn ()
-                hint-fn $ {}
-                  :args $ []
-                  :return 'Unit
-                d! $ :: :effect/read-branches
+                hint-fn $ Fn $ -> Unit
+                d! $ app.schema/EffectOp :effect/read-branches
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Enum
+          :schema $ quote $ Fn String
+            Fn app.schema/ServerOp $ -> Unit
+            -> Unit
         'write-package-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn write-package-version! (version)
             let
-                pkg $ unsafe-coerce
-                  contract/expect-object |package.json $ js/JSON.parse $ fs/readFileSync |package.json |utf8
-                  , PackageJsonHost
-              js-set pkg :version version
+                pkg $ contract/expect-object |package.json $ js/JSON.parse (fs/readFileSync |package.json |utf8)
+              js/Object.assign pkg $ js-object $ :version version
               fs/writeFileSync |package.json $ str (js/JSON.stringify pkg nil 2) &newline
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.manager
           :require (|child_process :as cp) (|fs :as fs)
@@ -2043,25 +1792,17 @@
       :defs $ {}
         'ChalkHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait ChalkHost
-            .red $ :: 'Fn $ {}
-              :args $ [] 'ChalkHost 'String
-              :return 'String
-            .blue $ :: 'Fn $ {}
-              :args $ [] 'ChalkHost 'String
-              :return 'String
-            .yellow $ :: 'Fn $ {}
-              :args $ [] 'ChalkHost 'String
-              :return 'String
-            .gray $ :: 'Fn $ {}
-              :args $ [] 'ChalkHost 'String
-              :return 'String
+            .red $ Fn ChalkHost String $ -> String
+            .blue $ Fn ChalkHost String $ -> String
+            .yellow $ Fn ChalkHost String $ -> String
+            .gray $ Fn ChalkHost String $ -> String
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'colorize $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn colorize (color text)
             let
-                host $ unsafe-coerce chalk ChalkHost
+                host $ js-cast chalk 'app.node.chalk/ChalkHost
               match color
                 :red $ host .red text
                 :blue $ host .blue text
@@ -2070,9 +1811,7 @@
                 _ $ raise "|Unsupported terminal color"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Tag 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Tag String (-> String) (:features :js-ffi)
           :tests $ []
             %{} 'TestEntry
               :name |preserves-string-and-unicode-for-supported-colors
@@ -2096,10 +1835,52 @@
           :require $ |chalk :default chalk
     'app.schema $ %{} 'FileEntry
       :defs $ {}
-        'Origin $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Origin (:address 'String) (:upstream 'String) (:host-kind 'Tag)
+        'DomainOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum DomainOp (:session/connect) (:session/disconnect)
+            :session/remove-message $ Map Tag Dynamic
+            :session/add-message $ Map Tag Dynamic
+            :user/log-in $ List String
+            :user/sign-up $ List String
+            :user/log-out
+            :router/change $ Map Tag Dynamic
+            :repo/set-branches $ Map Tag Dynamic
+            :repo/set-current String
+            :repo/set-upstream app.schema/Origin
+            :process/start $ Map Tag Dynamic
+            :process/finish $ Option Number
+            :process/log $ Map Tag Dynamic
+            :process/clear-logs
+            :session/track-footprint String String
+            :session/drop-footprint String
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote EnumDef
+        'EffectOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum EffectOp (:effect/persist) (:effect/read-branches) (:effect/switch-branch String) (:effect/switch-remote-branch String) (:effect/switch-path String) (:effect/new-branch String) (:effect/fetch-origin) (:effect/pull-current) (:effect/push-current) (:effect/finish-branch) (:effect/rm-remote) (:effect/rebase-master) (:effect/status) (:effect/stash) (:effect/stash-apply) (:effect/force-push) (:effect/remove-branch String) (:effect/commit String) (:effect/add-tag String) (:effect/show-version) (:effect/kill-process Number) (:effect/edit-with String) (:reel/reset) (:reel/merge)
+          :examples $ []
+          :schema $ quote EnumDef
+        'LocalOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum LocalOp
+            :states (List respo.schema/CoordKey) Dynamic
+            :effect/connect
+          :examples $ []
+          :schema $ quote EnumDef
+        'Origin $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Origin (:address String) (:upstream String) (:host-kind Tag)
+          :examples $ []
+          :schema $ quote StructDef
+        'ServerOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ServerOp DomainOp EffectOp
+          :examples $ []
+          :schema $ quote UnionDef
+        'UiOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion UiOp LocalOp DomainOp EffectOp
+          :examples $ []
+          :schema $ quote UnionDef
+        'ViewDispatch $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def ViewDispatch
+            :: :states ([]) nil
+          :examples $ []
+          :schema $ quote AnyEnum
         'database $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def database
             {}
@@ -2113,36 +1894,186 @@
               :process-status $ {}
               :footprints $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
+        'decode-domain-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-domain-op (raw)
+            if (enum? raw)
+              match raw
+                (:session/connect)
+                  Option :some $ DomainOp :session/connect
+                (:session/disconnect)
+                  Option :some $ DomainOp :session/disconnect
+                (:session/remove-message data)
+                  Option :some $ DomainOp :session/remove-message $ decode-map-as data (Map Tag Dynamic)
+                (:session/add-message data)
+                  Option :some $ DomainOp :session/add-message $ decode-map-as data (Map Tag Dynamic)
+                (:user/log-in data)
+                  Option :some $ DomainOp :user/log-in $ decode-map-as data (List String)
+                (:user/sign-up data)
+                  Option :some $ DomainOp :user/sign-up $ decode-map-as data (List String)
+                (:user/log-out)
+                  Option :some $ DomainOp :user/log-out
+                (:router/change data)
+                  Option :some $ DomainOp :router/change $ decode-map-as data (Map Tag Dynamic)
+                (:repo/set-branches data)
+                  Option :some $ DomainOp :repo/set-branches $ decode-map-as data (Map Tag Dynamic)
+                (:repo/set-current data)
+                  Option :some $ DomainOp :repo/set-current $ decode-map-as data 'String
+                (:repo/set-upstream data)
+                  Option :some $ let
+                      payload $ decode-map-as data $ Map Tag Dynamic
+                    DomainOp :repo/set-upstream $ Origin :address
+                      decode-map-as
+                        .unwrap $ get payload :address
+                        , 'String
+                      , :upstream
+                        decode-map-as
+                          .unwrap $ get payload :upstream
+                          , 'String
+                        , :host-kind $ decode-map-as
+                          .unwrap $ get payload :host-kind
+                          , 'Tag
+                (:process/start data)
+                  Option :some $ DomainOp :process/start $ decode-map-as data (Map Tag Dynamic)
+                (:process/finish data)
+                  Option :some $ DomainOp :process/finish $ if (nil? data) (Option :none)
+                    Option :some $ decode-map-as data 'Number
+                (:process/log data)
+                  Option :some $ DomainOp :process/log $ decode-map-as data (Map Tag Dynamic)
+                (:process/clear-logs)
+                  Option :some $ DomainOp :process/clear-logs
+                (:session/track-footprint dirpath upstream)
+                  Option :some $ DomainOp :session/track-footprint (decode-map-as dirpath 'String) (decode-map-as upstream 'String)
+                (:session/drop-footprint data)
+                  Option :some $ DomainOp :session/drop-footprint $ decode-map-as data 'String
+                _ $ Option :none
+              raise "|Expected an Enum operation"
+          :examples $ []
+          :schema $ quote $ Fn Dynamic
+            -> $ Option app.schema/DomainOp
+        'decode-server-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-server-op (raw)
+            if (enum? raw)
+              match raw
+                (:effect/persist)
+                  Option :some $ EffectOp :effect/persist
+                (:effect/read-branches)
+                  Option :some $ EffectOp :effect/read-branches
+                (:effect/switch-branch data)
+                  Option :some $ EffectOp :effect/switch-branch $ decode-map-as data 'String
+                (:effect/switch-remote-branch data)
+                  Option :some $ EffectOp :effect/switch-remote-branch $ decode-map-as data 'String
+                (:effect/switch-path data)
+                  Option :some $ EffectOp :effect/switch-path $ decode-map-as data 'String
+                (:effect/new-branch data)
+                  Option :some $ EffectOp :effect/new-branch $ decode-map-as data 'String
+                (:effect/fetch-origin)
+                  Option :some $ EffectOp :effect/fetch-origin
+                (:effect/pull-current)
+                  Option :some $ EffectOp :effect/pull-current
+                (:effect/push-current)
+                  Option :some $ EffectOp :effect/push-current
+                (:effect/finish-branch)
+                  Option :some $ EffectOp :effect/finish-branch
+                (:effect/rm-remote)
+                  Option :some $ EffectOp :effect/rm-remote
+                (:effect/rebase-master)
+                  Option :some $ EffectOp :effect/rebase-master
+                (:effect/status)
+                  Option :some $ EffectOp :effect/status
+                (:effect/stash)
+                  Option :some $ EffectOp :effect/stash
+                (:effect/stash-apply)
+                  Option :some $ EffectOp :effect/stash-apply
+                (:effect/force-push)
+                  Option :some $ EffectOp :effect/force-push
+                (:effect/remove-branch data)
+                  Option :some $ EffectOp :effect/remove-branch $ decode-map-as data 'String
+                (:effect/commit data)
+                  Option :some $ EffectOp :effect/commit $ decode-map-as data 'String
+                (:effect/add-tag data)
+                  Option :some $ EffectOp :effect/add-tag $ decode-map-as data 'String
+                (:effect/show-version data)
+                  Option :some $ EffectOp :effect/show-version
+                (:effect/show-version)
+                  Option :some $ EffectOp :effect/show-version
+                (:effect/kill-process data)
+                  Option :some $ EffectOp :effect/kill-process $ decode-map-as data 'Number
+                (:effect/edit-with command)
+                  Option :some $ EffectOp :effect/edit-with $ decode-map-as command 'String
+                (:reel/reset)
+                  Option :some $ EffectOp :reel/reset
+                (:reel/merge)
+                  Option :some $ EffectOp :reel/merge
+                _ $ match (decode-domain-op raw)
+                  (:none) (Option :none)
+                  (:some domain-op) (Option :some domain-op)
+              raise "|Expected an Enum WebSocket action"
+          :examples $ []
+          :schema $ quote $ Fn Dynamic
+            -> $ Option app.schema/ServerOp
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def log
             {} (:id nil) (:time nil) (:kind nil) (:text nil)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'message $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def message
             {} (:id nil) (:text nil) (:kind nil)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
         'router $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def router
             {} (:name nil) (:title nil)
               :data $ {}
               :router nil
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
+        'server-op-to-wire $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn server-op-to-wire (op)
+            match op
+              (app.schema/DomainOp action)
+                match action
+                  (:repo/set-upstream origin)
+                    :: :repo/set-upstream $ &struct:to-map origin
+                  (:process/finish pid)
+                    match pid
+                      (:none) (:: :process/finish nil)
+                      (:some value) (:: :process/finish value)
+                  _ $ ::
+                    decode-map-as (&enum:nth action 0) 'Tag
+                    , & $ &enum:params action
+              (app.schema/EffectOp action)
+                ::
+                  decode-map-as (&enum:nth action 0) 'Tag
+                  , & $ &enum:params action
+          :examples $ []
+          :schema $ quote $ Fn app.schema/ServerOp (-> AnyEnum) (:open :reflect)
+          :tests $ [] $ %{} 'TestEntry (:name |preserves-legacy-action-wire)
+            :code $ quote $ do
+              assert= (:: :effect/new-branch |topic)
+                server-op-to-wire $ EffectOp :effect/new-branch |topic
+              assert= (:: :process/finish nil)
+                server-op-to-wire $ DomainOp :process/finish $ Option :none
+              assert= (:: :process/finish 42)
+                server-op-to-wire $ DomainOp :process/finish $ Option :some 42
+              assert=
+                Option :some $ EffectOp :effect/new-branch |topic
+                decode-server-op $ parse-cirru-edn $ format-cirru-edn
+                  server-op-to-wire $ EffectOp :effect/new-branch |topic
+            :tags $ #{} :migration :unit
         'session $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def session
             {} (:user-id nil) (:id nil) (:nickname nil)
               :router $ do router $ {} (:name :home) (:data nil) (:router nil)
               :messages $ do message $ {}
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
         'user $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def user
             {} (:name nil) (:id nil) (:nickname nil) (:avatar nil) (:password nil)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.server $ %{} 'FileEntry
@@ -2150,7 +2081,8 @@
         '*client-caches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *client-caches ({})
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'String (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            Map String $ Map Tag Dynamic
         '*initial-db $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *initial-db
             do
@@ -2158,42 +2090,37 @@
                 if found? (println "|Found local EDN data") (println "|Found no data")
               , schema/database
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Ref (Map Tag Dynamic)
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *loop-trigger (Option :none)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Option 'js-ffi.node/NodeTimerHost
+          :schema $ quote $ Ref (Option js-ffi.node/NodeTimerHost)
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *proxied-dispatch! dispatch!
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Fn
-            {} (:return 'Unit)
-              :args $ [] 'Enum 'String
+          :schema $ quote $ Ref
+            Fn app.schema/ServerOp String $ -> Unit
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reader-reel @*reel
           :examples $ []
-          :schema $ :: 'Ref $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            cumulo-reel.core/ReelState $ Map Tag Dynamic
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
             ReelState :base @*initial-db :db @*initial-db :records ([]) :merged? false
           :examples $ []
-          :schema $ :: 'Ref $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            cumulo-reel.core/ReelState $ Map Tag Dynamic
         'SignalProcessHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait SignalProcessHost
-            .on-signal! $ :: 'Fn $ {}
-              :args $ [] 'app.server/SignalProcessHost 'String $ :: 'Fn
-                {}
-                  :args $ [] 'String
-                  :return 'Unit
-                  :features $ #{} :js-ffi
-              :return 'app.server/SignalProcessHost
-            .chdir! $ :: 'Fn $ {}
-              :args $ [] 'app.server/SignalProcessHost 'String
-              :return 'Unit
+            .on-signal! $ Fn app.server/SignalProcessHost String
+              Fn String (-> Unit) (:features :js-ffi)
+              -> app.server/SignalProcessHost
+            .chdir! $ Fn app.server/SignalProcessHost String $ -> Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :node)
             :names $ {} (:chdir! |chdir) (:on-signal! |on)
-          :schema $ :: 'Trait
+          :schema $ quote Trait
         'check-version! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn check-version! ()
             let
@@ -2206,40 +2133,30 @@
                 pending $ latest-package-version package-name
               let
                   checked $ pending .then! $ fn (raw-version)
-                    hint-fn $ {}
-                      :args $ [] 'Dynamic
-                      :return 'Unit
-                      :features $ #{} :js-ffi
+                    hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
                     let
                         npm-version $ decode-map-as raw-version 'String
                       if (= npm-version version) (println "|Running latest version" version)
                         println $ colorize :yellow $ str "|New version " npm-version "| available, current one is " version "| . Please upgrade!\n\nyarn global add @worktools/rebase-hell\n\n"
                     , &unit
                 checked .catch! $ fn (err)
-                  hint-fn $ {}
-                    :args $ [] 'Dynamic
-                    :return 'Unit
-                    :features $ #{} :js-ffi
+                  hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
                   js/console.error err
                   , &unit
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op sid)
             let
-                op-id $ nanoid
+                op-id $ decode-map-as (nanoid) 'String
                 op-time $ now-ms
                 d! $ fn (op')
-                  hint-fn $ {}
-                    :args $ [] 'Enum
-                    :return 'Unit
+                  hint-fn $ Fn app.schema/ServerOp $ -> Unit
                   dispatch! op' sid
                   , &unit
-                db $ decode-map-as (:db @*reel) (:: 'Map 'Tag 'Dynamic)
+                db $ decode-map-as (:db @*reel) (Map Tag Dynamic)
                 current $ .unwrap-or
                   get-in db $ [] :repo :current
                   , nil
@@ -2253,53 +2170,57 @@
                   .unwrap-or
                     get-in db $ [] :repo :branches
                     #{}
-                  :: 'Set 'String
+                  Set String
               if config/dev? $ println |Dispatch! sid op
               try
                 match op
-                  (:effect/persist) (;nil persist-db!)
-                  (:effect/read-branches) (manager/read-branches! d!)
-                  (:effect/switch-branch data)
-                    manager/switch-branch! (decode-map-as current 'String) (decode-map-as data 'String) d!
-                  (:effect/switch-remote-branch data)
-                    manager/switch-remote-branch! (decode-map-as data 'String) d!
-                  (:effect/switch-path data)
-                    manager/switch-path (decode-map-as data 'String) dispatch! sid
-                  (:effect/new-branch data)
-                    manager/new-branch! (decode-map-as data 'String) d!
-                  (:effect/fetch-origin) (manager/fetch-origin! d!)
-                  (:effect/pull-current) (manager/pull-current! d!)
-                  (:effect/push-current)
-                    manager/push-current! (decode-map-as current 'String) d!
-                  (:effect/finish-branch)
-                    manager/finish-current! (decode-map-as current 'String) main-branch d!
-                  (:effect/rm-remote)
-                    manager/remove-remote! (decode-map-as current 'String) d!
-                  (:effect/rebase-master) (manager/rebase-master! main-branch d!)
-                  (:effect/status) (manager/display-status! d!)
-                  (:effect/stash) (manager/run-stash! d!)
-                  (:effect/stash-apply) (manager/apply-stash! d!)
-                  (:effect/force-push)
-                    manager/force-push! (decode-map-as current 'String) d!
-                  (:effect/remove-branch data)
-                    manager/remove-branch! (decode-map-as data 'String) d!
-                  (:effect/commit data)
-                    manager/commit! (decode-map-as current 'String) (decode-map-as data 'String) d!
-                  (:effect/add-tag data)
-                    manager/add-tag! (decode-map-as data 'String) (decode-map-as upstream 'String) (decode-map-as host-kind 'Tag) main-branch d!
-                  (:effect/show-version data) (manager/show-version d!)
-                  (:effect/kill-process data)
-                    manager/kill-process! $ decode-map-as data 'Number
-                  (:effect/edit-with command)
-                    manager/edit-with (decode-map-as command 'String) d!
-                  _ $ reset! *reel $ reel-reducer @*reel updater op sid op-id op-time config/dev?
+                  (app.schema/DomainOp domain-op)
+                    reset! *reel $ reel-reducer @*reel updater domain-op sid op-id op-time config/dev?
+                  (app.schema/EffectOp effect-op)
+                    match effect-op
+                      (:effect/persist) (;nil persist-db!)
+                      (:effect/read-branches) (manager/read-branches! d!)
+                      (:effect/switch-branch data)
+                        manager/switch-branch! (decode-map-as current 'String) data d!
+                      (:effect/switch-remote-branch data) (manager/switch-remote-branch! data d!)
+                      (:effect/switch-path data) (manager/switch-path data dispatch! sid)
+                      (:effect/new-branch data) (manager/new-branch! data d!)
+                      (:effect/fetch-origin) (manager/fetch-origin! d!)
+                      (:effect/pull-current) (manager/pull-current! d!)
+                      (:effect/push-current)
+                        manager/push-current! (decode-map-as current 'String) d!
+                      (:effect/finish-branch)
+                        manager/finish-current! (decode-map-as current 'String) main-branch d!
+                      (:effect/rm-remote)
+                        manager/remove-remote! (decode-map-as current 'String) d!
+                      (:effect/rebase-master) (manager/rebase-master! main-branch d!)
+                      (:effect/status) (manager/display-status! d!)
+                      (:effect/stash) (manager/run-stash! d!)
+                      (:effect/stash-apply) (manager/apply-stash! d!)
+                      (:effect/force-push)
+                        manager/force-push! (decode-map-as current 'String) d!
+                      (:effect/remove-branch data) (manager/remove-branch! data d!)
+                      (:effect/commit data)
+                        manager/commit! (decode-map-as current 'String) data d!
+                      (:effect/add-tag data)
+                        manager/add-tag! data (decode-map-as upstream 'String) (decode-map-as host-kind 'Tag) main-branch d!
+                      (:effect/show-version) (manager/show-version d!)
+                      (:effect/kill-process data) (manager/kill-process! data)
+                      (:effect/edit-with command) (manager/edit-with command d!)
+                      (:reel/reset)
+                        reset! *reel $ struct-with @*reel
+                          :db $ :base @*reel
+                          :records $ []
+                      (:reel/merge)
+                        reset! *reel $ struct-with @*reel
+                          :base $ :db @*reel
+                          :records $ []
+                          :merged? true
                 fn (error) (js/console.error "|Dispatch error:" error)
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Enum 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn app.schema/ServerOp String (-> Unit) (:features :js-ffi)
         'editor-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn editor-url (port)
             str |https://r.tiye.me/worktools/rebase-hell/?port= $ if
@@ -2307,9 +2228,7 @@
               , | $ encode-uri-component (str port)
           :examples $ []
           :ffi $ {} $ :backend :js
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number (-> String) (:features :js-ffi)
         'find-git-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-git-path (dir) (; println "|searching dir:" dir)
             if
@@ -2321,10 +2240,9 @@
                 Option :none
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn String
+            -> $ Option String
+            :features :js-ffi
           :tests $ [] $ %{} 'TestEntry
             :name |typed-path-search-preserves-ancestors-absence-and-git-marker-kind
             :code $ quote $ let
@@ -2361,47 +2279,36 @@
             js-cast (latest-version package-name) 'PromiseHost
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'js-ffi.shared/PromiseHost)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> js-ffi.shared/PromiseHost) (:features :js-ffi)
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
             let
                 host $ js-cast js/process 'app.server/SignalProcessHost
               host .on-signal! |SIGHUP $ fn (_signal)
-                hint-fn $ {}
-                  :args $ [] 'String
-                  :return 'Unit
-                  :features $ #{} :js-ffi
+                hint-fn $ Fn String (-> Unit) (:features :js-ffi)
                 let
                     new-path $ node/read-text! wd-file-path
                   host .chdir! new-path
                   let
                       upstream $ manager/get-upstream!
-                    dispatch! (:: :repo/set-upstream upstream) |system
-                    dispatch! (:: :effect/read-branches) |system
+                    dispatch! (app.schema/DomainOp :repo/set-upstream upstream) |system
+                    dispatch! (app.schema/EffectOp :effect/read-branches) |system
                     dispatch!
-                      :: :session/track-footprint new-path $ decode-map-as
-                        .unwrap-or (get upstream :upstream) nil
-                        , 'String
+                      app.schema/DomainOp :session/track-footprint new-path $ :upstream upstream
                       , |system
                     println "|Switching to" new-path
                 , &unit
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if (= run-mode :switch) (main-switch!) (main-server!)
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'main-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-server! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -2414,28 +2321,23 @@
             ; repeat! 600 $ "#()" persist-db!
             let
                 upstream $ manager/get-upstream!
-              dispatch! (:: :repo/set-upstream upstream) |system
+              dispatch! (app.schema/DomainOp :repo/set-upstream upstream) |system
               dispatch!
-                :: :session/track-footprint (node/cwd)
-                  decode-map-as
-                    .unwrap-or (get upstream :upstream) nil
-                    , 'String
+                app.schema/DomainOp :session/track-footprint (node/cwd) (:upstream upstream)
                 , |system
             listen-to-switching!
             check-version!
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'main-switch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-switch! ()
             let
                 port $ :port config/site
                 previous-port $ let
                     raw-port $ cp/execSync $ str "|lsof -ti tcp:" port "| -sTCP:LISTEN"
-                  .trim $ unsafe-coerce (.!toString raw-port) String
+                  .trim $ contract/expect-string "|lsof process ID" $ .!toString raw-port
               match
                 find-git-path $ node/cwd
                 (:none)
@@ -2451,9 +2353,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'read-wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-wd-file-path ()
             match (node/env-get |HOME)
@@ -2461,8 +2361,7 @@
               (:none) (raise "|HOME is required for the working-directory file")
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ []
+          :schema $ quote $ Fn (-> String)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (println "|Code updated.") (clear-twig-caches!) (reset! *proxied-dispatch! dispatch!)
             reset! *reel $ refresh-reel @*reel @*initial-db replay-update
@@ -2474,9 +2373,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-loop! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-loop! (*loop)
             when
@@ -2485,53 +2382,43 @@
               sync-clients! @*reader-reel
             reset! *loop $ Option :some $ node/set-timeout!
               fn ()
-                hint-fn $ {}
-                  :args $ []
-                  :return 'Unit
-                  :features $ #{} :js-ffi
+                hint-fn $ Fn (-> Unit) (:features :js-ffi)
                 render-loop! *loop
               , 200
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Ref (:: 'Option 'js-ffi.node/NodeTimerHost)
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            Ref $ Option js-ffi.node/NodeTimerHost
+            -> Unit
+            :features :js-ffi
         'run-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
               :on-open $ fn (sid socket)
-                hint-fn $ {}
-                  :args $ [] 'String 'ws-edn.server/NodeWebSocketHost
-                  :return 'Unit
-                @*proxied-dispatch! (:: :session/connect) sid
+                hint-fn $ Fn String ws-edn.server/NodeWebSocketHost $ -> Unit
+                @*proxied-dispatch! (app.schema/DomainOp :session/connect) sid
                 println "|New client."
                 , &unit
               :on-data $ fn (sid action)
-                hint-fn $ {}
-                  :args $ [] 'String 'Dynamic
-                  :return 'Unit
-                if (enum? action) (@*proxied-dispatch! action sid) (raise "|Expected an Enum WebSocket action")
+                hint-fn $ Fn String Dynamic $ -> Unit
+                match (app.schema/decode-server-op action)
+                  (:some op) (@*proxied-dispatch! op sid)
+                  (:none) (println "|Unknown op:" action)
                 , &unit
               :on-close $ fn (sid event)
-                hint-fn $ {}
-                  :args $ [] 'String 'JsObject
-                  :return 'Unit
+                hint-fn $ Fn String JsObject $ -> Unit
                 println "|Client closed!"
-                @*proxied-dispatch! (:: :session/disconnect) sid
+                @*proxied-dispatch! (app.schema/DomainOp :session/disconnect) sid
                 , &unit
               :on-error $ fn (error)
-                hint-fn $ {}
-                  :args $ [] 'JsObject
-                  :return 'Unit
-                  :features $ #{} :js-ffi
+                hint-fn $ Fn JsObject (-> Unit) (:features :js-ffi)
                 js/console.error error
                 , &unit
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Number
+          :schema $ quote $ Fn Number (-> Unit)
         'server-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn server-port ()
             match (node/env-get |port)
@@ -2540,29 +2427,26 @@
               (:none) (:port config/site)
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Number) (:features :js-ffi)
         'sync-clients! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn sync-clients! (reel)
             wss-each! $ fn (sid socket)
-              hint-fn $ {}
-                :args $ [] 'String 'ws-edn.server/NodeWebSocketHost
-                :return 'Unit
-                :features $ #{} :js-ffi
+              hint-fn $ Fn String ws-edn.server/NodeWebSocketHost (-> Unit) (:features :js-ffi)
               let
-                  db $ decode-map-as (:db reel) (:: 'Map 'Tag 'Dynamic)
+                  db $ decode-map-as (:db reel) (Map Tag Dynamic)
                   records $ :records reel
                   session $ decode-map-as
                     .unwrap-or
                       get-in db $ [] :sessions sid
                       {}
-                    :: 'Map 'Tag 'Dynamic
-                  old-store $ match (get @*client-caches sid)
-                    (:some value) value
-                    (:none) nil
+                    Map Tag Dynamic
+                  old-store $ get @*client-caches sid
                   new-store $ twig-container db session records
-                  changes $ diff-twig old-store new-store $ {} (:key :id)
+                  changes $ match old-store
+                    (:some value)
+                      diff-twig value new-store $ {} $ :key :id
+                    (:none)
+                      diff-twig nil new-store $ {} $ :key :id
                 when config/dev? $ println $ colorize :gray
                   str "|Changes for " sid "|: " $ .len records
                 if
@@ -2574,14 +2458,15 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'cumulo-reel.core/ReelState (:: 'Map 'Tag 'Dynamic)
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            cumulo-reel.core/ReelState $ Map Tag Dynamic
+            -> Unit
+            :features :js-ffi
         'wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def wd-file-path (read-wd-file-path)
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.server
           :require (app.schema :as schema)
@@ -2617,7 +2502,7 @@
               :color $ hsl 240 80 80
               :font-family ui/font-fancy
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.style
           :require
@@ -2627,60 +2512,62 @@
       :defs $ {}
         'session-user-id $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn session-user-id (session)
-            let
-                raw $ .unwrap-or (get session :user-id) nil
-              if (nil? raw) (Option :none)
-                Option :some $ decode-map-as raw 'String
+            match (get session :user-id)
+              (:none) (Option :none)
+              (:some raw)
+                if (nil? raw) (Option :none)
+                  Option :some $ decode-map-as raw 'String
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn (Map Tag Dynamic)
+            -> $ Option String
         'twig-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-container (db session records)
             let
                 logged-in? $ .some? $ session-user-id session
                 router $ decode-map-as
                   .unwrap-or (get session :router) ({})
-                  :: 'Map 'Tag 'Dynamic
+                  Map Tag Dynamic
                 sessions $ decode-map-as
                   .unwrap-or (get db :sessions) ({})
-                  :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  Map String $ Map Tag Dynamic
                 base-data $ {} (:logged-in? logged-in?) (:session session)
                   :reel-length $ .len records
-              merge base-data $ {}
-                :user $ match (session-user-id session)
-                  (:none) nil
+              merge base-data
+                {}
+                  :router $ assoc router :data $ match
+                    decode-map-as
+                      .unwrap-or (get router :name) :unknown
+                      , 'Tag
+                    :home $ .unwrap-or (get db :pages) {}
+                    :profile $ twig-members sessions $ decode-map-as
+                      .unwrap-or (get db :users) ({})
+                      Map String $ Map Tag Dynamic
+                    _ $ {}
+                  :count $ .len sessions
+                  ; :color $ color/randomColor
+                  :repo $ .unwrap-or (get db :repo) {}
+                  :logs $ .unwrap-or (get db :logs) {}
+                  :process-status $ .unwrap-or (get db :process-status) {}
+                  :footprints $ .unwrap-or (get db :footprints) {}
+                match (session-user-id session)
+                  (:none)
+                    {} $ :user nil
                   (:some user-id)
                     match
                       get-in db $ [] :users user-id
-                      (:none) nil
-                      (:some user)
-                        twig-user $ decode-map-as user $ :: 'Map 'Tag 'Dynamic
-                :router $ assoc router :data $ match
-                  match (get router :name)
-                    (:none) nil
-                    (:some name) (decode-map-as name 'Tag)
-                  :home $ .unwrap-or (get db :pages) {}
-                  :profile $ twig-members sessions $ decode-map-as
-                    .unwrap-or (get db :users) ({})
-                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
-                  _ $ {}
-                :count $ .len sessions
-                ; :color $ color/randomColor
-                :repo $ .unwrap-or (get db :repo) {}
-                :logs $ .unwrap-or (get db :logs) {}
-                :process-status $ .unwrap-or (get db :process-status) {}
-                :footprints $ .unwrap-or (get db :footprints) {}
+                      (:err _)
+                        {} $ :user nil
+                      (:ok user)
+                        {} $ :user $ twig-user
+                          decode-map-as user $ Map Tag Dynamic
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) (List Dynamic)
+            -> $ Map Tag Dynamic
         'twig-members $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-members (sessions users)
             .filter-map-kv sessions $ fn (sid session)
-              hint-fn $ {}
-                :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
-                :return $ :: 'MapEntryDecision 'String 'String
+              hint-fn $ Fn String (Map Tag Dynamic)
+                -> $ MapEntryDecision String String
               MapEntryDecision :keep sid $ match (session-user-id session)
                 (:none) |
                 (:some user-id)
@@ -2690,11 +2577,10 @@
                       , |
                     , 'String
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ []
-              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
-              :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
-            :return $ :: 'Map 'String 'String
+          :schema $ quote $ Fn
+            Map String $ Map Tag Dynamic
+            Map String $ Map Tag Dynamic
+            -> $ Map String String
           :tests $ [] $ %{} 'TestEntry (:name |typed-members-preserve-guests-and-unicode-names)
             :code $ quote $ let
                 sessions $ {}
@@ -2705,7 +2591,7 @@
                   |u1 $ {} $ :name "|中文 Ada"
                   |u2 $ {}
                 result $ twig-members sessions users
-              assert-type result $ :: 'Map 'String 'String
+              assert-type result $ Map String String
               assert=
                 {} (|guest |) (|named "|中文 Ada") (|missing-name |)
                 , result
@@ -2723,22 +2609,26 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-user (user) (dissoc user :password)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic)
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.user (:require)
     'app.updater $ %{} 'FileEntry
       :defs $ {}
         'replay-update $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replay-update (db op sid op-id op-time)
-            if (enum? op)
-              updater db op (decode-map-as sid 'String) (decode-map-as op-id 'String) (decode-map-as op-time 'Number)
-              raise "|Expected an Enum operation in Reel history"
+            let
+                typed-op $ app.schema/decode-domain-op op
+                typed-sid $ decode-map-as sid 'String
+                typed-op-id $ decode-map-as op-id 'String
+                typed-op-time $ decode-map-as op-time 'Number
+              match typed-op
+                (:some action) (updater db action typed-sid typed-op-id typed-op-time)
+                (:none)
+                  do (println "|Unknown op:" op) db
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic 'Dynamic 'Dynamic 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic Dynamic Dynamic Dynamic
+            -> $ Map Tag Dynamic
           :tests $ []
             %{} 'TestEntry
               :name |replays-the-published-history-contract-with-a-precise-database
@@ -2751,15 +2641,15 @@
                       :sessions $ {} $ |session
                         {} $ :messages messages
                       :untouched :stable
-                    :: 'Map 'Tag 'Dynamic
+                    Map Tag Dynamic
                   records $ [] $ []
                     :: :session/remove-message $ {} $ :id |remove
                     , |session |operation 1
                   reel $ cumulo-reel.core/ReelState :base db :db db :records records :merged? false
                   refreshed $ cumulo-reel.core/refresh-reel reel db replay-update
-                assert= (Option :none)
-                  get-in (:db refreshed) ([] :sessions |session :messages |remove)
-                assert= (get messages |keep)
+                assert= true $ .err? $ get-in (:db refreshed) ([] :sessions |session :messages |remove)
+                assert=
+                  Result :ok $ .unwrap $ get messages |keep
                   get-in (:db refreshed) ([] :sessions |session :messages |keep)
                 assert= db $ :base refreshed
                 assert= records $ :records refreshed
@@ -2770,7 +2660,7 @@
               :code $ quote $ let
                   db $ assert-type
                     {} $ :untouched :stable
-                    :: 'Map 'Tag 'Dynamic
+                    Map Tag Dynamic
                   op $ :: :session/remove-message $ {} (:id |remove)
                 calcit.test/is-throws $ replay-update db :not-an-enum |session |operation 1
                 calcit.test/is-throws $ replay-update db op 42 |operation 1
@@ -2783,48 +2673,24 @@
             match op
               (:session/connect) (session/connect db sid)
               (:session/disconnect) (session/disconnect db sid)
-              (:session/remove-message data)
-                session/remove-message db
-                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
-                  , sid
-              (:session/add-message data)
-                session/add-message db
-                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
-                  , sid op-id
-              (:user/log-in data)
-                user/log-in db
-                  decode-map-as data $ :: 'List 'String
-                  , sid op-id
-              (:user/sign-up data)
-                user/sign-up db
-                  decode-map-as data $ :: 'List 'String
-                  , sid op-id
+              (:session/remove-message data) (session/remove-message db data sid)
+              (:session/add-message data) (session/add-message db data sid op-id)
+              (:user/log-in data) (user/log-in db data sid op-id)
+              (:user/sign-up data) (user/sign-up db data sid op-id)
               (:user/log-out) (user/log-out db sid)
-              (:router/change data)
-                router/change db
-                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
-                  , sid
-              (:repo/set-branches data)
-                repo/set-repo db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
-              (:repo/set-current data)
-                repo/set-current db $ decode-map-as data 'String
-              (:repo/set-upstream data)
-                repo/set-upstream db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
-              (:process/start data)
-                process/start db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              (:router/change data) (router/change db data sid)
+              (:repo/set-branches data) (repo/set-repo db data)
+              (:repo/set-current data) (repo/set-current db data)
+              (:repo/set-upstream data) (repo/set-upstream db data)
+              (:process/start data) (process/start db data)
               (:process/finish data) (process/finish db data)
-              (:process/log data)
-                process/log db $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              (:process/log data) (process/log db data)
               (:process/clear-logs) (process/clear-logs db op-time)
-              (:session/track-footprint dirpath upstream)
-                session/track-footprint db (decode-map-as dirpath 'String) (decode-map-as upstream 'String)
-              (:session/drop-footprint data)
-                session/drop-footprint db $ decode-map-as data 'String
-              _ $ do (println "|Unknown op:" op) db
+              (:session/track-footprint dirpath upstream) (session/track-footprint db dirpath upstream)
+              (:session/drop-footprint data) (session/drop-footprint db data)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'String 'Number
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/DomainOp String String Number
+            -> $ Map Tag Dynamic
           :tests $ []
             %{} 'TestEntry
               :name |remove-message-checks-the-map-payload-and-preserves-neighbors
@@ -2836,18 +2702,18 @@
                     :sessions $ {} $ |session
                       {} (:messages messages) (:extra 23)
                     :untouched :stable
-                  result $ updater db
+                  result $ replay-update db
                     :: :session/remove-message $ {} $ :id |remove
                     , |session |operation 1
-                assert= (Option :none)
-                  get-in result $ [] :sessions |session :messages |remove
-                assert= (get messages |keep)
+                assert= true $ .err? $ get-in result ([] :sessions |session :messages |remove)
+                assert=
+                  Result :ok $ .unwrap $ get messages |keep
                   get-in result $ [] :sessions |session :messages |keep
-                assert= (Option :some 23)
+                assert= (Result :ok 23)
                   get-in result $ [] :sessions |session :extra
                 assert= (Option :some :stable) (get result :untouched)
                 assert= 2 $ .len messages
-                assert= (Option :some messages)
+                assert= (Result :ok messages)
                   get-in db $ [] :sessions |session :messages
               :tags $ #{} :migration :unit
             %{} 'TestEntry
@@ -2857,11 +2723,11 @@
                     {} (:id |keep) (:text "|保留")
                   db $ {} $ :sessions
                     {} $ |session $ {} (:messages messages)
-                calcit.test/is-throws $ updater db (:: :session/remove-message 42) |session |operation 1
-                calcit.test/is-throws $ updater db
+                calcit.test/is-throws $ replay-update db (:: :session/remove-message 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db
                   :: :session/remove-message $ {} $ :id 42
                   , |session |operation 1
-                assert= (Option :some messages)
+                assert= (Result :ok messages)
                   get-in db $ [] :sessions |session :messages
               :tags $ #{} :migration :unit
             %{} 'TestEntry
@@ -2878,57 +2744,56 @@
                     :footprints $ {} $ |keep |owner/repo
                     :untouched :stable
                   message $ {} (:text "|你好") (:extra :preserved)
-                  added $ updater db (:: :session/add-message message) |session |operation 1
-                  router $ updater db
+                  added $ replay-update db (:: :session/add-message message) |session |operation 1
+                  router $ replay-update db
                     :: :router/change $ {} (:name :home) (:extra 23)
                     , |session |operation 1
-                  branches $ updater db
+                  branches $ replay-update db
                     :: :repo/set-branches $ {}
                       :branches $ #{} |main
                       :current |main
                       :remote-branches $ [] |origin/main
                     , |session |operation 1
-                  upstream $ updater db
+                  upstream $ replay-update db
                     :: :repo/set-upstream $ {} (:upstream |owner/repo) (:host-kind :github) (:address |git@github.com:owner/repo.git)
                     , |session |operation 1
-                  started $ updater db
+                  started $ replay-update db
                     :: :process/start $ {} (:pid 42) (:command |build)
                     , |session |operation 1
-                  logged $ updater db
+                  logged $ replay-update db
                     :: :process/log $ {} (:id |log) (:text "|完成") (:extra :preserved)
                     , |session |operation 1
-                  tracked $ updater db (:: :session/track-footprint |new |other/repo) |session |operation 1
-                  dropped $ updater db (:: :session/drop-footprint |keep) |session |operation 1
+                  tracked $ replay-update db (:: :session/track-footprint |new |other/repo) |session |operation 1
+                  dropped $ replay-update db (:: :session/drop-footprint |keep) |session |operation 1
                 assert=
-                  Option :some $ assoc message :id |operation
+                  Result :ok $ assoc message :id |operation
                   get-in added $ [] :sessions |session :messages |operation
                 assert=
-                  Option :some $ {} (:name :home) (:extra 23)
+                  Result :ok $ {} (:name :home) (:extra 23)
                   get-in router $ [] :sessions |session :router
-                assert= (Option :some 23)
+                assert= (Result :ok 23)
                   get-in branches $ [] :repo :extra
                 assert=
-                  Option :some $ [] |origin/main
+                  Result :ok $ [] |origin/main
                   get-in branches $ [] :repo :remote-branches
-                assert= (Option :some |topic)
+                assert= (Result :ok |topic)
                   get-in
-                    updater db (:: :repo/set-current |topic) |session |operation 1
+                    replay-update db (:: :repo/set-current |topic) |session |operation 1
                     [] :repo :current
-                assert= (Option :some |owner/repo)
+                assert= (Result :ok |owner/repo)
                   get-in upstream $ [] :repo :upstream
-                assert= (Option :some |build)
+                assert= (Result :ok |build)
                   get-in started $ [] :process-status 42
-                assert= (Option :some :preserved)
+                assert= (Result :ok :preserved)
                   get-in logged $ [] :logs |log :extra
-                assert= (Option :some |other/repo)
+                assert= (Result :ok |other/repo)
                   get-in tracked $ [] :footprints |new
-                assert= (Option :some |owner/repo)
+                assert= (Result :ok |owner/repo)
                   get-in tracked $ [] :footprints |keep
-                assert= (Option :none)
-                  get-in dropped $ [] :footprints |keep
+                assert= true $ .err? $ get-in dropped ([] :footprints |keep)
                 assert= (Option :some :stable) (get added :untouched)
                 assert=
-                  Option :some $ {}
+                  Result :ok $ {}
                   get-in db $ [] :sessions |session :messages
               :tags $ #{} :migration :unit
             %{} 'TestEntry
@@ -2941,16 +2806,16 @@
                     :logs $ {}
                     :process-status $ {}
                     :footprints $ {}
-                calcit.test/is-throws $ updater db (:: :session/add-message 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :router/change 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :repo/set-branches 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :repo/set-current 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :repo/set-upstream 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :process/start 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :process/log 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :session/track-footprint 42 |owner/repo) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :session/track-footprint |path 42) |session |operation 1
-                calcit.test/is-throws $ updater db (:: :session/drop-footprint 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :session/add-message 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :router/change 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :repo/set-branches 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :repo/set-current 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :repo/set-upstream 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :process/start 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :process/log 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :session/track-footprint 42 |owner/repo) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :session/track-footprint |path 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db (:: :session/drop-footprint 42) |session |operation 1
                 assert=
                   Option :some $ {}
                   get db :footprints
@@ -2964,39 +2829,32 @@
         'clear-logs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn clear-logs (db op-time)
             update db :logs $ fn (logs)
-              hint-fn $ {}
-                :args $ [] 'Dynamic
-                :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              hint-fn $ Fn Dynamic $ ->
+                Map String $ Map Tag Dynamic
               .filter-kv
-                decode-map-as logs $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                decode-map-as logs $ Map String $ Map Tag Dynamic
                 fn (id log)
-                  hint-fn $ {}
-                    :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
-                    :return 'Bool
+                  hint-fn $ Fn String (Map Tag Dynamic) (-> Bool)
                   >
                     decode-map-as
                       .unwrap-or (get log :time) 0
                       , 'Number
                     - op-time 600
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Number
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Number
+            -> $ Map Tag Dynamic
         'finish $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn finish (db raw-pid)
-            let
-                pid $ if (nil? raw-pid) nil $ decode-map-as raw-pid 'Number
-              update db :process-status $ fn (status)
-                hint-fn $ {}
-                  :args $ [] 'Dynamic
-                  :return $ :: 'Map 'Dynamic 'String
-                dissoc
-                  decode-map-as status $ :: 'Map 'Dynamic 'String
-                  , pid
+          :code $ quote $ defn finish (db pid)
+            update db :process-status $ fn (status)
+              hint-fn $ Fn Dynamic $ -> (Map Dynamic String)
+              let
+                  processes $ decode-map-as status $ Map Dynamic String
+                match pid
+                  (:none) (.dissoc processes nil)
+                  (:some value) (.dissoc processes value)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Dynamic
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Option Number)
+            -> $ Map Tag Dynamic
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn log (db op-data)
             let
@@ -3005,26 +2863,30 @@
                   , 'String
               if (.blank? text) db $ assoc-in db
                 [] :logs $ decode-map-as
-                  .unwrap-or (get op-data :id) nil
+                  .unwrap $ get op-data :id
                   , 'String
                 , op-data
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+            -> $ Map Tag Dynamic
         'start $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn start (db op-data)
             let
-                raw-pid $ .unwrap-or (get op-data :pid) nil
-                pid $ if (nil? raw-pid) nil $ decode-map-as raw-pid 'Number
                 command $ decode-map-as
                   .unwrap-or (get op-data :command) |
                   , 'String
-              assoc-in db ([] :process-status pid) command
+              match (get op-data :pid)
+                (:none)
+                  assoc-in db ([] :process-status nil) command
+                (:some raw-pid)
+                  if (nil? raw-pid)
+                    assoc-in db ([] :process-status nil) command
+                    assoc-in db
+                      [] :process-status $ decode-map-as raw-pid 'Number
+                      , command
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.process
     'app.updater.repo $ %{} 'FileEntry
@@ -3033,53 +2895,38 @@
           :code $ quote $ defn set-current (db current)
             assoc-in db ([] :repo :current) current
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'set-repo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-repo (db op-data)
             let
                 branches $ decode-map-as
-                  .unwrap-or (get op-data :branches) nil
-                  :: 'Set 'String
+                  .unwrap $ get op-data :branches
+                  Set String
                 current $ decode-map-as
-                  .unwrap-or (get op-data :current) nil
+                  .unwrap $ get op-data :current
                   , 'String
                 remote-branches $ decode-map-as
-                  .unwrap-or (get op-data :remote-branches) nil
-                  :: 'List 'String
+                  .unwrap $ get op-data :remote-branches
+                  List String
                 payload $ -> op-data (assoc :branches branches) (assoc :current current) (assoc :remote-branches remote-branches)
               update db :repo $ fn (repo)
-                hint-fn $ {}
-                  :args $ [] 'Dynamic
-                  :return $ :: 'Map 'Tag 'Dynamic
+                hint-fn $ Fn Dynamic $ -> (Map Tag Dynamic)
                 merge
-                  decode-map-as repo $ :: 'Map 'Tag 'Dynamic
+                  decode-map-as repo $ Map Tag Dynamic
                   , payload
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+            -> $ Map Tag Dynamic
         'set-upstream $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn set-upstream (db op-data)
-            let
-                upstream $ decode-map-as
-                  .unwrap-or (get op-data :upstream) nil
-                  , 'String
-                host-kind $ decode-map-as
-                  .unwrap-or (get op-data :host-kind) nil
-                  , 'Tag
-                address $ decode-map-as
-                  .unwrap-or (get op-data :address) nil
-                  , 'String
-              -> db
-                assoc-in ([] :repo :upstream) upstream
-                assoc-in ([] :repo :host-kind) host-kind
-                assoc-in ([] :repo :address) address
+          :code $ quote $ defn set-upstream (db origin)
+            -> db
+              assoc-in ([] :repo :upstream) (:upstream origin)
+              assoc-in ([] :repo :host-kind) (:host-kind origin)
+              assoc-in ([] :repo :address) (:address origin)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Origin
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.repo
     'app.updater.router $ %{} 'FileEntry
@@ -3088,13 +2935,12 @@
           :code $ quote $ defn change (db op-data sid)
             let
                 name $ decode-map-as
-                  .unwrap-or (get op-data :name) nil
+                  .unwrap $ get op-data :name
                   , 'Tag
               assoc-in db ([] :sessions sid :router) (assoc op-data :name name)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.router
     'app.updater.session $ %{} 'FileEntry
@@ -3103,86 +2949,73 @@
           :code $ quote $ defn add-message (db op-data sid op-id)
             update-in db ([] :sessions sid :messages)
               fn (messages)
-                hint-fn $ {}
-                  :args $ [] $ :: 'Option 'Dynamic
-                  :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                hint-fn $ Fn (Option Dynamic)
+                  -> $ Map String $ Map Tag Dynamic
                 assoc
                   decode-map-as
                     .unwrap-or messages $ {}
-                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                    Map String $ Map Tag Dynamic
                   , op-id $ merge op-data $ {} (:id op-id)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) String String
+            -> $ Map Tag Dynamic
         'connect $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn connect (db sid)
             assoc-in db ([] :sessions sid)
               merge schema/session $ {} $ :id sid
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'disconnect $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn disconnect (db sid)
             update db :sessions $ fn (sessions)
-              hint-fn $ {}
-                :args $ [] 'Dynamic
-                :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+              hint-fn $ Fn Dynamic $ ->
+                Map String $ Map Tag Dynamic
               dissoc
-                decode-map-as sessions $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                decode-map-as sessions $ Map String $ Map Tag Dynamic
                 , sid
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'drop-footprint $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn drop-footprint (db dirpath)
             update db :footprints $ fn (xs)
-              hint-fn $ {}
-                :args $ [] 'Dynamic
-                :return $ :: 'Map 'String 'String
+              hint-fn $ Fn Dynamic $ -> (Map String String)
               let
-                  paths $ decode-map-as xs $ :: 'Map 'String 'String
+                  paths $ decode-map-as xs $ Map String String
                 println |removing paths dirpath
                 dissoc paths dirpath
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'remove-message $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-message (db op-data sid)
             let
                 id $ decode-map-as
-                  .unwrap-or (get op-data :id) nil
+                  .unwrap $ get op-data :id
                   , 'String
               update-in db ([] :sessions sid :messages)
                 fn (messages)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'Option 'Dynamic
-                    :return $ :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  hint-fn $ Fn (Option Dynamic)
+                    -> $ Map String $ Map Tag Dynamic
                   dissoc
                     decode-map-as
                       .unwrap-or messages $ {}
-                      :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                      Map String $ Map Tag Dynamic
                     , id
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'track-footprint $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn track-footprint (db dirpath upstream)
             update db :footprints $ fn (xs)
-              hint-fn $ {}
-                :args $ [] 'Dynamic
-                :return $ :: 'Map 'String 'String
+              hint-fn $ Fn Dynamic $ -> (Map String String)
               assoc
-                decode-map-as xs $ :: 'Map 'String 'String
+                decode-map-as xs $ Map String String
                 , dirpath upstream
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String String
+            -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.session
           :require $ app.schema :as schema
@@ -3193,20 +3026,17 @@
             let
                 users $ decode-map-as
                   .unwrap-or (get db :users) ({})
-                  :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
+                  Map String $ Map Tag Dynamic
               find
                 .to-list $ calcit.core/distinct-values users
                 fn (user)
-                  hint-fn $ {}
-                    :args $ [] $ :: 'Map 'Tag 'Dynamic
-                    :return 'Bool
+                  hint-fn $ Fn (Map Tag Dynamic) (-> Bool)
                   = username $ decode-map-as
                     .unwrap-or (get user :name) |
                     , 'String
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Option $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Option $ Map Tag Dynamic
         'log-in $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn log-in (db credentials sid op-id)
             let[] (username password) credentials $ let
@@ -3215,7 +3045,7 @@
                   .unwrap-or
                     get-in db $ [] :sessions sid
                     {} $ :user-id nil
-                  :: 'Map 'Tag 'Dynamic
+                  Map Tag Dynamic
               match maybe-user
                 (:some user)
                   if
@@ -3225,7 +3055,7 @@
                         , 'String
                     assoc-in db ([] :sessions sid)
                       assoc session :user-id $ decode-map-as
-                        .unwrap-or (get user :id) nil
+                        .unwrap $ get user :id
                         , 'String
                     session/add-message
                       assoc-in db ([] :sessions sid) session
@@ -3238,25 +3068,21 @@
                     , sid op-id
           :examples $ []
           :ffi $ {} $ :backend :js
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String) 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (List String) String String
+            -> $ Map Tag Dynamic
+            :features :js-ffi
         'log-out $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn log-out (db sid)
             assoc-in db ([] :sessions sid :user-id) nil
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) String
+            -> $ Map Tag Dynamic
         'password-digest $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn password-digest (password)
             decode-map-as (md5 password) 'String
           :examples $ []
           :ffi $ {} $ :backend :js
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'sign-up $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn sign-up (db credentials sid op-id)
             let[] (username password) credentials $ let
@@ -3275,10 +3101,9 @@
                         :avatar nil
           :examples $ []
           :ffi $ {} $ :backend :js
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String) 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (List String) String String
+            -> $ Map Tag Dynamic
+            :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.user
           :require (|md5 :default md5) (app.updater.session :as session)
@@ -3301,8 +3126,7 @@
                   , :host-kind $ if (.includes? url |github.com) :github :unknown
               true $ raise $ str "|Invalid url:" url
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Origin)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> app.schema/Origin)
           :tests $ []
             %{} 'TestEntry (:name |git-scp)
               :code $ quote $ is= (Origin :address |git@github.com:jimengio/rebase-hell.git :upstream |jimengio/rebase-hell :host-kind :github) (grab-upstream |git@github.com:jimengio/rebase-hell.git)
@@ -3321,17 +3145,15 @@
         'pos? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pos? (x) (&> x 0)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'Number
+          :schema $ quote $ Fn Number (-> Bool)
         'read-items $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-items (text)
             let
                 trimmed $ .trim text
               if (= | trimmed) ([]) (.split trimmed &newline)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util
           :require
@@ -3343,13 +3165,11 @@
           :code $ quote $ defn default-branch? (x)
             or (= x |main) (= x |master) (= x |develop)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> Bool)
         'detects-main $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn detects-main (branches)
             if (contains? branches |main) |main $ if (contains? branches |develop) |develop |master
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] $ :: 'Set 'String
+          :schema $ quote $ Fn (Set String) (-> String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.util.string
