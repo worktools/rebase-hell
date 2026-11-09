@@ -2405,9 +2405,11 @@
                 , &unit
               :on-data $ fn (sid action)
                 hint-fn $ Fn String Dynamic $ -> Unit
-                match (app.schema/decode-server-op action)
-                  (:some op) (@*proxied-dispatch! op sid)
-                  (:none) (println "|Unknown op:" action)
+                try
+                  match (app.schema/decode-server-op action)
+                    (:some op) (@*proxied-dispatch! op sid)
+                    (:none) (println "|Unknown op:" action)
+                  fn (_) (println "|Invalid operation payload.")
                 , &unit
               :on-close $ fn (sid event)
                 hint-fn $ Fn String JsObject $ -> Unit

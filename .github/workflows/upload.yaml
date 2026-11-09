@@ -65,7 +65,7 @@ jobs:
       - name: Build frontend
         env:
           VITE_BASE_URL: ${{ steps.asset-path.outputs.base-url }}
-        run: yarn compile-server && yarn compile-page && yarn release-page
+        run: yarn compile-server && node tests/websocket-recovery.mjs && yarn compile-page && yarn release-page
       - name: Check current production revision
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: production
