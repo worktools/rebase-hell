@@ -1616,9 +1616,10 @@
                   , 'app.manager/CommandProcessHost
                 stdout $ js-get proc :stdout
                 stderr $ js-get proc :stderr
-              d! $ app.schema/DomainOp :process/start $ {}
-                :pid $ js-get proc :pid
-                :command command
+                pid $ .map
+                  js-nullish->option $ js-get proc :pid
+                  fn (value) (decode-map-as value 'Number)
+              d! $ app.schema/DomainOp :process/start pid command
               listen-command-output! stdout $ fn (chunk)
                 hint-fn $ Fn String $ -> Unit
                 d! $ app.schema/DomainOp :process/log $ {}
@@ -1637,9 +1638,7 @@
                 , &unit
               proc .on-exit! |exit $ fn (event _)
                 hint-fn $ Fn (JsNullish Number) (JsNullish String) (-> Unit)
-                d! $ app.schema/DomainOp :process/finish $ .map
-                  js-nullish->option $ js-get proc :pid
-                  fn (value) (decode-map-as value 'Number)
+                d! $ app.schema/DomainOp :process/finish pid
                 match (get options :on-finish)
                   (:some on-finish) (on-finish)
                   (:none) &unit
@@ -1817,7 +1816,7 @@
             :repo/set-branches $ Map Tag Dynamic
             :repo/set-current String
             :repo/set-upstream app.schema/Origin
-            :process/start $ Map Tag Dynamic
+            :process/start (Option Number) String
             :process/finish $ Option Number
             :process/log $ Map Tag Dynamic
             :process/clear-logs
@@ -1868,8 +1867,12 @@
           :schema $ quote Dynamic
         'decode-domain-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-domain-op (raw)
-            if (enum? raw)
-              match raw
+            cond
+                not $ enum? raw
+                raise "|Expected an Enum operation"
+              (= (enum-definition raw) (Option :some DomainOp))
+                Option :some $ decode-map-as raw 'app.schema/DomainOp
+              true $ match raw
                 (:session/connect)
                   Option :some $ DomainOp :session/connect
                 (:session/disconnect)
@@ -1905,7 +1908,17 @@
                           .unwrap $ get payload :host-kind
                           , 'Tag
                 (:process/start data)
-                  Option :some $ DomainOp :process/start $ decode-map-as data (Map Tag Dynamic)
+                  Option :some $ let
+                      payload $ decode-map-as data $ Map Tag Dynamic
+                      command $ decode-map-as
+                        .unwrap-or (get payload :command) |
+                        , 'String
+                      pid $ match (get payload :pid)
+                        (:none) (Option :none)
+                        (:some value)
+                          if (nil? value) (Option :none)
+                            Option :some $ decode-map-as value 'Number
+                    DomainOp :process/start pid command
                 (:process/finish data)
                   Option :some $ DomainOp :process/finish $ if (nil? data) (Option :none)
                     Option :some $ decode-map-as data 'Number
@@ -1918,7 +1931,6 @@
                 (:session/drop-footprint data)
                   Option :some $ DomainOp :session/drop-footprint $ decode-map-as data 'String
                 _ $ Option :none
-              raise "|Expected an Enum operation"
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ Option app.schema/DomainOp
@@ -2007,6 +2019,12 @@
                 match action
                   (:repo/set-upstream origin)
                     :: :repo/set-upstream $ &struct:to-map origin
+                  (:process/start pid command)
+                    match pid
+                      (:none)
+                        :: :process/start $ {} (:pid nil) (:command command)
+                      (:some value)
+                        :: :process/start $ {} (:pid value) (:command command)
                   (:process/finish pid)
                     match pid
                       (:none) (:: :process/finish nil)
@@ -2639,6 +2657,31 @@
                 calcit.test/is-throws $ replay-update db op |session |operation |wrong-time
                 assert= (Option :some :stable) (get db :untouched)
               :tags $ #{} :migration :unit
+            %{} 'TestEntry (:name |process-start-legacy-wire-and-typed-history)
+              :code $ quote $ let
+                  db $ {} $ :process-status ({})
+                  action $ app.schema/DomainOp :process/start (Option :some 0) |build
+                  wire $ app.schema/server-op-to-wire action
+                assert=
+                  :: :process/start $ {} (:pid 0) (:command |build)
+                  , wire
+                assert= (Option :some action)
+                  app.schema/decode-server-op $ parse-cirru-edn $ format-cirru-edn wire
+                assert= (Result :ok |build)
+                  get-in (replay-update db action |session |operation 1) ([] :process-status 0)
+                assert= (Result :ok |)
+                  get-in
+                    replay-update db
+                      :: :process/start $ {}
+                      , |session |operation 1
+                    [] :process-status nil
+                assert= (Result :ok |build)
+                  get-in
+                    replay-update db
+                      :: :process/start $ {} (:pid nil) (:command |build)
+                      , |session |operation 1
+                    [] :process-status nil
+              :tags $ #{} :migration :unit
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (db op sid op-id op-time)
             match op
@@ -2653,7 +2696,7 @@
               (:repo/set-branches data) (repo/set-repo db data)
               (:repo/set-current data) (repo/set-current db data)
               (:repo/set-upstream data) (repo/set-upstream db data)
-              (:process/start data) (process/start db data)
+              (:process/start pid command) (process/start db pid command)
               (:process/finish data) (process/finish db data)
               (:process/log data) (process/log db data)
               (:process/clear-logs) (process/clear-logs db op-time)
@@ -2841,22 +2884,14 @@
           :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
             -> $ Map Tag Dynamic
         'start $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn start (db op-data)
-            let
-                command $ decode-map-as
-                  .unwrap-or (get op-data :command) |
-                  , 'String
-              match (get op-data :pid)
-                (:none)
-                  assoc-in db ([] :process-status nil) command
-                (:some raw-pid)
-                  if (nil? raw-pid)
-                    assoc-in db ([] :process-status nil) command
-                    assoc-in db
-                      [] :process-status $ decode-map-as raw-pid 'Number
-                      , command
+          :code $ quote $ defn start (db pid command)
+            match pid
+              (:none)
+                assoc-in db ([] :process-status nil) command
+              (:some value)
+                assoc-in db ([] :process-status value) command
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic) (Option Number) String
             -> $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater.process
