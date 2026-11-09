@@ -384,7 +384,7 @@
                   :style $ {} (:cursor :pointer) (:line-height |32px)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/LocalOp $ -> Unit
                       -> Unit
                     d! $ app.schema/LocalOp :effect/connect
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
@@ -492,7 +492,7 @@
                     {}
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn AnyEnum (-> Unit) (:open :reflect)
+                    Fn app.schema/EffectOp $ -> Unit
                     -> Unit
                   if remote?
                     d! $ app.schema/EffectOp :effect/switch-remote-branch $ .unwrap-or
@@ -507,7 +507,7 @@
                 Option :some $ a
                   {} $ :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/remove-branch branch
                   comp-i :x 14 $ hsl 20 80 80
@@ -536,7 +536,7 @@
                         d! $ app.schema/EffectOp :effect/commit result
                       , &unit
                     , &unit
-                  render-button |Commit false nil
+                  render-button |Commit false $ Option :none
                 .render commit-plugin
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey)
@@ -566,7 +566,7 @@
                         :style $ {} $ :justify-content :flex-end
                         :on-click $ fn (e d!)
                           hint-fn $ Fn respo.schema/RespoEvent
-                            Fn AnyEnum (-> Unit) (:open :reflect)
+                            Fn app.schema/EffectOp $ -> Unit
                             -> Unit
                           d! $ app.schema/EffectOp :effect/switch-path k
                         :title k
@@ -579,7 +579,7 @@
                             :color $ hsl 0 90 70
                           fn (e d!)
                             hint-fn $ Fn respo.schema/RespoEvent
-                              Fn AnyEnum (-> Unit) (:open :reflect)
+                              Fn app.schema/DomainOp $ -> Unit
                               -> Unit
                             d! $ app.schema/DomainOp :session/drop-footprint k
           :examples $ []
@@ -632,7 +632,7 @@
                     :items remote-branches
                     :on-result $ fn (result d!)
                       hint-fn $ Fn Dynamic
-                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        Fn app.schema/EffectOp $ -> Unit
                         -> Unit
                       when-not (nil? result)
                         match result $
@@ -740,7 +740,7 @@
                 button $ {} (:class-name css-button) (:inner-text |Status)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/status
                 =< 16 nil
@@ -749,7 +749,7 @@
                   Option :some $ button $ {} (:class-name css-button) (:inner-text |Clear)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        Fn app.schema/DomainOp $ -> Unit
                         -> Unit
                       d! $ app.schema/DomainOp :process/clear-logs
                   Option :none
@@ -784,7 +784,7 @@
                             :margin-top 4
                           fn (e d!)
                             hint-fn $ Fn respo.schema/RespoEvent
-                              Fn AnyEnum (-> Unit) (:open :reflect)
+                              Fn app.schema/EffectOp $ -> Unit
                               -> Unit
                             d! $ app.schema/EffectOp :effect/kill-process $ decode-map-as pid 'Number
                         =< 12 nil
@@ -868,7 +868,7 @@
                         d! $ app.schema/EffectOp :effect/new-branch result
                       , &unit
                     , &unit
-                  render-button "|New Branch" false nil
+                  render-button "|New Branch" false $ Option :none
                   .render branch-plugin
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey)
@@ -907,66 +907,30 @@
                   div ({}) (comp-title |Basic)
                     div
                       {} $ :class-name css/row
-                      render-button |Pull false $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/pull-current
+                      render-button |Pull false $ Option :some $ app.schema/EffectOp :effect/pull-current
                     comp-title |Others
                     div
                       {} $ :class-name css/row
                       comp-new-branch $ >> states :branch
                   div ({}) (comp-title |Basic)
                     div ({})
-                      render-button |Push false $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/push-current
-                      render-button |Pull false $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/pull-current
-                      render-button |Finish false $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/finish-branch
-                      render-button |RmRemote false $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/rm-remote
+                      render-button |Push false $ Option :some $ app.schema/EffectOp :effect/push-current
+                      render-button |Pull false $ Option :some $ app.schema/EffectOp :effect/pull-current
+                      render-button |Finish false $ Option :some $ app.schema/EffectOp :effect/finish-branch
+                      render-button |RmRemote false $ Option :some $ app.schema/EffectOp :effect/rm-remote
                     comp-title |Other
                     div ({})
                       comp-new-branch $ >> states :branch
                       comp-commit (>> states :commit) current
                     comp-title |Forced
                     div ({})
-                      render-button "|Rebase main" true $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/rebase-master
-                      render-button "|Force push" true $ fn (e d!)
-                        hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
-                          -> Unit
-                        d! $ app.schema/EffectOp :effect/force-push
+                      render-button "|Rebase main" true $ Option :some $ app.schema/EffectOp :effect/rebase-master
+                      render-button "|Force push" true $ Option :some $ app.schema/EffectOp :effect/force-push
                 =< nil 24
                 comp-title |Editor
                 div ({})
-                  render-button "|code ./" false $ fn (e d!)
-                    hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
-                      -> Unit
-                    d! $ app.schema/EffectOp :effect/edit-with |code
-                  render-button "|subl ./" false $ fn (e d!)
-                    hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
-                      -> Unit
-                    d! $ app.schema/EffectOp :effect/edit-with |subl
+                  render-button "|code ./" false $ Option :some $ app.schema/EffectOp :effect/edit-with |code
+                  render-button "|subl ./" false $ Option :some $ app.schema/EffectOp :effect/edit-with |subl
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
@@ -984,28 +948,28 @@
                   :inner-text |Branches
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/read-branches
                 =< 24 nil
                 button $ {} (:class-name css-button) (:inner-text |Fetch)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/fetch-origin
                 =< 16 nil
                 button $ {} (:inner-text |Stash) (:class-name css-button)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/stash
                 =< 16 nil
                 button $ {} (:inner-text "|Stash Apply") (:class-name css-button)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum (-> Unit) (:open :reflect)
+                      Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/stash-apply
                 =< 16 nil
@@ -1109,15 +1073,22 @@
           :examples $ []
           :schema $ quote String
         'render-button $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn render-button (text danger? on-click)
-            button $ {} (:class-name css-button)
-              :style $ if danger?
-                {} (:margin "|4px 4px") (:color :red) (:border-color :red)
-                {} $ :margin "|4px 4px"
-              :inner-text text
-              :on-click on-click
+          :code $ quote $ defn render-button (text danger? action)
+            let
+                props $ {} (:class-name css-button) (:inner-text text)
+                  :style $ if danger?
+                    {} (:margin "|4px 4px") (:color :red) (:border-color :red)
+                    {} $ :margin "|4px 4px"
+              button $ match action
+                (:none) props
+                (:some op)
+                  assoc props :on-click $ fn (_event dispatch!)
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn app.schema/EffectOp $ -> Unit
+                      -> Unit
+                    dispatch! op
           :examples $ []
-          :schema $ quote $ Fn String Bool (JsNullish respo.schema/EventHandler) (-> respo.schema/Element)
+          :schema $ quote $ Fn String Bool (Option app.schema/EffectOp) (-> respo.schema/Element)
         'style-close-icon $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-close-icon
             {}
@@ -1296,7 +1267,7 @@
                     :style $ {} (:color :red) (:border-color :red)
                     :on-click $ fn (_e dispatch!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        Fn app.schema/DomainOp $ -> Unit
                         -> Unit
                         :features :js-ffi
                       dispatch! $ app.schema/DomainOp :user/log-out
