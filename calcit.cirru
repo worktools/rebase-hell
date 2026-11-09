@@ -330,7 +330,9 @@
                         hint-fn $ Fn (Map Tag Dynamic)
                           Fn AnyEnum (-> Unit) (:open :reflect)
                           -> Unit
-                        d! $ app.schema/DomainOp :session/remove-message info
+                        d! $ app.schema/DomainOp :session/remove-message $ decode-map-as
+                          .unwrap $ get info :id
+                          , 'String
                     if dev?
                       Option :some $ comp-reel
                         decode-map-as
@@ -1806,8 +1808,7 @@
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'DomainOp $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defenum DomainOp (:session/connect) (:session/disconnect)
-            :session/remove-message $ Map Tag Dynamic
+          :code $ quote $ defenum DomainOp (:session/connect) (:session/disconnect) (:session/remove-message String)
             :session/add-message $ Map Tag Dynamic
             :user/log-in $ List String
             :user/sign-up $ List String
@@ -1878,7 +1879,11 @@
                 (:session/disconnect)
                   Option :some $ DomainOp :session/disconnect
                 (:session/remove-message data)
-                  Option :some $ DomainOp :session/remove-message $ decode-map-as data (Map Tag Dynamic)
+                  Option :some $ DomainOp :session/remove-message $ decode-map-as
+                    .unwrap $ get
+                      decode-map-as data $ Map Tag Dynamic
+                      , :id
+                    , 'String
                 (:session/add-message data)
                   Option :some $ DomainOp :session/add-message $ decode-map-as data (Map Tag Dynamic)
                 (:user/log-in data)
@@ -2017,6 +2022,8 @@
             match op
               (app.schema/DomainOp action)
                 match action
+                  (:session/remove-message id)
+                    :: :session/remove-message $ {} $ :id id
                   (:repo/set-upstream origin)
                     :: :repo/set-upstream $ &struct:to-map origin
                   (:process/start pid command)
@@ -2050,6 +2057,13 @@
                 Option :some $ EffectOp :effect/new-branch |topic
                 decode-server-op $ parse-cirru-edn $ format-cirru-edn
                   server-op-to-wire $ EffectOp :effect/new-branch |topic
+              assert=
+                :: :session/remove-message $ {} $ :id |fixture-id
+                server-op-to-wire $ DomainOp :session/remove-message |fixture-id
+              assert=
+                Option :some $ DomainOp :session/remove-message |fixture-id
+                decode-server-op $ parse-cirru-edn $ format-cirru-edn
+                  server-op-to-wire $ DomainOp :session/remove-message |fixture-id
             :tags $ #{} :migration :unit
         'session $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def session
@@ -2391,9 +2405,11 @@
                 , &unit
               :on-data $ fn (sid action)
                 hint-fn $ Fn String Dynamic $ -> Unit
-                match (app.schema/decode-server-op action)
-                  (:some op) (@*proxied-dispatch! op sid)
-                  (:none) (println "|Unknown op:" action)
+                try
+                  match (app.schema/decode-server-op action)
+                    (:some op) (@*proxied-dispatch! op sid)
+                    (:none) (println "|Unknown op:" action)
+                  fn (_) (println "|Invalid operation payload.")
                 , &unit
               :on-close $ fn (sid event)
                 hint-fn $ Fn String JsObject $ -> Unit
@@ -2995,22 +3011,18 @@
           :schema $ quote $ Fn (Map Tag Dynamic) String
             -> $ Map Tag Dynamic
         'remove-message $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn remove-message (db op-data sid)
-            let
-                id $ decode-map-as
-                  .unwrap $ get op-data :id
-                  , 'String
-              update-in db ([] :sessions sid :messages)
-                fn (messages)
-                  hint-fn $ Fn (Option Dynamic)
-                    -> $ Map String $ Map Tag Dynamic
-                  dissoc
-                    decode-map-as
-                      .unwrap-or messages $ {}
-                      Map String $ Map Tag Dynamic
-                    , id
+          :code $ quote $ defn remove-message (db id sid)
+            update-in db ([] :sessions sid :messages)
+              fn (messages)
+                hint-fn $ Fn (Option Dynamic)
+                  -> $ Map String $ Map Tag Dynamic
+                dissoc
+                  decode-map-as
+                    .unwrap-or messages $ {}
+                    Map String $ Map Tag Dynamic
+                  , id
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) String
+          :schema $ quote $ Fn (Map Tag Dynamic) String String
             -> $ Map Tag Dynamic
         'track-footprint $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn track-footprint (db dirpath upstream)
