@@ -1531,6 +1531,18 @@
           :schema $ quote $ Fn String
             Fn app.schema/ServerOp $ -> Unit
             -> Unit
+        'process-log-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn process-log-op (kind text)
+            let
+                id $ decode-map-as (nanoid) 'String
+                metadata $ {}
+                  :time $ js/Date.now
+                  :kind kind
+              app.schema/DomainOp :process/log $ if (.blank? text)
+                app.schema/ProcessLog :ignored $ merge metadata $ {} (:id id) (:text text)
+                app.schema/ProcessLog :entry id text metadata
+          :examples $ []
+          :schema $ quote $ Fn Tag String (-> app.schema/DomainOp) (:features :js-ffi)
         'pull-current! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn pull-current! (d!)
             run-command! "|git pull" d! $ {}
@@ -1624,19 +1636,11 @@
               d! $ app.schema/DomainOp :process/start pid command
               listen-command-output! stdout $ fn (chunk)
                 hint-fn $ Fn String $ -> Unit
-                d! $ app.schema/DomainOp :process/log $ {}
-                  :id $ nanoid
-                  :time $ js/Date.now
-                  :text chunk
-                  :kind :log
+                d! $ app.manager/process-log-op :log chunk
                 , &unit
               listen-command-output! stderr $ fn (chunk)
                 hint-fn $ Fn String $ -> Unit
-                d! $ app.schema/DomainOp :process/log $ {}
-                  :id $ nanoid
-                  :time $ js/Date.now
-                  :text chunk
-                  :kind :error
+                d! $ app.manager/process-log-op :error chunk
                 , &unit
               proc .on-exit! |exit $ fn (event _)
                 hint-fn $ Fn (JsNullish Number) (JsNullish String) (-> Unit)
@@ -1716,11 +1720,7 @@
                 , |system
               println "|Switching to" new-path
               dispatch!
-                app.schema/DomainOp :process/log $ {}
-                  :id $ nanoid
-                  :time $ js/Date.now
-                  :text $ str "|Switched to: " new-path
-                  :kind :log
+                app.manager/process-log-op :log $ str "|Switched to: " new-path
                 , sid
             , &unit
           :examples $ []
@@ -1819,7 +1819,7 @@
             :repo/set-upstream app.schema/Origin
             :process/start (Option Number) String
             :process/finish $ Option Number
-            :process/log $ Map Tag Dynamic
+            :process/log app.schema/ProcessLog
             :process/clear-logs
             :session/track-footprint String String
             :session/drop-footprint String
@@ -1839,6 +1839,13 @@
           :code $ quote $ defstruct Origin (:address String) (:upstream String) (:host-kind Tag)
           :examples $ []
           :schema $ quote StructDef
+        'ProcessLog $ %{} 'CodeEntry
+          :doc "|An ignored blank log retains its legacy payload. An entry holds a checked ID and text plus its original metadata."
+          :code $ quote $ defenum ProcessLog
+            :ignored $ Map Tag Dynamic
+            :entry String String $ Map Tag Dynamic
+          :examples $ []
+          :schema $ quote EnumDef
         'ServerOp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defunion ServerOp DomainOp EffectOp
           :examples $ []
@@ -1928,7 +1935,7 @@
                   Option :some $ DomainOp :process/finish $ if (nil? data) (Option :none)
                     Option :some $ decode-map-as data 'Number
                 (:process/log data)
-                  Option :some $ DomainOp :process/log $ decode-map-as data (Map Tag Dynamic)
+                  Option :some $ DomainOp :process/log $ app.schema/decode-process-log data
                 (:process/clear-logs)
                   Option :some $ DomainOp :process/clear-logs
                 (:session/track-footprint dirpath upstream)
@@ -1939,6 +1946,21 @@
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ Option app.schema/DomainOp
+        'decode-process-log $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-process-log (raw)
+            let
+                payload $ decode-map-as raw $ Map Tag Dynamic
+                text $ decode-map-as
+                  .unwrap-or (get payload :text) |
+                  , 'String
+              if (.blank? text) (ProcessLog :ignored payload)
+                ProcessLog :entry
+                  decode-map-as
+                    .unwrap $ get payload :id
+                    , 'String
+                  , text $ dissoc payload :id :text
+          :examples $ []
+          :schema $ quote $ Fn Dynamic (-> app.schema/ProcessLog)
         'decode-server-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-server-op (raw)
             if (enum? raw)
@@ -2010,6 +2032,15 @@
             {} (:id nil) (:text nil) (:kind nil)
           :examples $ []
           :schema $ quote $ Map Tag Dynamic
+        'process-log-to-wire $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn process-log-to-wire (event)
+            match event
+              (:ignored payload) payload
+              (:entry id text metadata)
+                merge metadata $ {} (:id id) (:text text)
+          :examples $ []
+          :schema $ quote $ Fn app.schema/ProcessLog
+            -> $ Map Tag Dynamic
         'router $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def router
             {} (:name nil) (:title nil)
@@ -2036,6 +2067,8 @@
                     match pid
                       (:none) (:: :process/finish nil)
                       (:some value) (:: :process/finish value)
+                  (:process/log event)
+                    :: :process/log $ app.schema/process-log-to-wire event
                   _ $ ::
                     decode-map-as (&enum:nth action 0) 'Tag
                     , & $ &enum:params action
@@ -2045,26 +2078,38 @@
                   , & $ &enum:params action
           :examples $ []
           :schema $ quote $ Fn app.schema/ServerOp (-> AnyEnum) (:open :reflect)
-          :tests $ [] $ %{} 'TestEntry (:name |preserves-legacy-action-wire)
-            :code $ quote $ do
-              assert= (:: :effect/new-branch |topic)
-                server-op-to-wire $ EffectOp :effect/new-branch |topic
-              assert= (:: :process/finish nil)
-                server-op-to-wire $ DomainOp :process/finish $ Option :none
-              assert= (:: :process/finish 42)
-                server-op-to-wire $ DomainOp :process/finish $ Option :some 42
-              assert=
-                Option :some $ EffectOp :effect/new-branch |topic
-                decode-server-op $ parse-cirru-edn $ format-cirru-edn
+          :tests $ []
+            %{} 'TestEntry (:name |preserves-legacy-action-wire)
+              :code $ quote $ do
+                assert= (:: :effect/new-branch |topic)
                   server-op-to-wire $ EffectOp :effect/new-branch |topic
-              assert=
-                :: :session/remove-message $ {} $ :id |fixture-id
-                server-op-to-wire $ DomainOp :session/remove-message |fixture-id
-              assert=
-                Option :some $ DomainOp :session/remove-message |fixture-id
-                decode-server-op $ parse-cirru-edn $ format-cirru-edn
+                assert= (:: :process/finish nil)
+                  server-op-to-wire $ DomainOp :process/finish $ Option :none
+                assert= (:: :process/finish 42)
+                  server-op-to-wire $ DomainOp :process/finish $ Option :some 42
+                assert=
+                  Option :some $ EffectOp :effect/new-branch |topic
+                  decode-server-op $ parse-cirru-edn $ format-cirru-edn
+                    server-op-to-wire $ EffectOp :effect/new-branch |topic
+                assert=
+                  :: :session/remove-message $ {} $ :id |fixture-id
                   server-op-to-wire $ DomainOp :session/remove-message |fixture-id
-            :tags $ #{} :migration :unit
+                assert=
+                  Option :some $ DomainOp :session/remove-message |fixture-id
+                  decode-server-op $ parse-cirru-edn $ format-cirru-edn
+                    server-op-to-wire $ DomainOp :session/remove-message |fixture-id
+              :tags $ #{} :migration :unit
+            %{} 'TestEntry (:name |process-log-preserves-legacy-metadata)
+              :code $ quote $ let
+                  round-trip $ fn (payload)
+                    hint-fn $ Fn (Map Tag Dynamic) (-> AnyEnum)
+                    server-op-to-wire $ .unwrap $ decode-server-op
+                      parse-cirru-edn $ format-cirru-edn $ :: :process/log payload
+                  entry $ {} (:id |log-1) (:text "|完成") (:extra :preserved)
+                  blank $ {} (:id 42) (:extra :ignored)
+                assert= (:: :process/log entry) (round-trip entry)
+                assert= (:: :process/log blank) (round-trip blank)
+              :tags $ #{} :migration :unit
         'session $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def session
             {} (:user-id nil) (:id nil) (:nickname nil)
@@ -2843,6 +2888,12 @@
                 calcit.test/is-throws $ replay-update db (:: :repo/set-upstream 42) |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :process/start 42) |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :process/log 42) |session |operation 1
+                calcit.test/is-throws $ replay-update db
+                  :: :process/log $ {} $ :text |nonblank
+                  , |session |operation 1
+                assert= db $ replay-update db
+                  :: :process/log $ {} (:id 42) (:text "|  ")
+                  , |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :session/track-footprint 42 |owner/repo) |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :session/track-footprint |path 42) |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :session/drop-footprint 42) |session |operation 1
@@ -2886,18 +2937,13 @@
           :schema $ quote $ Fn (Map Tag Dynamic) (Option Number)
             -> $ Map Tag Dynamic
         'log $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn log (db op-data)
-            let
-                text $ decode-map-as
-                  .unwrap-or (get op-data :text) |
-                  , 'String
-              if (.blank? text) db $ assoc-in db
-                [] :logs $ decode-map-as
-                  .unwrap $ get op-data :id
-                  , 'String
-                , op-data
+          :code $ quote $ defn log (db event)
+            match event
+              (:ignored _) db
+              (:entry id _ _)
+                assoc-in db ([] :logs id) (app.schema/process-log-to-wire event)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/ProcessLog
             -> $ Map Tag Dynamic
         'start $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn start (db pid command)
