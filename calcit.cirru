@@ -1575,7 +1575,7 @@
                     decode-map-as (js-await ch-branches) 'String
                   current $ .trim $ decode-map-as (js-await ch-current) 'String
                   remote-branches $ read-items $ decode-map-as (js-await ch-remote) 'String
-                d! $ app.schema/DomainOp :repo/set-branches $ {} (:branches branches) (:current current) (:remote-branches remote-branches)
+                d! $ app.schema/DomainOp :repo/set-branches $ app.schema/Branches :branches branches :current current :remote-branches remote-branches :extra ({})
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
@@ -1807,6 +1807,13 @@
           :require $ |chalk :default chalk
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'Branches $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Branches (:current String)
+            :branches $ Set String
+            :remote-branches $ List String
+            :extra $ Map Tag Dynamic
+          :examples $ []
+          :schema $ quote StructDef
         'DomainOp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum DomainOp (:session/connect) (:session/disconnect) (:session/remove-message String)
             :session/add-message $ Map Tag Dynamic
@@ -1814,7 +1821,7 @@
             :user/sign-up $ List String
             :user/log-out
             :router/change $ Map Tag Dynamic
-            :repo/set-branches $ Map Tag Dynamic
+            :repo/set-branches app.schema/Branches
             :repo/set-current String
             :repo/set-upstream app.schema/Origin
             :process/start (Option Number) String
@@ -1859,6 +1866,28 @@
             :: :states ([]) nil
           :examples $ []
           :schema $ quote AnyEnum
+        'branches-to-wire $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn branches-to-wire (snapshot)
+            -> (:extra snapshot)
+              assoc :branches $ :branches snapshot
+              assoc :current $ :current snapshot
+              assoc :remote-branches $ :remote-branches snapshot
+          :examples $ []
+          :schema $ quote $ Fn app.schema/Branches
+            -> $ Map Tag Dynamic
+          :tests $ [] $ %{} 'TestEntry (:name |legacy-branch-payload-preserves-extra-fields)
+            :code $ quote $ let
+                payload $ {}
+                  :branches $ #{} |main
+                  :current |main
+                  :remote-branches $ [] |origin/main
+                  :extra-info :preserved
+                wire $ :: :repo/set-branches payload
+                action $ .unwrap $ decode-domain-op wire
+              assert= wire $ server-op-to-wire action
+              assert= (Option :some action)
+                decode-domain-op $ parse-cirru-edn $ format-cirru-edn wire
+            :tags $ #{} :migration :unit
         'database $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def database
             {}
@@ -1902,7 +1931,19 @@
                 (:router/change data)
                   Option :some $ DomainOp :router/change $ decode-map-as data (Map Tag Dynamic)
                 (:repo/set-branches data)
-                  Option :some $ DomainOp :repo/set-branches $ decode-map-as data (Map Tag Dynamic)
+                  let
+                      payload $ decode-map-as data $ Map Tag Dynamic
+                      branches $ decode-map-as
+                        .unwrap $ get payload :branches
+                        Set String
+                      current $ decode-map-as
+                        .unwrap $ get payload :current
+                        , String
+                      remote-branches $ decode-map-as
+                        .unwrap $ get payload :remote-branches
+                        List String
+                      extra $ dissoc payload :branches :current :remote-branches
+                    Option :some $ DomainOp :repo/set-branches $ Branches :branches branches :current current :remote-branches remote-branches :extra extra
                 (:repo/set-current data)
                   Option :some $ DomainOp :repo/set-current $ decode-map-as data 'String
                 (:repo/set-upstream data)
@@ -2057,6 +2098,8 @@
                     :: :session/remove-message $ {} $ :id id
                   (:repo/set-upstream origin)
                     :: :repo/set-upstream $ &struct:to-map origin
+                  (:repo/set-branches snapshot)
+                    :: :repo/set-branches $ branches-to-wire snapshot
                   (:process/start pid command)
                     match pid
                       (:none)
@@ -2967,24 +3010,13 @@
             -> $ Map Tag Dynamic
         'set-repo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-repo (db op-data)
-            let
-                branches $ decode-map-as
-                  .unwrap $ get op-data :branches
-                  Set String
-                current $ decode-map-as
-                  .unwrap $ get op-data :current
-                  , 'String
-                remote-branches $ decode-map-as
-                  .unwrap $ get op-data :remote-branches
-                  List String
-                payload $ -> op-data (assoc :branches branches) (assoc :current current) (assoc :remote-branches remote-branches)
-              update db :repo $ fn (repo)
-                hint-fn $ Fn Dynamic $ -> (Map Tag Dynamic)
-                merge
-                  decode-map-as repo $ Map Tag Dynamic
-                  , payload
+            update db :repo $ fn (repo)
+              hint-fn $ Fn Dynamic $ -> (Map Tag Dynamic)
+              merge
+                decode-map-as repo $ Map Tag Dynamic
+                app.schema/branches-to-wire op-data
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Branches
             -> $ Map Tag Dynamic
         'set-upstream $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn set-upstream (db origin)
