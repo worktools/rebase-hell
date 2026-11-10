@@ -626,8 +626,8 @@
                         not= short-name |HEAD
                   sort &compare
                   map $ fn (branch)
-                    hint-fn $ Fn String (-> AnyEnum) (:open :reflect)
-                    :: :item branch branch
+                    hint-fn $ Fn String $ -> (Map Tag String)
+                    {} (:value branch) (:display branch)
                 menu-branch $ use-modal-menu (>> states :remote-branches)
                   {} (:title |Demo)
                     :style $ {} $ :width 300
@@ -720,9 +720,9 @@
                       {} (:font-size 16)
                         :color $ hsl 200 80 64
                         :cursor :pointer
-                      fn (e d!)
+                      fn (_e _d!)
                         hint-fn $ Fn respo.schema/RespoEvent
-                          Fn AnyEnum (-> Unit) (:open :reflect)
+                          Fn app.schema/UiOp $ -> Unit
                           -> Unit
                         copy! text
                         , &unit
@@ -1255,7 +1255,7 @@
                   {} (:class-name css/button)
                     :on-click $ fn (_e _d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn AnyEnum (-> Unit) (:open :reflect)
+                        Fn app.schema/UiOp $ -> Unit
                         -> Unit
                         :features :js-ffi
                       browser/location-replace! $ str
