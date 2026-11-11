@@ -1403,21 +1403,13 @@
         'command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn command-output! (command)
             js-cast
-              new js/Promise $ fn (resolve _reject)
-                hint-fn $ {}
-                  :args $ []
-                    :: 'Fn $ {}
-                      :args $ [] 'String
-                      :return 'Unit
-                    , 'DynFn
-                  :return 'Unit
-                  :features $ #{} :js-ffi
-                  :async false
+              new js/Promise $ fn (resolve)
+                hint-fn $ Fn
+                  Fn String $ -> Unit
+                  -> Unit
+                  :features :js-ffi
                 cp/exec command $ fn (err stdout stderr)
-                  hint-fn $ {}
-                    :args $ [] (:: 'JsNullish 'JsObject) 'String 'String
-                    :return 'Unit
-                    :async false
+                  hint-fn $ Fn (JsNullish JsObject) String String $ -> Unit
                   resolve stdout
                   , &unit
                 , &unit
