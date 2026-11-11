@@ -81,15 +81,15 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn app.schema/UiOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/UiOp (-> Unit) (:features :js-ffi)
         'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-from-view! (raw)
             cond
-                = (enum-definition raw) (Option :some app.schema/LocalOp)
+                = (enum-definition raw) (Some app.schema/LocalOp)
                 dispatch! $ decode-map-as raw 'app.schema/LocalOp
-              (= (enum-definition raw) (Option :some app.schema/DomainOp))
+              (= (enum-definition raw) (Some app.schema/DomainOp))
                 dispatch! $ decode-map-as raw 'app.schema/DomainOp
-              (= (enum-definition raw) (Option :some app.schema/EffectOp))
+              (= (enum-definition raw) (Some app.schema/EffectOp))
                 dispatch! $ decode-map-as raw 'app.schema/EffectOp
               true $ match raw
                 (:states cursor state)
@@ -157,7 +157,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn js-ffi.browser/KeyboardEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn browser/KeyboardEventHost (-> Unit) (:features :js-ffi)
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
             let
@@ -215,8 +215,7 @@
                 decode-map-as
                   .unwrap-or (get @*states :states) ({})
                   Map Tag Dynamic
-                if (js-nullish? @*store) (Option :none)
-                  Option :some $ decode-map-as @*store $ Map Tag Dynamic
+                if (js-nullish? @*store) None $ Some $ decode-map-as @*store (Map Tag Dynamic)
               , dispatch-from-view!
             , &unit
           :examples $ []
@@ -237,14 +236,13 @@
         'store-upstream $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn store-upstream (store)
             match (js-nullish->option store)
-              (:none) (Option :none)
+              (:none) None
               (:some data)
                 match
                   get-in data $ [] :repo :upstream
-                  (:err _) (Option :none)
+                  (:err _) None
                   (:ok value)
-                    if (nil? value) (Option :none)
-                      Option :some $ decode-map-as value 'String
+                    if (nil? value) None $ Some $ decode-map-as value 'String
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
           :schema $ quote $ Fn
@@ -312,13 +310,12 @@
                         decode-map-as router-data $ Map String String
                       _ $ <> $ str router
                     comp-status-color $ match (get store :color)
-                      (:none) (Option :none)
+                      (:none) None
                       (:some raw)
-                        if (nil? raw) (Option :none)
-                          Option :some $ decode-map-as raw 'String
+                        if (nil? raw) None $ Some $ decode-map-as raw 'String
                     if dev?
-                      Option :some $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
-                      Option :none
+                      Some $ comp-inspect |Store store $ {} (:bottom 0) (:left 0) (:max-width |100%)
+                      , None
                     comp-messages
                       decode-map-as
                         .unwrap-or
@@ -334,12 +331,12 @@
                           .unwrap $ get info :id
                           , 'String
                     if dev?
-                      Option :some $ comp-reel
+                      Some $ comp-reel
                         decode-map-as
                           .unwrap-or (get store :reel-length) 0
                           , 'Number
                         {}
-                      Option :none
+                      , None
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic)
             Option $ Map Tag Dynamic
@@ -356,16 +353,16 @@
                   :count 1
                   :session $ {} $ :messages ({})
                   :reel-length 2
-                present $ comp-container ({}) (Option :some store)
+                present $ comp-container ({}) (Some store)
                 absent $ comp-container ({})
-                  Option :some $ dissoc store :reel-length
+                  Some $ dissoc store :reel-length
                 bad $ assoc store :reel-length |wrong-number
               assert= true $ .some? $ :tree present
               assert= true $ .some? $ :tree absent
               if dev?
-                calcit.test/is-throws $ comp-container ({}) (Option :some bad)
+                calcit.test/is-throws $ comp-container ({}) (Some bad)
                 assert= true $ .some? $ :tree
-                  comp-container ({}) (Option :some bad)
+                  comp-container ({}) (Some bad)
             :tags $ #{} :js :migration :unit
         'comp-offline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-offline ()
@@ -413,8 +410,8 @@
           :schema $ quote $ Fn (Option String) (-> respo.schema/Component)
           :tests $ [] $ %{} 'TestEntry (:name |preserves-present-and-missing-status-colors)
             :code $ quote $ let
-                present $ comp-status-color $ Option :some |rebeccapurple
-                absent $ comp-status-color $ Option :none
+                present $ comp-status-color $ Some |rebeccapurple
+                absent $ comp-status-color None
                 style-of $ fn (component)
                   hint-fn $ Fn respo.schema/Component $ ->
                     List $ Tuple respo.schema/StyleKey respo.schema/CssValue
@@ -484,7 +481,7 @@
                     {}
                       :background-color $ hsl 0 0 100
                       :border-radius |4px
-                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 (Option :some 0.1)
+                      :box-shadow $ str "|0px 0px 2px " $ hsl 0 0 0 (Some 0.1)
                     {}
                   if remote?
                     {}
@@ -506,14 +503,14 @@
                 and (not= current branch)
                   not $ default-branch? branch
                   not remote?
-                Option :some $ a
+                Some $ a
                   {} $ :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
                       Fn app.schema/EffectOp $ -> Unit
                       -> Unit
                     d! $ app.schema/EffectOp :effect/remove-branch branch
                   comp-i :x 14 $ hsl 20 80 80
-                Option :none
+                , None
           :examples $ []
           :schema $ quote $ Fn String String Bool (-> respo.schema/Component)
         'comp-commit $ %{} 'CodeEntry (:doc |)
@@ -538,7 +535,7 @@
                         d! $ app.schema/EffectOp :effect/commit result
                       , &unit
                     , &unit
-                  render-button |Commit false $ Option :none
+                  render-button |Commit false None
                 .render commit-plugin
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey)
@@ -707,14 +704,14 @@
                 {} $ :style $ {} (:position :relative)
                 pre $ {} (:class-name css-log) (:inner-text text)
                 if-not (empty? urls)
-                  Option :some $ list-> ({})
+                  Some $ list-> ({})
                     -> urls $ map $ fn (url)
                       hint-fn $ Fn String $ -> (List Dynamic)
                       [] url $ a $ {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
                         :style $ {} (:line-height |16px) (:height |16px)
-                  Option :none
+                  , None
                 if (= :command kind)
-                  Option :some $ div
+                  Some $ div
                     {} $ :style $ {} (:position :absolute) (:top 12) (:right 12)
                     comp-icon :copy
                       {} (:font-size 16)
@@ -726,7 +723,7 @@
                           -> Unit
                         copy! text
                         , &unit
-                  Option :none
+                  , None
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
           :schema $ quote $ Fn (Map Tag Dynamic) (-> respo.schema/Component) (:features :js-ffi)
@@ -748,16 +745,16 @@
                 =< 16 nil
                 if
                   not $ empty? logs
-                  Option :some $ button $ {} (:class-name css-button) (:inner-text |Clear)
+                  Some $ button $ {} (:class-name css-button) (:inner-text |Clear)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
                         Fn app.schema/DomainOp $ -> Unit
                         -> Unit
                       d! $ app.schema/DomainOp :process/clear-logs
-                  Option :none
+                  , None
               if
                 not $ empty? status
-                Option :some $ div
+                Some $ div
                   {} (:class-name css/row-middle)
                     :style $ {} $ :padding 16
                   span
@@ -766,7 +763,7 @@
                       :style $ {} (:width 24) (:height 24) (:line-height |0px)
                     comp-icon :loader
                       &{} :font-size 24 :color
-                        hsl 0 0 0 $ Option :some 0.5
+                        hsl 0 0 0 $ Some 0.5
                         , :height 24
                       , nil
                   =< 16 nil
@@ -793,7 +790,7 @@
                         div
                           {} $ :class-name css/expand
                           <> command
-                Option :none
+                , None
               list->
                 {} (:class-name css/flex)
                   :style $ {} $ :overflow :auto
@@ -870,7 +867,7 @@
                         d! $ app.schema/EffectOp :effect/new-branch result
                       , &unit
                     , &unit
-                  render-button "|New Branch" false $ Option :none
+                  render-button "|New Branch" false None
                   .render branch-plugin
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey)
@@ -891,7 +888,7 @@
               assert= (:name baseline) (:name mixed-control)
               assert= true $ .some? $ :tree mixed-control
               assert=
-                Option :some $ [] :root |row 7
+                Some $ [] :root |row 7
                 get mixed :cursor
               assert=
                 Result :ok $ {} $ :data |number-key
@@ -909,30 +906,30 @@
                   div ({}) (comp-title |Basic)
                     div
                       {} $ :class-name css/row
-                      render-button |Pull false $ Option :some $ app.schema/EffectOp :effect/pull-current
+                      render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
                     comp-title |Others
                     div
                       {} $ :class-name css/row
                       comp-new-branch $ >> states :branch
                   div ({}) (comp-title |Basic)
                     div ({})
-                      render-button |Push false $ Option :some $ app.schema/EffectOp :effect/push-current
-                      render-button |Pull false $ Option :some $ app.schema/EffectOp :effect/pull-current
-                      render-button |Finish false $ Option :some $ app.schema/EffectOp :effect/finish-branch
-                      render-button |RmRemote false $ Option :some $ app.schema/EffectOp :effect/rm-remote
+                      render-button |Push false $ Some $ app.schema/EffectOp :effect/push-current
+                      render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
+                      render-button |Finish false $ Some $ app.schema/EffectOp :effect/finish-branch
+                      render-button |RmRemote false $ Some $ app.schema/EffectOp :effect/rm-remote
                     comp-title |Other
                     div ({})
                       comp-new-branch $ >> states :branch
                       comp-commit (>> states :commit) current
                     comp-title |Forced
                     div ({})
-                      render-button "|Rebase main" true $ Option :some $ app.schema/EffectOp :effect/rebase-master
-                      render-button "|Force push" true $ Option :some $ app.schema/EffectOp :effect/force-push
+                      render-button "|Rebase main" true $ Some $ app.schema/EffectOp :effect/rebase-master
+                      render-button "|Force push" true $ Some $ app.schema/EffectOp :effect/force-push
                 =< nil 24
                 comp-title |Editor
                 div ({})
-                  render-button "|code ./" false $ Option :some $ app.schema/EffectOp :effect/edit-with |code
-                  render-button "|subl ./" false $ Option :some $ app.schema/EffectOp :effect/edit-with |subl
+                  render-button "|code ./" false $ Some $ app.schema/EffectOp :effect/edit-with |code
+                  render-button "|subl ./" false $ Some $ app.schema/EffectOp :effect/edit-with |subl
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
@@ -1019,7 +1016,7 @@
                 :background-color $ hsl 200 40 98
                 :transition-duration |200ms
               |&:hover $ {} $ :box-shadow
-                str "|1px 1px 4px " $ hsl 0 0 0 $ Option :some 0.2
+                str "|1px 1px 4px " $ hsl 0 0 0 $ Some 0.2
               |&:active $ {} (:transform "|scale(1.06)") (:transition-duration |0ms)
           :examples $ []
           :schema $ quote String
@@ -1057,10 +1054,10 @@
           :code $ quote $ defstyle css-remote
             {}
               |& $ {} (:font-family ui/font-fancy) (:cursor :pointer) (:font-size 12)
-                :color $ hsl 0 0 60 $ Option :some 0.4
+                :color $ hsl 0 0 60 $ Some 0.4
                 :transition-duration |200ms
               |&:hover $ {} $ :color
-                hsl 0 0 60 $ Option :some 0.8
+                hsl 0 0 60 $ Some 0.8
           :examples $ []
           :schema $ quote String
         'css-section-title $ %{} 'CodeEntry (:doc |)
@@ -1141,12 +1138,12 @@
                   a $ {} (:class-name css-nav-title) (:inner-text upstream) (:href git-url) (:target |_blank)
                   =< 16 nil
                   if (.includes? git-url |nevint)
-                    Option :some $ a $ {} (:inner-text "|Fx⤴")
+                    Some $ a $ {} (:inner-text "|Fx⤴")
                       :style $ {} $ :font-size 13
                       :class-name $ str-spaced css/font-fancy css-nav-title
                       :target |_blank
                       :href $ str |https://fx.nioint.com/?jumpGitRepo= git-url
-                    Option :none
+                    , None
                 ; div
                   {}
                     :style $ {} $ :cursor |pointer
@@ -1177,9 +1174,9 @@
                 , false 1 repo
               assert= baseline $ comp-navigation mixed false 1 repo
               assert=
-                Option :some $ {} $ :data |number-key
+                Some $ {} $ :data |number-key
                 get mixed 7
-              assert= (Option :none) (get mixed |7)
+              assert= None $ get mixed |7
             :tags $ #{} :js :migration :unit
         'css-nav-label $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-nav-label
@@ -1203,7 +1200,7 @@
             {} $ |$0 $ merge ui/row-center
               {} (:height 48) (:justify-content :space-between) (:padding "|0 16px") (:font-size 16)
                 :background-color $ hsl 0 0 98
-                :border-bottom $ str "|1px solid " $ hsl 0 0 50 (Option :some 0.1)
+                :border-bottom $ str "|1px solid " $ hsl 0 0 50 (Some 0.1)
           :examples $ []
           :schema $ quote String
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
@@ -1306,7 +1303,7 @@
           :code $ quote $ def site
             Site :port 8009 :title "|Rebase Hell" :ws-host |localhost :icon |https://cdn.tiye.me/logo/rebase-hell.png :dev-ui |http://localhost:8100/main.css :release-ui |https://cdn.tiye.me/favored-fonts/main.css :cdn-url |https://cdn.tiye.me/rebase-hell/ :theme |#eeeeff :storage-key |rebase-hell-storage :storage-file |storage.edn
           :examples $ []
-          :schema $ quote app.config/Site
+          :schema $ quote Site
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.env $ %{} 'FileEntry
@@ -1419,7 +1416,7 @@
               , 'js-ffi.shared/PromiseHost
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn String (-> js-ffi.shared/PromiseHost) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> shared/PromiseHost) (:features :js-ffi)
         'commit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn commit! (current message d!)
             cond
@@ -1516,7 +1513,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (JsNullish app.manager/CommandStreamHost)
+          :schema $ quote $ Fn (JsNullish CommandStreamHost)
             Fn String $ -> Unit
             -> Unit
             :features :js-ffi
@@ -1873,7 +1870,7 @@
               assoc :current $ :current snapshot
               assoc :remote-branches $ :remote-branches snapshot
           :examples $ []
-          :schema $ quote $ Fn app.schema/Branches
+          :schema $ quote $ Fn Branches
             -> $ Map Tag Dynamic
           :tests $ [] $ %{} 'TestEntry (:name |legacy-branch-payload-preserves-extra-fields)
             :code $ quote $ let
@@ -1885,7 +1882,7 @@
                 wire $ :: :repo/set-branches payload
                 action $ .unwrap $ decode-domain-op wire
               assert= wire $ server-op-to-wire action
-              assert= (Option :some action)
+              assert= (Some action)
                 decode-domain-op $ parse-cirru-edn $ format-cirru-edn wire
             :tags $ #{} :migration :unit
         'database $ %{} 'CodeEntry (:doc |)
@@ -1907,29 +1904,29 @@
             cond
                 not $ enum? raw
                 raise "|Expected an Enum operation"
-              (= (enum-definition raw) (Option :some DomainOp))
-                Option :some $ decode-map-as raw 'app.schema/DomainOp
+              (= (enum-definition raw) (Some DomainOp))
+                Some $ decode-map-as raw 'app.schema/DomainOp
               true $ match raw
                 (:session/connect)
-                  Option :some $ DomainOp :session/connect
+                  Some $ DomainOp :session/connect
                 (:session/disconnect)
-                  Option :some $ DomainOp :session/disconnect
+                  Some $ DomainOp :session/disconnect
                 (:session/remove-message data)
-                  Option :some $ DomainOp :session/remove-message $ decode-map-as
+                  Some $ DomainOp :session/remove-message $ decode-map-as
                     .unwrap $ get
                       decode-map-as data $ Map Tag Dynamic
                       , :id
                     , 'String
                 (:session/add-message data)
-                  Option :some $ DomainOp :session/add-message $ decode-map-as data (Map Tag Dynamic)
+                  Some $ DomainOp :session/add-message $ decode-map-as data (Map Tag Dynamic)
                 (:user/log-in data)
-                  Option :some $ DomainOp :user/log-in $ decode-map-as data (List String)
+                  Some $ DomainOp :user/log-in $ decode-map-as data (List String)
                 (:user/sign-up data)
-                  Option :some $ DomainOp :user/sign-up $ decode-map-as data (List String)
+                  Some $ DomainOp :user/sign-up $ decode-map-as data (List String)
                 (:user/log-out)
-                  Option :some $ DomainOp :user/log-out
+                  Some $ DomainOp :user/log-out
                 (:router/change data)
-                  Option :some $ DomainOp :router/change $ decode-map-as data (Map Tag Dynamic)
+                  Some $ DomainOp :router/change $ decode-map-as data (Map Tag Dynamic)
                 (:repo/set-branches data)
                   let
                       payload $ decode-map-as data $ Map Tag Dynamic
@@ -1943,11 +1940,11 @@
                         .unwrap $ get payload :remote-branches
                         List String
                       extra $ dissoc payload :branches :current :remote-branches
-                    Option :some $ DomainOp :repo/set-branches $ Branches :branches branches :current current :remote-branches remote-branches :extra extra
+                    Some $ DomainOp :repo/set-branches $ Branches :branches branches :current current :remote-branches remote-branches :extra extra
                 (:repo/set-current data)
-                  Option :some $ DomainOp :repo/set-current $ decode-map-as data 'String
+                  Some $ DomainOp :repo/set-current $ decode-map-as data 'String
                 (:repo/set-upstream data)
-                  Option :some $ let
+                  Some $ let
                       payload $ decode-map-as data $ Map Tag Dynamic
                     DomainOp :repo/set-upstream $ Origin :address
                       decode-map-as
@@ -1961,32 +1958,31 @@
                           .unwrap $ get payload :host-kind
                           , 'Tag
                 (:process/start data)
-                  Option :some $ let
+                  Some $ let
                       payload $ decode-map-as data $ Map Tag Dynamic
                       command $ decode-map-as
                         .unwrap-or (get payload :command) |
                         , 'String
                       pid $ match (get payload :pid)
-                        (:none) (Option :none)
+                        (:none) None
                         (:some value)
-                          if (nil? value) (Option :none)
-                            Option :some $ decode-map-as value 'Number
+                          if (nil? value) None $ Some $ decode-map-as value 'Number
                     DomainOp :process/start pid command
                 (:process/finish data)
-                  Option :some $ DomainOp :process/finish $ if (nil? data) (Option :none)
-                    Option :some $ decode-map-as data 'Number
+                  Some $ DomainOp :process/finish $ if (nil? data) None
+                    Some $ decode-map-as data 'Number
                 (:process/log data)
-                  Option :some $ DomainOp :process/log $ app.schema/decode-process-log data
+                  Some $ DomainOp :process/log $ app.schema/decode-process-log data
                 (:process/clear-logs)
-                  Option :some $ DomainOp :process/clear-logs
+                  Some $ DomainOp :process/clear-logs
                 (:session/track-footprint dirpath upstream)
-                  Option :some $ DomainOp :session/track-footprint (decode-map-as dirpath 'String) (decode-map-as upstream 'String)
+                  Some $ DomainOp :session/track-footprint (decode-map-as dirpath 'String) (decode-map-as upstream 'String)
                 (:session/drop-footprint data)
-                  Option :some $ DomainOp :session/drop-footprint $ decode-map-as data 'String
-                _ $ Option :none
+                  Some $ DomainOp :session/drop-footprint $ decode-map-as data 'String
+                _ None
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ Option app.schema/DomainOp
+            -> $ Option DomainOp
         'decode-process-log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-process-log (raw)
             let
@@ -2001,68 +1997,68 @@
                     , 'String
                   , text $ dissoc payload :id :text
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> app.schema/ProcessLog)
+          :schema $ quote $ Fn Dynamic (-> ProcessLog)
         'decode-server-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-server-op (raw)
             if (enum? raw)
               match raw
                 (:effect/persist)
-                  Option :some $ EffectOp :effect/persist
+                  Some $ EffectOp :effect/persist
                 (:effect/read-branches)
-                  Option :some $ EffectOp :effect/read-branches
+                  Some $ EffectOp :effect/read-branches
                 (:effect/switch-branch data)
-                  Option :some $ EffectOp :effect/switch-branch $ decode-map-as data 'String
+                  Some $ EffectOp :effect/switch-branch $ decode-map-as data 'String
                 (:effect/switch-remote-branch data)
-                  Option :some $ EffectOp :effect/switch-remote-branch $ decode-map-as data 'String
+                  Some $ EffectOp :effect/switch-remote-branch $ decode-map-as data 'String
                 (:effect/switch-path data)
-                  Option :some $ EffectOp :effect/switch-path $ decode-map-as data 'String
+                  Some $ EffectOp :effect/switch-path $ decode-map-as data 'String
                 (:effect/new-branch data)
-                  Option :some $ EffectOp :effect/new-branch $ decode-map-as data 'String
+                  Some $ EffectOp :effect/new-branch $ decode-map-as data 'String
                 (:effect/fetch-origin)
-                  Option :some $ EffectOp :effect/fetch-origin
+                  Some $ EffectOp :effect/fetch-origin
                 (:effect/pull-current)
-                  Option :some $ EffectOp :effect/pull-current
+                  Some $ EffectOp :effect/pull-current
                 (:effect/push-current)
-                  Option :some $ EffectOp :effect/push-current
+                  Some $ EffectOp :effect/push-current
                 (:effect/finish-branch)
-                  Option :some $ EffectOp :effect/finish-branch
+                  Some $ EffectOp :effect/finish-branch
                 (:effect/rm-remote)
-                  Option :some $ EffectOp :effect/rm-remote
+                  Some $ EffectOp :effect/rm-remote
                 (:effect/rebase-master)
-                  Option :some $ EffectOp :effect/rebase-master
+                  Some $ EffectOp :effect/rebase-master
                 (:effect/status)
-                  Option :some $ EffectOp :effect/status
+                  Some $ EffectOp :effect/status
                 (:effect/stash)
-                  Option :some $ EffectOp :effect/stash
+                  Some $ EffectOp :effect/stash
                 (:effect/stash-apply)
-                  Option :some $ EffectOp :effect/stash-apply
+                  Some $ EffectOp :effect/stash-apply
                 (:effect/force-push)
-                  Option :some $ EffectOp :effect/force-push
+                  Some $ EffectOp :effect/force-push
                 (:effect/remove-branch data)
-                  Option :some $ EffectOp :effect/remove-branch $ decode-map-as data 'String
+                  Some $ EffectOp :effect/remove-branch $ decode-map-as data 'String
                 (:effect/commit data)
-                  Option :some $ EffectOp :effect/commit $ decode-map-as data 'String
+                  Some $ EffectOp :effect/commit $ decode-map-as data 'String
                 (:effect/add-tag data)
-                  Option :some $ EffectOp :effect/add-tag $ decode-map-as data 'String
+                  Some $ EffectOp :effect/add-tag $ decode-map-as data 'String
                 (:effect/show-version data)
-                  Option :some $ EffectOp :effect/show-version
+                  Some $ EffectOp :effect/show-version
                 (:effect/show-version)
-                  Option :some $ EffectOp :effect/show-version
+                  Some $ EffectOp :effect/show-version
                 (:effect/kill-process data)
-                  Option :some $ EffectOp :effect/kill-process $ decode-map-as data 'Number
+                  Some $ EffectOp :effect/kill-process $ decode-map-as data 'Number
                 (:effect/edit-with command)
-                  Option :some $ EffectOp :effect/edit-with $ decode-map-as command 'String
+                  Some $ EffectOp :effect/edit-with $ decode-map-as command 'String
                 (:reel/reset)
-                  Option :some $ EffectOp :reel/reset
+                  Some $ EffectOp :reel/reset
                 (:reel/merge)
-                  Option :some $ EffectOp :reel/merge
+                  Some $ EffectOp :reel/merge
                 _ $ match (decode-domain-op raw)
-                  (:none) (Option :none)
-                  (:some domain-op) (Option :some domain-op)
+                  (:none) None
+                  (:some domain-op) (Some domain-op)
               raise "|Expected an Enum WebSocket action"
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ Option app.schema/ServerOp
+            -> $ Option ServerOp
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def log
             {} (:id nil) (:time nil) (:kind nil) (:text nil)
@@ -2080,7 +2076,7 @@
               (:entry id text metadata)
                 merge metadata $ {} (:id id) (:text text)
           :examples $ []
-          :schema $ quote $ Fn app.schema/ProcessLog
+          :schema $ quote $ Fn ProcessLog
             -> $ Map Tag Dynamic
         'router $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def router
@@ -2120,25 +2116,25 @@
                   decode-map-as (&enum:nth action 0) 'Tag
                   , & $ &enum:params action
           :examples $ []
-          :schema $ quote $ Fn app.schema/ServerOp (-> AnyEnum) (:open :reflect)
+          :schema $ quote $ Fn ServerOp (-> AnyEnum) (:open :reflect)
           :tests $ []
             %{} 'TestEntry (:name |preserves-legacy-action-wire)
               :code $ quote $ do
                 assert= (:: :effect/new-branch |topic)
                   server-op-to-wire $ EffectOp :effect/new-branch |topic
                 assert= (:: :process/finish nil)
-                  server-op-to-wire $ DomainOp :process/finish $ Option :none
+                  server-op-to-wire $ DomainOp :process/finish None
                 assert= (:: :process/finish 42)
-                  server-op-to-wire $ DomainOp :process/finish $ Option :some 42
+                  server-op-to-wire $ DomainOp :process/finish $ Some 42
                 assert=
-                  Option :some $ EffectOp :effect/new-branch |topic
+                  Some $ EffectOp :effect/new-branch |topic
                   decode-server-op $ parse-cirru-edn $ format-cirru-edn
                     server-op-to-wire $ EffectOp :effect/new-branch |topic
                 assert=
                   :: :session/remove-message $ {} $ :id |fixture-id
                   server-op-to-wire $ DomainOp :session/remove-message |fixture-id
                 assert=
-                  Option :some $ DomainOp :session/remove-message |fixture-id
+                  Some $ DomainOp :session/remove-message |fixture-id
                   decode-server-op $ parse-cirru-edn $ format-cirru-edn
                     server-op-to-wire $ DomainOp :session/remove-message |fixture-id
               :tags $ #{} :migration :unit
@@ -2183,25 +2179,25 @@
           :examples $ []
           :schema $ quote $ Ref (Map Tag Dynamic)
         '*loop-trigger $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *loop-trigger (Option :none)
+          :code $ quote $ defref *loop-trigger None
           :examples $ []
-          :schema $ quote $ Ref (Option js-ffi.node/NodeTimerHost)
+          :schema $ quote $ Ref (Option node/NodeTimerHost)
         '*proxied-dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *proxied-dispatch! dispatch!
           :examples $ []
           :schema $ quote $ Ref
-            Fn app.schema/ServerOp String $ -> Unit
+            Fn schema/ServerOp String $ -> Unit
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reader-reel @*reel
           :examples $ []
           :schema $ quote $ Ref
-            cumulo-reel.core/ReelState $ Map Tag Dynamic
+            ReelState $ Map Tag Dynamic
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
             ReelState :base @*initial-db :db @*initial-db :records ([]) :merged? false
           :examples $ []
           :schema $ quote $ Ref
-            cumulo-reel.core/ReelState $ Map Tag Dynamic
+            ReelState $ Map Tag Dynamic
         'SignalProcessHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait SignalProcessHost
             .on-signal! $ Fn app.server/SignalProcessHost String
@@ -2311,7 +2307,7 @@
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn app.schema/ServerOp String (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ServerOp String (-> Unit) (:features :js-ffi)
         'editor-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn editor-url (port)
             str |https://r.tiye.me/worktools/rebase-hell/?port= $ if
@@ -2324,11 +2320,11 @@
           :code $ quote $ defn find-git-path (dir) (; println "|searching dir:" dir)
             if
               node/file-exists? $ node/path-join dir |.git/
-              Option :some dir
+              Some dir
               if
                 .includes? (.slice dir 1) |/
                 recur $ node/path-dirname dir
-                Option :none
+                , None
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ quote $ Fn String
@@ -2348,16 +2344,16 @@
               node/mkdir! child
               node/mkdir! nested
               node/mkdir! leaf
-              assert= (Option :some root) (find-git-path root)
-              assert= (Option :some root) (find-git-path child)
-              assert= (Option :some root) (find-git-path leaf)
+              assert= (Some root) (find-git-path root)
+              assert= (Some root) (find-git-path child)
+              assert= (Some root) (find-git-path leaf)
               node/write-text! nested-marker |gitdir:unused
-              assert= (Option :some root) (find-git-path leaf)
+              assert= (Some root) (find-git-path leaf)
               node/unlink! nested-marker
               node/mkdir! nested-marker
-              assert= (Option :some nested) (find-git-path leaf)
+              assert= (Some nested) (find-git-path leaf)
               assert= false $ node/file-exists? absent
-              assert= (Option :none) (find-git-path absent)
+              assert= None $ find-git-path absent
               node/rmdir! leaf
               node/rmdir! nested-marker
               node/rmdir! nested
@@ -2370,7 +2366,7 @@
             js-cast (latest-version package-name) 'PromiseHost
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn String (-> js-ffi.shared/PromiseHost) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> PromiseHost) (:features :js-ffi)
         'listen-to-switching! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-to-switching! ()
             let
@@ -2471,7 +2467,7 @@
               not $ identical? @*reader-reel @*reel
               reset! *reader-reel @*reel
               sync-clients! @*reader-reel
-            reset! *loop $ Option :some $ node/set-timeout!
+            reset! *loop $ Some $ node/set-timeout!
               fn ()
                 hint-fn $ Fn (-> Unit) (:features :js-ffi)
                 render-loop! *loop
@@ -2480,7 +2476,7 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ quote $ Fn
-            Ref $ Option js-ffi.node/NodeTimerHost
+            Ref $ Option node/NodeTimerHost
             -> Unit
             :features :js-ffi
         'run-server! $ %{} 'CodeEntry (:doc |)
@@ -2552,7 +2548,7 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ quote $ Fn
-            cumulo-reel.core/ReelState $ Map Tag Dynamic
+            ReelState $ Map Tag Dynamic
             -> Unit
             :features :js-ffi
         'wd-file-path $ %{} 'CodeEntry (:doc |)
@@ -2606,10 +2602,9 @@
         'session-user-id $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn session-user-id (session)
             match (get session :user-id)
-              (:none) (Option :none)
+              (:none) None
               (:some raw)
-                if (nil? raw) (Option :none)
-                  Option :some $ decode-map-as raw 'String
+                if (nil? raw) None $ Some $ decode-map-as raw 'String
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Option String
@@ -2759,17 +2754,17 @@
                 calcit.test/is-throws $ replay-update db op 42 |operation 1
                 calcit.test/is-throws $ replay-update db op |session 42 1
                 calcit.test/is-throws $ replay-update db op |session |operation |wrong-time
-                assert= (Option :some :stable) (get db :untouched)
+                assert= (Some :stable) (get db :untouched)
               :tags $ #{} :migration :unit
             %{} 'TestEntry (:name |process-start-legacy-wire-and-typed-history)
               :code $ quote $ let
                   db $ {} $ :process-status ({})
-                  action $ app.schema/DomainOp :process/start (Option :some 0) |build
+                  action $ app.schema/DomainOp :process/start (Some 0) |build
                   wire $ app.schema/server-op-to-wire action
                 assert=
                   :: :process/start $ {} (:pid 0) (:command |build)
                   , wire
-                assert= (Option :some action)
+                assert= (Some action)
                   app.schema/decode-server-op $ parse-cirru-edn $ format-cirru-edn wire
                 assert= (Result :ok |build)
                   get-in (replay-update db action |session |operation 1) ([] :process-status 0)
@@ -2807,7 +2802,7 @@
               (:session/track-footprint dirpath upstream) (session/track-footprint db dirpath upstream)
               (:session/drop-footprint data) (session/drop-footprint db data)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/DomainOp String String Number
+          :schema $ quote $ Fn (Map Tag Dynamic) schema/DomainOp String String Number
             -> $ Map Tag Dynamic
           :tests $ []
             %{} 'TestEntry
@@ -2829,7 +2824,7 @@
                   get-in result $ [] :sessions |session :messages |keep
                 assert= (Result :ok 23)
                   get-in result $ [] :sessions |session :extra
-                assert= (Option :some :stable) (get result :untouched)
+                assert= (Some :stable) (get result :untouched)
                 assert= 2 $ .len messages
                 assert= (Result :ok messages)
                   get-in db $ [] :sessions |session :messages
@@ -2909,7 +2904,7 @@
                 assert= (Result :ok |owner/repo)
                   get-in tracked $ [] :footprints |keep
                 assert= true $ .err? $ get-in dropped ([] :footprints |keep)
-                assert= (Option :some :stable) (get added :untouched)
+                assert= (Some :stable) (get added :untouched)
                 assert=
                   Result :ok $ {}
                   get-in db $ [] :sessions |session :messages
@@ -2941,7 +2936,7 @@
                 calcit.test/is-throws $ replay-update db (:: :session/track-footprint |path 42) |session |operation 1
                 calcit.test/is-throws $ replay-update db (:: :session/drop-footprint 42) |session |operation 1
                 assert=
-                  Option :some $ {}
+                  Some $ {}
                   get db :footprints
               :tags $ #{} :migration :unit
       :ns $ %{} 'NsEntry (:doc |)
@@ -3222,7 +3217,7 @@
                   , :host-kind $ if (.includes? url |github.com) :github :unknown
               true $ raise $ str "|Invalid url:" url
           :examples $ []
-          :schema $ quote $ Fn String (-> app.schema/Origin)
+          :schema $ quote $ Fn String (-> Origin)
           :tests $ []
             %{} 'TestEntry (:name |git-scp)
               :code $ quote $ is= (Origin :address |git@github.com:jimengio/rebase-hell.git :upstream |jimengio/rebase-hell :host-kind :github) (grab-upstream |git@github.com:jimengio/rebase-hell.git)
