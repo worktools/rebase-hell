@@ -437,7 +437,7 @@
           :code $ quote $ def style-body
             {} $ :padding "|8px 16px"
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
@@ -2587,11 +2587,13 @@
       :defs $ {} $ 'link
         %{} 'CodeEntry (:doc |)
           :code $ quote $ def link
-            {} (:text-decoration :underline) (:cursor :pointer)
-              :color $ hsl 240 80 80
-              :font-family ui/font-fancy
+            decode-map-as
+              {} (:text-decoration :underline) (:cursor :pointer)
+                :color $ hsl 240 80 80
+                :font-family ui/font-fancy
+              Map Tag respo-ui.schema/StyleValue
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote $ Map Tag respo-ui.schema/StyleValue
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.style
           :require
