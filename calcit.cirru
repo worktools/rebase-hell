@@ -539,7 +539,7 @@
           :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey)
         'comp-footprints $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-footprints (footprints current)
-            list->
+            keyed->
               {} $ :style $ {} (:max-width 280)
               -> footprints map-entries
                 .filter $ fn (entry)
@@ -551,13 +551,11 @@
                     .!toLowerCase $ :value entry
                     , 'String
                 .map $ fn (entry)
-                  hint-fn $ Fn (MapEntry String String)
-                    -> $ List Dynamic
-                    :features :js-ffi
+                  hint-fn $ Fn (MapEntry String String) (-> respo.schema/ChildPair) (:features :js-ffi)
                   let
                       k $ :key entry
                       v $ :value entry
-                    [] k $ div
+                    keyed-element k $ div
                       {}
                         :class-name $ str-spaced css/row |hoverable css-footprint
                         :style $ {} $ :justify-content :flex-end
@@ -592,7 +590,7 @@
                       (:component _) (raise "|expected footprint list element")
                   (:none) (raise "|missing footprint list element")
                 entry-keys $ map children $ fn (child)
-                  hint-fn $ Fn respo.schema/ChildPair $ -> Dynamic
+                  hint-fn $ Fn respo.schema/ChildPair $ -> respo.schema/CoordKey
                   :key child
               assert= ([] |/a |/b |/z |/u) entry-keys
               assert= 5 $ .len input
@@ -652,11 +650,11 @@
                     {} $ :class-name $ str-spaced css/flex css/row
                     div
                       {} $ :class-name css/column
-                      list-> ({})
+                      keyed-> ({})
                         -> branches .to-list (sort &compare)
                           map $ fn (branch)
-                            hint-fn $ Fn String $ -> (List Dynamic)
-                            [] branch $ comp-branch branch current-branch false
+                            hint-fn $ Fn String $ -> respo.schema/ChildPair
+                            keyed-component branch $ comp-branch branch current-branch false
                       =< nil 4
                       div
                         {}
@@ -702,10 +700,10 @@
                 {} $ :style $ {} (:position :relative)
                 pre $ {} (:class-name css-log) (:inner-text text)
                 if-not (empty? urls)
-                  Some $ list-> ({})
+                  Some $ keyed-> ({})
                     -> urls $ map $ fn (url)
-                      hint-fn $ Fn String $ -> (List Dynamic)
-                      [] url $ a $ {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
+                      hint-fn $ Fn String $ -> respo.schema/ChildPair
+                      keyed-element url $ a $ {} (:href url) (:inner-text url) (:target |_blank) (:class-name css/link)
                         :style $ {} (:line-height |16px) (:height |16px)
                   , None
                 if (= :command kind)
@@ -765,15 +763,17 @@
                         , :height 24
                       , nil
                   =< 16 nil
-                  list->
+                  keyed->
                     {} $ :class-name css/expand
                     .map status $ fn (process)
                       let
                           pid $ :pid process
-                          key $ match pid
-                            (:some value) value
-                            (:none) :unknown-pid
-                        [] key $ div
+                          key $ decode-map-as
+                            match pid
+                              (:some value) value
+                              (:none) :unknown-pid
+                            , respo.schema/CoordKey
+                        keyed-element key $ div
                           {} $ :class-name css-command
                           <>
                             match pid
@@ -799,7 +799,7 @@
                             {} $ :class-name css/expand
                             <> $ :command process
                 , None
-              list->
+              keyed->
                 {} (:class-name css/flex)
                   :style $ {} $ :overflow :auto
                 -> logs map-entries
@@ -816,11 +816,11 @@
                   .map $ fn (entry)
                     hint-fn $ Fn
                       MapEntry String $ Map Tag Dynamic
-                      -> $ List Dynamic
+                      -> respo.schema/ChildPair
                     let
                         id $ :key entry
                         log $ :value entry
-                      [] id $ comp-log-chunk log
+                      keyed-component id $ comp-log-chunk log
           :examples $ []
           :schema $ quote $ Fn
             Map String $ Map Tag Dynamic
@@ -847,7 +847,7 @@
                 log-list $ .unwrap $ last root-children
                 items $ children-of $ :node log-list
                 entry-keys $ map items $ fn (child)
-                  hint-fn $ Fn respo.schema/ChildPair $ -> Dynamic
+                  hint-fn $ Fn respo.schema/ChildPair $ -> respo.schema/CoordKey
                   :key child
               assert= ([] |new |old) entry-keys
               assert= 2 $ .len logs
@@ -1113,7 +1113,7 @@
             respo-ui.core :as ui
             respo-ui.css :as css
             respo.comp.space :refer $ =<
-            respo.core :refer $ defcomp <> >> list-> span div button pre a
+            respo.core :refer $ defcomp <> >> keyed-> keyed-component keyed-element span div button pre a
             respo-alerts.core :refer $ use-prompt use-modal-menu
             feather.core :refer $ comp-icon comp-i
             |copy-text-to-clipboard :default copy!
@@ -1244,11 +1244,11 @@
                 {} $ :class-name css/row
                 <> |Members:
                 =< 8 nil
-                list->
+                keyed->
                   {} $ :class-name css/row
                   map-list-kv members $ fn (k username)
-                    hint-fn $ Fn String String $ -> (List Dynamic)
-                    [] k $ div
+                    hint-fn $ Fn String String $ -> respo.schema/ChildPair
+                    keyed-element k $ div
                       {} $ :style $ {} (:padding "|0 8px")
                         :border $ str "|1px solid " $ hsl 0 0 80
                         :border-radius |16px
@@ -1291,7 +1291,7 @@
             app.schema :as schema
             respo-ui.core :as ui
             respo-ui.css :as css
-            respo.core :refer $ defcomp list-> <> span div button
+            respo.core :refer $ defcomp keyed-> keyed-element <> span div button
             respo.comp.space :refer $ =<
             app.config :as config
             js-ffi.browser :as browser
