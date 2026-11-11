@@ -381,7 +381,7 @@
                   :style $ {} (:cursor :pointer) (:line-height |32px)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn app.schema/LocalOp $ -> Unit
+                      Fn schema/LocalOp $ -> Unit
                       -> Unit
                     d! $ app.schema/LocalOp :effect/connect
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
@@ -1260,7 +1260,7 @@
                   {} (:class-name css/button)
                     :on-click $ fn (_e _d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn app.schema/UiOp $ -> Unit
+                        Fn schema/UiOp $ -> Unit
                         -> Unit
                         :features :js-ffi
                       browser/location-replace! $ str
@@ -1274,7 +1274,7 @@
                     :style $ {} (:color :red) (:border-color :red)
                     :on-click $ fn (_e dispatch!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn app.schema/DomainOp $ -> Unit
+                        Fn schema/DomainOp $ -> Unit
                         -> Unit
                         :features :js-ffi
                       dispatch! $ app.schema/DomainOp :user/log-out
@@ -2271,7 +2271,7 @@
                 op-id $ decode-map-as (nanoid) 'String
                 op-time $ now-ms
                 d! $ fn (op')
-                  hint-fn $ Fn app.schema/ServerOp $ -> Unit
+                  hint-fn $ Fn schema/ServerOp $ -> Unit
                   dispatch! op' sid
                   , &unit
                 db $ decode-map-as (:db @*reel) (Map Tag Dynamic)
