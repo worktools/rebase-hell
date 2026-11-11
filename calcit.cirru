@@ -297,9 +297,7 @@
                         decode-map-as
                           .unwrap-or (get store :logs) ({})
                           Map String $ Map Tag Dynamic
-                        decode-map-as
-                          .unwrap-or (get store :process-status) ({})
-                          Map Dynamic String
+                        app.schema/read-running-processes $ .unwrap-or (get store :process-status) ({})
                         decode-map-as
                           .unwrap-or (get store :footprints) ({})
                           Map String String
@@ -683,7 +681,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic)
             Map String $ Map Tag Dynamic
-            Map Dynamic String
+            List app.schema/RunningProcess
             Map String String
             -> respo.schema/Component
             :generics StateKey
@@ -769,27 +767,37 @@
                   =< 16 nil
                   list->
                     {} $ :class-name css/expand
-                    map-list-kv status $ fn (pid command)
-                      hint-fn $ Fn Dynamic String $ -> (List Dynamic)
-                      [] pid $ div
-                        {} $ :class-name css-command
-                        <> (str pid)
-                          {} $ :color $ hsl 0 0 80
-                        =< 4 nil
-                        comp-icon :x
-                          {} (:font-size 12)
-                            :color $ hsl 0 80 88
-                            :cursor :pointer
-                            :margin-top 4
-                          fn (e d!)
-                            hint-fn $ Fn respo.schema/RespoEvent
-                              Fn app.schema/EffectOp $ -> Unit
-                              -> Unit
-                            d! $ app.schema/EffectOp :effect/kill-process $ decode-map-as pid 'Number
-                        =< 12 nil
-                        div
-                          {} $ :class-name css/expand
-                          <> command
+                    .map status $ fn (process)
+                      let
+                          pid $ :pid process
+                          key $ match pid
+                            (:some value) value
+                            (:none) :unknown-pid
+                        [] key $ div
+                          {} $ :class-name css-command
+                          <>
+                            match pid
+                              (:some value) (str value)
+                              (:none) |nil
+                            {} $ :color $ hsl 0 0 80
+                          =< 4 nil
+                          match pid
+                            (:some value)
+                              Some $ comp-icon :x
+                                {} (:font-size 12)
+                                  :color $ hsl 0 80 88
+                                  :cursor :pointer
+                                  :margin-top 4
+                                fn (e d!)
+                                  hint-fn $ Fn respo.schema/RespoEvent
+                                    Fn app.schema/EffectOp $ -> Unit
+                                    -> Unit
+                                  d! $ app.schema/EffectOp :effect/kill-process value
+                            (:none) None
+                          =< 12 nil
+                          div
+                            {} $ :class-name css/expand
+                            <> $ :command process
                 , None
               list->
                 {} (:class-name css/flex)
@@ -816,7 +824,7 @@
           :examples $ []
           :schema $ quote $ Fn
             Map String $ Map Tag Dynamic
-            Map Dynamic String
+            List app.schema/RunningProcess
             -> respo.schema/Component
             :features :js-ffi
           :tests $ [] $ %{} 'TestEntry
@@ -1850,6 +1858,12 @@
             :entry String String $ Map Tag Dynamic
           :examples $ []
           :schema $ quote EnumDef
+        'RunningProcess $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct RunningProcess
+            :pid $ Option Number
+            :command String
+          :examples $ []
+          :schema $ quote StructDef
         'ServerOp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defunion ServerOp DomainOp EffectOp
           :examples $ []
@@ -2078,6 +2092,31 @@
           :examples $ []
           :schema $ quote $ Fn ProcessLog
             -> $ Map Tag Dynamic
+        'read-running-processes $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-running-processes (raw)
+            map-list-kv
+              decode-map-as raw $ Map Dynamic String
+              fn (pid command)
+                RunningProcess :pid
+                  if (nil? pid) None $ Some $ decode-map-as pid 'Number
+                  , :command command
+          :examples $ []
+          :schema $ quote $ Fn T
+            -> $ List RunningProcess
+            :generics T
+          :tests $ [] $ %{} 'TestEntry (:name |keeps-known-and-missing-process-ids)
+            :code $ quote $ let
+                status $ {} (12 |running) (nil |starting)
+                rows $ read-running-processes $ parse-cirru-edn (format-cirru-edn status)
+              assert= 2 $ .len rows
+              assert=
+                Some $ RunningProcess :pid (Some 12) :command |running
+                find rows $ fn (row)
+                  = (:command row) |running
+              assert=
+                Some $ RunningProcess :pid None :command |starting
+                find rows $ fn (row)
+                  = (:command row) |starting
         'router $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def router
             {} (:name nil) (:title nil)
