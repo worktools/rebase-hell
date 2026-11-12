@@ -65,7 +65,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             match op
@@ -81,7 +81,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn schema/UiOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/UiOp (-> Unit) (:features :io :js-ffi :state)
         'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-from-view! (raw)
             cond
@@ -98,7 +98,7 @@
                     , state
                 _ $ raise "|Unknown Rebase Hell view operation"
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi) (:open :reflect)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :io :js-ffi :state) (:open :reflect)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -142,7 +142,7 @@
             println "|App started!"
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target (read-mount-target!)
           :examples $ []
@@ -157,7 +157,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn browser/KeyboardEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn browser/KeyboardEventHost (-> Unit) (:features :io :js-ffi :state)
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
             let
@@ -176,7 +176,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :io :js-ffi :state)
         'read-mount-target! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-mount-target! ()
             match (dom/query-selector |.app)
@@ -207,7 +207,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
@@ -220,7 +220,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'simulate-login! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn simulate-login! ()
             match
@@ -232,7 +232,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'store-upstream $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn store-upstream (store)
             match (js-nullish->option store)
@@ -1391,7 +1391,7 @@
           :schema $ quote $ Fn String String Tag String
             Fn app.schema/ServerOp $ -> Unit
             -> Unit
-            :features :js-ffi
+            :features :io :js-ffi
         'apply-stash! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn apply-stash! (d!)
             run-command! "|git stash apply" d! $ {}
@@ -1501,7 +1501,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn Number (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Number (-> Unit) (:features :io :js-ffi)
         'listen-command-output! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn listen-command-output! (stream callback)
             if (js-present? stream)
@@ -1724,7 +1724,7 @@
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ quote $ Fn String
             Fn app.schema/ServerOp String $ -> Unit
-            , String (-> Unit) (:features :js-ffi)
+            , String (-> Unit) (:features :io :js-ffi)
         'switch-remote-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-remote-branch! (branch-name d!)
             run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
@@ -1987,8 +1987,9 @@
                   Some $ DomainOp :session/drop-footprint $ decode-map-as data 'String
                 _ None
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             -> $ Option DomainOp
+            :generics Input
         'decode-process-log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-process-log (raw)
             let
@@ -2003,7 +2004,7 @@
                     , 'String
                   , text $ dissoc payload :id :text
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> ProcessLog)
+          :schema $ quote $ Fn Input (-> ProcessLog) (:generics Input)
         'decode-server-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-server-op (raw)
             if (enum? raw)
@@ -2264,7 +2265,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op sid)
             let
@@ -2338,7 +2339,7 @@
               , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn schema/ServerOp String (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ServerOp String (-> Unit) (:features :io :js-ffi :state)
         'editor-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn editor-url (port)
             str |https://r.tiye.me/worktools/rebase-hell/?port= $ if
@@ -2419,14 +2420,14 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if (= run-mode :switch) (main-switch!) (main-server!)
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'main-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-server! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -2448,7 +2449,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'main-switch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main-switch! ()
             let
@@ -2471,7 +2472,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'read-wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-wd-file-path ()
             match (node/env-get |HOME)
@@ -2491,7 +2492,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-loop! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-loop! (*loop)
             when
@@ -2509,7 +2510,7 @@
           :schema $ quote $ Fn
             Ref $ Option node/NodeTimerHost
             -> Unit
-            :features :js-ffi
+            :features :io :js-ffi :state
         'run-server! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
@@ -2538,7 +2539,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
-          :schema $ quote $ Fn Number (-> Unit)
+          :schema $ quote $ Fn Number (-> Unit) (:features :io :state)
         'server-port $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn server-port ()
             match (node/env-get |port)
@@ -2581,7 +2582,7 @@
           :schema $ quote $ Fn
             ReelState $ Map Tag Dynamic
             -> Unit
-            :features :js-ffi
+            :features :io :js-ffi :state
         'wd-file-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def wd-file-path (read-wd-file-path)
           :examples $ []
@@ -2750,6 +2751,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) Dynamic Dynamic Dynamic Dynamic
             -> $ Map Tag Dynamic
+            :features :io
           :tests $ []
             %{} 'TestEntry
               :name |replays-the-published-history-contract-with-a-precise-database
@@ -2837,6 +2839,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) schema/DomainOp String String Number
             -> $ Map Tag Dynamic
+            :features :io
           :tests $ []
             %{} 'TestEntry
               :name |remove-message-checks-the-map-payload-and-preserves-neighbors
@@ -3116,6 +3119,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) String
             -> $ Map Tag Dynamic
+            :features :io
         'remove-message $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn remove-message (db id sid)
             update-in db ([] :sessions sid :messages)
