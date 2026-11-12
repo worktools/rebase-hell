@@ -290,7 +290,7 @@
                       , 'Number
                   div
                     {} $ :class-name $ str-spaced css/global css/fullscreen css/column
-                    comp-navigation (>> states :nav) logged-in? member-count repo
+                    comp-navigation (>> states :nav) logged-in? member-count $ app.comp.navigation/read-navigation-origin repo
                     match
                       .unwrap-or (get router :name) :unknown
                       :home $ comp-home (>> states :home) repo
@@ -1124,16 +1124,9 @@
         'comp-navigation $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-navigation (states logged-in? count-members repo)
             let
-                upstream $ decode-map-as
-                  .unwrap-or (get repo :upstream) |
-                  , 'String
-                address $ decode-map-as
-                  .unwrap-or (get repo :address) |
-                  , 'String
-                git-url $ match
-                  decode-map-as
-                    .unwrap-or (get repo :host-kind) :unknown
-                    , 'Tag
+                upstream $ :upstream repo
+                address $ :address repo
+                git-url $ match (:host-kind repo)
                   :github $ str |https://github.com/ upstream
                   _ $ if (.starts-with? address |git@) (replace-git-at-url address) (str |https://github.com/ upstream)
               div
@@ -1161,11 +1154,11 @@
                   =< 8 nil
                   <> count-members
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) Bool Number (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
+          :schema $ quote $ Fn (Map StateKey Dynamic) Bool Number app.schema/Origin (-> respo.schema/Component) (:generics StateKey)
           :tests $ [] $ %{} 'TestEntry
             :name |accepts-state-maps-without-assuming-tag-only-keys
             :code $ quote $ let
-                repo $ {} (:upstream |owner/repo) (:address |git@github.com:owner/repo.git) (:host-kind :github)
+                repo $ app.schema/Origin :upstream |owner/repo :address |git@github.com:owner/repo.git :host-kind :github
                 baseline $ comp-navigation ({}) false 1 repo
                 mixed $ {}
                   :cursor $ [] :root |row 7
@@ -1211,6 +1204,21 @@
                 :border-bottom $ str "|1px solid " $ hsl 0 0 50 (Some 0.1)
           :examples $ []
           :schema $ quote String
+        'read-navigation-origin $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-navigation-origin (repo)
+            let
+                upstream $ decode-map-as
+                  .unwrap-or (get repo :upstream) |
+                  , String
+                address $ decode-map-as
+                  .unwrap-or (get repo :address) |
+                  , String
+                host-kind $ decode-map-as
+                  .unwrap-or (get repo :host-kind) :unknown
+                  , Tag
+              app.schema/Origin :upstream upstream :address address :host-kind host-kind
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag Dynamic) (-> app.schema/Origin)
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-git-at-url (address)
             -> address (.replace |git@ |https://) (.replace |.com: |.com/)
