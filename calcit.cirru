@@ -101,21 +101,23 @@
           :schema $ quote $ Fn schema/UiOp (-> Unit) (:features :io :js-ffi :state)
         'dispatch-from-view! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-from-view! (raw)
-            cond
-                = (enum-definition raw) (Some app.schema/LocalOp)
-                dispatch! $ decode-map-as raw 'app.schema/LocalOp
-              (= (enum-definition raw) (Some app.schema/DomainOp))
-                dispatch! $ decode-map-as raw 'app.schema/DomainOp
-              (= (enum-definition raw) (Some app.schema/EffectOp))
-                dispatch! $ decode-map-as raw 'app.schema/EffectOp
-              true $ match raw
-                (:states cursor state)
-                  dispatch! $ app.schema/LocalOp :states
-                    decode-map-as cursor $ List respo.schema/CoordKey
-                    , state
-                _ $ raise "|Unknown Rebase Hell view operation"
+            if (enum? raw)
+              cond
+                  = (enum-definition raw) (Some app.schema/LocalOp)
+                  dispatch! $ decode-map-as raw 'app.schema/LocalOp
+                (= (enum-definition raw) (Some app.schema/DomainOp))
+                  dispatch! $ decode-map-as raw 'app.schema/DomainOp
+                (= (enum-definition raw) (Some app.schema/EffectOp))
+                  dispatch! $ decode-map-as raw 'app.schema/EffectOp
+                true $ match raw
+                  (:states cursor state)
+                    dispatch! $ app.schema/LocalOp :states
+                      decode-map-as cursor $ List respo.schema/CoordKey
+                      , state
+                  _ $ raise "|Unknown Rebase Hell view operation"
+              raise "|Unknown Rebase Hell view operation"
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :io :js-ffi :state) (:open :reflect)
+          :schema $ quote $ Fn Input (-> Unit) (:generics Input) (:features :io :js-ffi :state) (:open :reflect)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
