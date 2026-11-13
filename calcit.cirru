@@ -24,6 +24,12 @@
           :examples $ []
           :schema $ quote $ Ref
             JsNullish $ Map Tag Dynamic
+        'ServerMessage $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum ServerMessage
+            :patch $ List recollect.schema/change-op
+            :unknown
+          :examples $ []
+          :schema $ quote EnumDef
         'UrlParseQuery $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait UrlParseQuery
             :host $ JsNullish String
@@ -66,6 +72,17 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
           :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
+        'decode-server-message $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-server-message (raw)
+            let
+                message $ decode-map-as raw $ Map Tag Dynamic
+              match
+                .unwrap-or (get message :kind) :unknown
+                :patch $ ServerMessage :patch $ decode-changes
+                  .unwrap-or (get message :data) ([])
+                _ $ ServerMessage :unknown
+          :examples $ []
+          :schema $ quote $ Fn T (-> ServerMessage) (:generics T)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             match op
@@ -160,19 +177,16 @@
           :schema $ quote $ Fn browser/KeyboardEventHost (-> Unit) (:features :io :js-ffi :state)
         'on-server-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-server-data (data)
-            let
-                message $ decode-map-as data $ Map Tag Dynamic
-              match
-                .unwrap-or (get message :kind) :unknown
-                :patch $ let
-                    changes $ decode-changes $ .unwrap-or (get message :data) ([])
+            match (decode-server-message data)
+              (:patch changes)
+                let
                     next-store $ match (js-nullish->option @*store)
                       (:some value) (patch-twig value changes)
                       (:none) (patch-twig nil changes)
                   when config/dev? $ js/console.log |Changes changes
                   if (nil? next-store) (reset! *store nil)
                     reset! *store $ decode-map-as next-store $ Map Tag Dynamic
-                _ $ println "|unknown server data kind:" data
+              (:unknown) (println "|unknown server data kind:" data)
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
