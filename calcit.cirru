@@ -192,7 +192,7 @@
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
-          :schema $ quote $ Fn Dynamic (-> Unit) (:features :io :js-ffi :state)
+          :schema $ quote $ Fn Input (-> Unit) (:generics Input) (:features :io :js-ffi :state)
         'read-mount-target! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-mount-target! ()
             match (dom/query-selector |.app)
@@ -2088,8 +2088,9 @@
                   (:some domain-op) (Some domain-op)
               raise "|Expected an Enum WebSocket action"
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             -> $ Option ServerOp
+            :generics Input
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def log
             {} (:id nil) (:time nil) (:kind nil) (:text nil)
