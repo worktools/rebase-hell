@@ -2095,12 +2095,12 @@
           :code $ quote $ def log
             {} (:id nil) (:time nil) (:kind nil) (:text nil)
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote $ Map Tag Nil
         'message $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def message
             {} (:id nil) (:text nil) (:kind nil)
           :examples $ []
-          :schema $ quote $ Map Tag Dynamic
+          :schema $ quote $ Map Tag Nil
         'process-log-to-wire $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn process-log-to-wire (event)
             match event
@@ -2217,7 +2217,7 @@
           :code $ quote $ def user
             {} (:name nil) (:id nil) (:nickname nil) (:avatar nil) (:password nil)
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote $ Map Tag Nil
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.server $ %{} 'FileEntry
