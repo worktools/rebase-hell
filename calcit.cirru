@@ -1223,18 +1223,18 @@
         'read-navigation-origin $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-navigation-origin (repo)
             let
-                upstream $ decode-map-as
-                  .unwrap-or (get repo :upstream) |
-                  , String
-                address $ decode-map-as
-                  .unwrap-or (get repo :address) |
-                  , String
-                host-kind $ decode-map-as
-                  .unwrap-or (get repo :host-kind) :unknown
-                  , Tag
+                upstream $ match (get repo :upstream)
+                  (:some value) (decode-map-as value String)
+                  (:none) |
+                address $ match (get repo :address)
+                  (:some value) (decode-map-as value String)
+                  (:none) |
+                host-kind $ match (get repo :host-kind)
+                  (:some value) (decode-map-as value Tag)
+                  (:none) :unknown
               app.schema/Origin :upstream upstream :address address :host-kind host-kind
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> app.schema/Origin)
+          :schema $ quote $ Fn (Map Tag V) (-> app.schema/Origin) (:generics V)
         'replace-git-at-url $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-git-at-url (address)
             -> address (.replace |git@ |https://) (.replace |.com: |.com/)
