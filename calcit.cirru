@@ -2774,8 +2774,9 @@
                 (:none)
                   do (println "|Unknown op:" op) db
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Dynamic Dynamic Dynamic Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Op Sid OpId OpTime
             -> $ Map Tag Dynamic
+            :generics Op Sid OpId OpTime
             :features :io
           :tests $ []
             %{} 'TestEntry
