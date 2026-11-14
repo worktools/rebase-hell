@@ -2110,14 +2110,24 @@
           :examples $ []
           :schema $ quote $ Fn ProcessLog
             -> $ Map Tag Dynamic
-        'read-running-processes $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn read-running-processes (raw)
-            map-list-kv
+        'read-process-status $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-process-status (raw)
+            .filter-map-kv
               decode-map-as raw $ Map Dynamic String
               fn (pid command)
-                RunningProcess :pid
-                  if (nil? pid) None $ Some $ decode-map-as pid 'Number
-                  , :command command
+                hint-fn $ Fn Dynamic String $ ->
+                  MapEntryDecision (Option Number) String
+                MapEntryDecision :keep
+                  if (nil? pid) None $ Some $ decode-map-as pid Number
+                  , command
+          :examples $ []
+          :schema $ quote $ Fn T
+            -> $ Map (Option Number) String
+            :generics T
+        'read-running-processes $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-running-processes (raw)
+            map-list-kv (read-process-status raw)
+              fn (pid command) (RunningProcess :pid pid :command command)
           :examples $ []
           :schema $ quote $ Fn T
             -> $ List RunningProcess
@@ -3027,14 +3037,28 @@
           :code $ quote $ defn finish (db pid)
             update db :process-status $ fn (status)
               hint-fn $ Fn Dynamic $ -> (Map Dynamic String)
-              let
-                  processes $ decode-map-as status $ Map Dynamic String
-                match pid
-                  (:none) (.dissoc processes nil)
-                  (:some value) (.dissoc processes value)
+              .filter-map-kv (app.schema/read-process-status status)
+                fn (key command)
+                  hint-fn $ Fn (Option Number) String $ -> (MapEntryDecision Dynamic String)
+                  if (= pid key) (MapEntryDecision :drop)
+                    match key
+                      (:none) (MapEntryDecision :keep nil command)
+                      (:some value) (MapEntryDecision :keep value command)
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (Option Number)
             -> $ Map Tag Dynamic
+          :tests $ [] $ %{} 'TestEntry (:name |removes-only-the-selected-legacy-process-key)
+            :code $ quote $ let
+                db $ {} $ :process-status
+                  {} (0 |running) (nil |starting) (42 |other)
+              assert=
+                {} $ :process-status $ {} (nil |starting) (42 |other)
+                finish db $ Some 0
+              assert=
+                {} $ :process-status $ {} (0 |running) (42 |other)
+                finish db None
+              assert= db $ finish db $ Some 99
+            :tags $ #{} :migration :unit
         'log $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn log (db event)
             match event
