@@ -2675,8 +2675,9 @@
               (:some raw)
                 if (nil? raw) None $ Some $ decode-map-as raw 'String
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             -> $ Option String
+            :generics V
         'twig-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-container (db session records)
             let
@@ -2723,30 +2724,34 @@
         'twig-members $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-members (sessions users)
             .filter-map-kv sessions $ fn (sid session)
-              hint-fn $ Fn String (Map Tag Dynamic)
+              hint-fn $ Fn String (Map Tag SessionValue)
                 -> $ MapEntryDecision String String
               MapEntryDecision :keep sid $ match (session-user-id session)
                 (:none) |
                 (:some user-id)
-                  decode-map-as
-                    .unwrap-or
-                      get-in users $ [] user-id :name
-                      , |
-                    , 'String
+                  match
+                    get-in users $ [] user-id :name
+                    (:ok raw) (decode-map-as raw String)
+                    (:err _) |
           :examples $ []
           :schema $ quote $ Fn
-            Map String $ Map Tag Dynamic
-            Map String $ Map Tag Dynamic
+            Map String $ Map Tag SessionValue
+            Map String $ Map Tag UserValue
             -> $ Map String String
+            :generics SessionValue UserValue
           :tests $ [] $ %{} 'TestEntry (:name |typed-members-preserve-guests-and-unicode-names)
             :code $ quote $ let
-                sessions $ {}
-                  |guest $ {} $ :user-id nil
-                  |named $ {} $ :user-id |u1
-                  |missing-name $ {} $ :user-id |u2
-                users $ {}
-                  |u1 $ {} $ :name "|中文 Ada"
-                  |u2 $ {}
+                sessions $ decode-map-as
+                  {}
+                    |guest $ {} $ :user-id nil
+                    |named $ {} $ :user-id |u1
+                    |missing-name $ {} $ :user-id |u2
+                  Map String $ Map Tag Dynamic
+                users $ decode-map-as
+                  {}
+                    |u1 $ {} $ :name "|中文 Ada"
+                    |u2 $ {}
+                  Map String $ Map Tag Dynamic
                 result $ twig-members sessions users
               assert-type result $ Map String String
               assert=
@@ -2766,8 +2771,19 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-user (user) (dissoc user :password)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
-            -> $ Map Tag Dynamic
+          :schema $ quote $ Fn (Map Tag V)
+            -> $ Map Tag V
+            :generics V
+          :tests $ [] $ %{} 'TestEntry (:name |strips-password-preserves-fields)
+            :code $ quote $ let
+                user $ {} (:name |Alice) (:password |secret) (:role |editor)
+                view $ twig-user user
+              assert-type view $ Map Tag String
+              assert=
+                {} (:name |Alice) (:role |editor)
+                , view
+              assert= false $ .contains-key? view :password
+            :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.twig.user (:require)
     'app.updater $ %{} 'FileEntry
