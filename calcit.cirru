@@ -356,7 +356,7 @@
             Option $ Map Tag Dynamic
             -> respo.schema/Component
             :generics StateKey
-            :features :js-ffi
+            :features :io :js-ffi :state
           :tests $ [] $ %{} 'TestEntry
             :name |checks-reel-length-only-when-the-development-view-consumes-it
             :code $ quote $ let
@@ -403,7 +403,7 @@
                 <> "|No connection..." $ {} (:font-family ui/font-fancy) (:font-size 24)
                 comp-md "|A Git web tool. [Found more on GitHub](https://github.com/jimengio/rebase-hell).\n" $ {}
           :examples $ []
-          :schema $ quote $ Fn (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (-> respo.schema/Component) (:features :js-ffi :state)
           :tests $ [] $ %{} 'TestEntry
             :name |renders-description-with-explicit-default-markdown-options
             :code $ quote $ let
@@ -552,7 +552,7 @@
                   render-button |Commit false None
                 .render commit-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey)
+          :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey) (:features :io :state)
         'comp-footprints $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-footprints (footprints current)
             keyed->
@@ -699,7 +699,7 @@
             Map String String
             -> respo.schema/Component
             :generics StateKey
-            :features :js-ffi
+            :features :io :js-ffi :state
         'comp-log-chunk $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-log-chunk (log)
             let
@@ -894,7 +894,7 @@
                   render-button "|New Branch" false None
                   .render branch-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey)
+          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :io :state)
           :tests $ [] $ %{} 'TestEntry (:name |builds-branch-controls-with-generic-state-keys)
             :code $ quote $ let
                 baseline $ comp-new-branch $ {}
@@ -955,7 +955,7 @@
                   render-button "|code ./" false $ Some $ app.schema/EffectOp :effect/edit-with |code
                   render-button "|subl ./" false $ Some $ app.schema/EffectOp :effect/edit-with |subl
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey)
+          :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :io :state)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quick-ops (states)
             let
@@ -1013,7 +1013,7 @@
                     , &unit
                 .render tag-plugin
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :js-ffi)
+          :schema $ quote $ Fn (Map StateKey Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :io :js-ffi :state)
         'comp-thin-divider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-thin-divider ()
             div $ {} $ :class-name css-thin-divider
@@ -1747,8 +1747,8 @@
           :examples $ []
           :ffi $ {} (:backend :js) (:target :node)
           :schema $ quote $ Fn String
-            Fn app.schema/ServerOp String $ -> Unit
-            , String (-> Unit) (:features :io :js-ffi)
+            Fn app.schema/ServerOp String (-> Unit) (:features :io :state)
+            , String (-> Unit) (:features :io :js-ffi :state)
         'switch-remote-branch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn switch-remote-branch! (branch-name d!)
             run-command! (str "|git checkout " branch-name) d! $ {} $ :on-finish
@@ -2253,7 +2253,7 @@
           :code $ quote $ defref *proxied-dispatch! dispatch!
           :examples $ []
           :schema $ quote $ Ref
-            Fn schema/ServerOp String $ -> Unit
+            Fn schema/ServerOp String (-> Unit) (:features :io :js-ffi :state)
         '*reader-reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reader-reel @*reel
           :examples $ []
@@ -2550,12 +2550,12 @@
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
               :on-open $ fn (sid socket)
-                hint-fn $ Fn String ws-edn.server/NodeWebSocketHost $ -> Unit
+                hint-fn $ Fn String ws-edn.server/NodeWebSocketHost (-> Unit) (:features :io :js-ffi :state)
                 @*proxied-dispatch! (app.schema/DomainOp :session/connect) sid
                 println "|New client."
                 , &unit
               :on-data $ fn (sid action)
-                hint-fn $ Fn String Dynamic $ -> Unit
+                hint-fn $ Fn String Dynamic (-> Unit) (:features :io :js-ffi :state)
                 try
                   match (app.schema/decode-server-op action)
                     (:some op) (@*proxied-dispatch! op sid)
@@ -2563,7 +2563,7 @@
                   fn (_) (println "|Invalid operation payload.")
                 , &unit
               :on-close $ fn (sid event)
-                hint-fn $ Fn String JsObject $ -> Unit
+                hint-fn $ Fn String JsObject (-> Unit) (:features :io :js-ffi :state)
                 println "|Client closed!"
                 @*proxied-dispatch! (app.schema/DomainOp :session/disconnect) sid
                 , &unit
