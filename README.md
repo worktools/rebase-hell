@@ -68,8 +68,8 @@ module.exports = {
 
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
 指定的正式 Calcit 0.43.0，CLI 和 `@calcit/procs` 需要精确配对。
-模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.2、Recollect 0.3.4、
-WS-EDN 0.1.1 和 Respo 0.19.5。
+模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.4、Recollect 0.3.8、
+WS-EDN 0.2.3 和 Respo 0.19.11。
 
 浏览器应用事件使用 `UiOp`，Node 端使用 `ServerOp = DomainOp | EffectOp`。
 Reel 仅记录 `DomainOp`，旧记录经过同一解码入口回放。Alerts 的匿名状态事件

@@ -2550,12 +2550,12 @@
           :code $ quote $ defn run-server! (port)
             wss-serve! port $ {}
               :on-open $ fn (sid socket)
-                hint-fn $ Fn String ws-edn.server/NodeWebSocketHost $ -> Unit
+                hint-fn $ Fn String ws-edn.server/NodeWebSocketHost (-> Unit) (:features :io :js-ffi :state)
                 @*proxied-dispatch! (app.schema/DomainOp :session/connect) sid
                 println "|New client."
                 , &unit
               :on-data $ fn (sid action)
-                hint-fn $ Fn String Dynamic $ -> Unit
+                hint-fn $ Fn String Dynamic (-> Unit) (:features :io :js-ffi :state)
                 try
                   match (app.schema/decode-server-op action)
                     (:some op) (@*proxied-dispatch! op sid)
@@ -2563,7 +2563,7 @@
                   fn (_) (println "|Invalid operation payload.")
                 , &unit
               :on-close $ fn (sid event)
-                hint-fn $ Fn String JsObject $ -> Unit
+                hint-fn $ Fn String JsObject (-> Unit) (:features :io :js-ffi :state)
                 println "|Client closed!"
                 @*proxied-dispatch! (app.schema/DomainOp :session/disconnect) sid
                 , &unit
