@@ -688,7 +688,7 @@
                         .unwrap-or (get repo :upstream) |
                         , 'String
                     comp-thin-divider
-                    comp-operations (>> states :operations) repo
+                    comp-operations (>> states :operations) current-branch
                 comp-thin-divider
                 comp-logs logs status
                 .render menu-branch
@@ -849,7 +849,8 @@
                 logs $ {}
                   |old $ {} (:text "|旧日志") (:time 1) (:kind :stdout)
                   |new $ {} (:text "|新日志") (:time 2) (:kind :stdout)
-                component $ comp-logs logs $ {} (7 "|git status")
+                component $ comp-logs logs $ []
+                  app.schema/RunningProcess :pid (Some 7) :command "|git status"
                 children-of $ fn (maybe-node)
                   hint-fn $ Fn (Option respo.schema/RenderNode)
                     -> $ List respo.schema/ChildPair
@@ -919,43 +920,39 @@
                 get-in mixed $ [] :new-branch 7
             :tags $ #{} :js :migration :unit
         'comp-operations $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-operations (states repo)
-            let
-                current $ decode-map-as
-                  .unwrap-or (get repo :current) |
-                  , 'String
-              div
-                {} $ :class-name $ str-spaced css/flex css/column
-                if (default-branch? current)
-                  div ({}) (comp-title |Basic)
-                    div
-                      {} $ :class-name css/row
-                      render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
-                    comp-title |Others
-                    div
-                      {} $ :class-name css/row
-                      comp-new-branch $ >> states :branch
-                  div ({}) (comp-title |Basic)
-                    div ({})
-                      render-button |Push false $ Some $ app.schema/EffectOp :effect/push-current
-                      render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
-                      render-button |Finish false $ Some $ app.schema/EffectOp :effect/finish-branch
-                      render-button |RmRemote false $ Some $ app.schema/EffectOp :effect/rm-remote
-                    comp-title |Other
-                    div ({})
-                      comp-new-branch $ >> states :branch
-                      comp-commit (>> states :commit) current
-                    comp-title |Forced
-                    div ({})
-                      render-button "|Rebase main" true $ Some $ app.schema/EffectOp :effect/rebase-master
-                      render-button "|Force push" true $ Some $ app.schema/EffectOp :effect/force-push
-                =< nil 24
-                comp-title |Editor
-                div ({})
-                  render-button "|code ./" false $ Some $ app.schema/EffectOp :effect/edit-with |code
-                  render-button "|subl ./" false $ Some $ app.schema/EffectOp :effect/edit-with |subl
+          :code $ quote $ defcomp comp-operations (states current)
+            div
+              {} $ :class-name $ str-spaced css/flex css/column
+              if (default-branch? current)
+                div ({}) (comp-title |Basic)
+                  div
+                    {} $ :class-name css/row
+                    render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
+                  comp-title |Others
+                  div
+                    {} $ :class-name css/row
+                    comp-new-branch $ >> states :branch
+                div ({}) (comp-title |Basic)
+                  div ({})
+                    render-button |Push false $ Some $ app.schema/EffectOp :effect/push-current
+                    render-button |Pull false $ Some $ app.schema/EffectOp :effect/pull-current
+                    render-button |Finish false $ Some $ app.schema/EffectOp :effect/finish-branch
+                    render-button |RmRemote false $ Some $ app.schema/EffectOp :effect/rm-remote
+                  comp-title |Other
+                  div ({})
+                    comp-new-branch $ >> states :branch
+                    comp-commit (>> states :commit) current
+                  comp-title |Forced
+                  div ({})
+                    render-button "|Rebase main" true $ Some $ app.schema/EffectOp :effect/rebase-master
+                    render-button "|Force push" true $ Some $ app.schema/EffectOp :effect/force-push
+              =< nil 24
+              comp-title |Editor
+              div ({})
+                render-button "|code ./" false $ Some $ app.schema/EffectOp :effect/edit-with |code
+                render-button "|subl ./" false $ Some $ app.schema/EffectOp :effect/edit-with |subl
           :examples $ []
-          :schema $ quote $ Fn (Map StateKey Dynamic) (Map Tag Dynamic) (-> respo.schema/Component) (:generics StateKey) (:features :io :state)
+          :schema $ quote $ Fn (Map StateKey Dynamic) String (-> respo.schema/Component) (:generics StateKey) (:features :io :state)
         'comp-quick-ops $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quick-ops (states)
             let
