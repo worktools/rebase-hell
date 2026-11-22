@@ -55,19 +55,13 @@
                 host $ .unwrap-or
                   js-nullish->option $ query :host
                   :ws-host config/site
-              ws-connect! (str |ws:// host |: port)
-                {}
-                  :on-open $ fn (_event)
-                    hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
-                    simulate-login!
-                    dispatch! $ app.schema/EffectOp :effect/read-branches
-                    , &unit
-                  :on-close $ fn (_event)
-                    hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
-                    reset! *store nil
-                    js/console.error "|Lost connection!"
-                    , &unit
-                  :on-data on-server-data
+                opened $ fn (event) (simulate-login!)
+                  dispatch! $ app.schema/EffectOp :effect/read-branches
+                  , &unit
+                closed $ fn (event) (reset! *store nil) (js/console.error "|Lost connection!") &unit
+              ws-edn.client/ws-connect-typed! (str |ws:// host |: port)
+                ws-edn.client/ClientConfig :retry-base-ms None :retry-max-ms None :retry-jitter None :heartbeat-timeout-ms None :class-mapper $ {}
+                ws-edn.client/ClientCallbacks :on-open (Some opened) :on-close (Some closed) :on-error None :on-data $ Some on-server-data
             , &unit
           :examples $ []
           :ffi $ {} (:backend :js) (:target :browser)
