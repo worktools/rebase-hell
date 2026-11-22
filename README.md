@@ -5,7 +5,7 @@
 Node 服务运行在拥有仓库访问权限的本机，浏览器显示服务同步的数据并发送操作。
 已发布 CLI 与本分支的工具链迁移候选分别验收；候选的当前约束见文末“限制”。
 
-当前源码使用正式 Calcit 0.44.0 和配套正式模块（Cumulo Reel 0.3.9、WS-EDN 0.2.7、Recollect 0.3.10、Respo 0.19.13、JS-FFI 0.2.19）。更新本地服务时需同步重新构建网页并刷新页面。
+当前源码使用正式 Calcit 0.44.0 和配套正式模块（Cumulo Reel 0.3.9、WS-EDN 0.2.7、Alerts 0.14.9、Recollect 0.3.10、Respo 0.19.13、JS-FFI 0.2.19）。更新本地服务时需同步重新构建网页并刷新页面。
 WebSocket 报文、存档和部署路径继续沿用原格式，页面仍使用 HUD 显示构建错误。
 已发布的 npm CLI 随 npm release 更新。依赖安装继续保留一小时的新包隔离。
 
@@ -68,8 +68,8 @@ module.exports = {
 
 使用 Node.js 24、Yarn 4.18.0、Caps 0.1.1，以及 `deps.cirru :calcit-version`
 指定的正式 Calcit 0.44.0，CLI 和 `@calcit/procs` 需要精确配对。
-模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.7、Recollect 0.3.9、
-WS-EDN 0.2.5 和 Respo 0.19.12。
+模块版本以 `deps.cirru` 为准，使用正式 Cumulo Reel 0.3.9、Recollect 0.3.10、
+WS-EDN 0.2.7、Alerts 0.14.9 和 Respo 0.19.13。
 
 浏览器应用事件使用 `UiOp`，Node 端使用 `ServerOp = DomainOp | EffectOp`。
 Reel 仅记录 `DomainOp`，旧记录经过同一解码入口回放。Alerts 的匿名状态事件
