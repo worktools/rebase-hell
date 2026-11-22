@@ -2594,7 +2594,7 @@
                       {}
                     Map Tag Dynamic
                   old-store $ get @*client-caches sid
-                  new-store $ twig-container db session records
+                  new-store $ twig-container db session $ .len records
                   changes $ match old-store
                     (:some value)
                       diff-twig value new-store $ {} $ :key :id
@@ -2676,7 +2676,7 @@
             -> $ Option String
             :generics V
         'twig-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn twig-container (db session records)
+          :code $ quote $ defn twig-container (db session record-count)
             let
                 logged-in? $ .some? $ session-user-id session
                 router $ decode-map-as
@@ -2685,8 +2685,7 @@
                 sessions $ decode-map-as
                   .unwrap-or (get db :sessions) ({})
                   Map String $ Map Tag Dynamic
-                base-data $ {} (:logged-in? logged-in?) (:session session)
-                  :reel-length $ .len records
+                base-data $ {} (:logged-in? logged-in?) (:session session) (:reel-length record-count)
               merge base-data
                 {}
                   :router $ assoc router :data $ match
@@ -2716,7 +2715,7 @@
                         {} $ :user $ twig-user
                           decode-map-as user $ Map Tag Dynamic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) (List Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic) (Map Tag Dynamic) Number
             -> $ Map Tag Dynamic
         'twig-members $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn twig-members (sessions users)
