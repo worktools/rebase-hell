@@ -148,8 +148,8 @@
               if (js-nullish? @*store) (connect!)
                 dispatch! $ app.schema/EffectOp :effect/read-branches
               , &unit
-            js/window.addEventListener |keydown $ fn (event)
-              hint-fn $ Fn Dynamic (-> Unit) (:features :js-ffi)
+            browser/add-event-listener! |keydown $ fn (event)
+              hint-fn $ Fn browser/EventHost (-> Unit) (:features :io :js-ffi :state)
               on-keydown $ browser/keyboard-event-host event
               , &unit
             println "|App started!"
@@ -2527,7 +2527,7 @@
               sync-clients! @*reader-reel
             reset! *loop $ Some $ node/set-timeout!
               fn ()
-                hint-fn $ Fn (-> Unit) (:features :js-ffi)
+                hint-fn $ Fn (-> Unit) (:features :io :js-ffi :state)
                 render-loop! *loop
               , 200
             , &unit
